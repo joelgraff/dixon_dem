@@ -1,0 +1,27 @@
+config_version=5
+
+[application]
+config/name="Dixon"
+run/main_scene="res://world/world.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+
+[autoload]
+WorldState="*res://autoload/world_state.gd"
+
+[display]
+window/size/viewport_width=1600
+window/size/viewport_height=900
+
+[physics]
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+anti_aliasing/quality/screen_space_aa=1
+anti_aliasing/quality/use_taa=true
+textures/vram_compression/import_etc2_astc=false
+
+[shader_globals]
+snow_cover={"type":"float","value":0.0}
+wetness={"type":"float","value":0.0}
+season_foliage={"type":"float","value":0.0}
+wind_strength={"type":"float","value":0.2}

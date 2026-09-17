@@ -1,0 +1,10 @@
+.venv/
+.locks/
+dems/
+/*.png
+/*.tif
+data/raw/
+game/.godot/
+captures/
+*.import
+!game/**/*.png.import
