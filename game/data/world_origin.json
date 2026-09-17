@@ -1,0 +1,61 @@
+{
+  "crs": "EPSG:26916",
+  "origin_easting": 292300.0,
+  "origin_northing": 4634000.0,
+  "base_elevation_m": 192.0,
+  "size_m": 2700.0,
+  "godot_axis_convention": "x = east (easting - origin_easting), y = up (elevation_m - base_elevation_m), z = -north (-(northing - origin_northing))",
+  "heightmaps": {
+    "play": {
+      "file": "heightmap_play_1m.r32",
+      "road_conformed_file": "heightmap_play_1m_road_conformed.r32",
+      "format": "float32 little-endian, row-major, row 0 = north edge (max northing), col 0 = west edge (min easting)",
+      "width": 2700,
+      "height": 2700,
+      "spacing_m": 1.0,
+      "origin_easting": 292300.0,
+      "origin_northing_top": 4636700.0,
+      "elev_min_m": 192.5399932861328,
+      "elev_max_m": 233.37269592285156
+    },
+    "horizon": {
+      "file": "heightmap_horizon_12.5m.r32",
+      "format": "float32 little-endian, row-major, row 0 = north edge (max northing), col 0 = west edge (min easting)",
+      "width": 800,
+      "height": 800,
+      "spacing_m": 12.5,
+      "size_m": 10000.0,
+      "origin_easting": 288650.0,
+      "origin_northing_top": 4640350.0,
+      "elev_min_m": 193.5399932861328,
+      "elev_max_m": 256.6432800292969
+    }
+  },
+  "river_reaches": [
+    {
+      "id": "pond_3",
+      "pool_level_m": 212.3800048828125,
+      "pool_level_local_y": 20.3800048828125
+    },
+    {
+      "id": "pond_2",
+      "pool_level_m": 197.92999267578125,
+      "pool_level_local_y": 5.92999267578125
+    },
+    {
+      "id": "river_upstream",
+      "pool_level_m": 197.9199981689453,
+      "pool_level_local_y": 5.9199981689453125
+    },
+    {
+      "id": "river_downstream",
+      "pool_level_m": 195.5399932861328,
+      "pool_level_local_y": 3.5399932861328125
+    },
+    {
+      "id": "pond_0",
+      "pool_level_m": 198.4600067138672,
+      "pool_level_local_y": 6.4600067138671875
+    }
+  ]
+}

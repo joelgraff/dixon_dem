@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://materials/shaders/glass.gdshader" id="1"]
+
+[resource]
+resource_name = "window_glass"
+shader = ExtResource("1")
+shader_parameter/glass_tint = Color(0.62, 0.72, 0.74, 0.32)
+shader_parameter/glass_roughness = 0.09
+shader_parameter/frost_amount_mult = 1.0
+shader_parameter/pane_scale = Vector2(1.0, 1.0)

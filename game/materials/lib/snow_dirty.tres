@@ -1,0 +1,42 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=3]
+
+[ext_resource type="Shader" path="res://materials/shaders/surface.gdshader" id="id1"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_dirty/albedo.jpg" id="id2"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_dirty/normal.png" id="id3"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_dirty/roughness.jpg" id="id4"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_dirty/ao.jpg" id="id5"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/albedo.jpg" id="id6"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/normal.png" id="id7"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/roughness.jpg" id="id8"]
+
+[resource]
+resource_name = "snow_dirty"
+shader = ExtResource("id1")
+shader_parameter/albedo_tex = ExtResource("id2")
+shader_parameter/normal_tex = ExtResource("id3")
+shader_parameter/roughness_tex = ExtResource("id4")
+shader_parameter/ao_tex = ExtResource("id5")
+shader_parameter/snow_albedo_tex = ExtResource("id6")
+shader_parameter/snow_normal_tex = ExtResource("id7")
+shader_parameter/snow_roughness_tex = ExtResource("id8")
+shader_parameter/albedo_tint = Color(0.92, 0.93, 0.95, 1)
+shader_parameter/albedo_multiplier = 1.993
+shader_parameter/roughness_multiplier = 1.0
+shader_parameter/roughness_bias = 0.0
+shader_parameter/metallic = 0.0
+shader_parameter/macro_variation_strength = 0.12
+shader_parameter/macro_variation_scale = 0.08
+shader_parameter/uv_scale = Vector2(0.333, 0.333)
+shader_parameter/use_world_uv = true
+shader_parameter/triplanar = false
+shader_parameter/anti_tiling_enabled = true
+shader_parameter/anti_tiling_rotation = true
+shader_parameter/ground_level = 0.0
+shader_parameter/grime_height = 0.0
+shader_parameter/grime_strength = 0.0
+shader_parameter/edge_wear_amount = 0.0
+shader_parameter/snow_slope_bias = 0.2
+shader_parameter/snow_noise_scale = 0.1
+shader_parameter/porosity = 0.0
+shader_parameter/allow_puddles = false
+shader_parameter/puddle_scale = 0.05
