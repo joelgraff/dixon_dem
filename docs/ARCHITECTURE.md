@@ -29,9 +29,12 @@ Do **not** run git commands; the orchestrator commits.
 - Play area: ~2.5 × 2.5 km centered on downtown Dixon (Galena Ave bridge / Rock River). Beyond: low-detail horizon terrain.
 
 ## World conditions contract (`WorldState` autoload)
-- `season` (SPRING/SUMMER/AUTUMN/WINTER), `weather` (CLEAR/OVERCAST/RAIN/SNOW/BLIZZARD/FOG), `hour` (0–24), signal `changed`.
-- Global shader uniforms (declare with `global uniform float snow_cover;` etc.): `snow_cover` 0–1, `wetness` 0–1, `season_foliage` (0 summer green → 0.75 autumn → 1 bare/winter), `wind_strength` 0–1.
+- `season` (SPRING/SUMMER/AUTUMN/WINTER), `weather` (CLEAR/OVERCAST/RAIN/SNOW/BLIZZARD/FOG), `hour` (0–24), `day_of_year` (int, auto-set per season, latitude 41.84N solar position), signal `changed`.
+- `apply(season, weather, hour, transition:=0.0, day_of_year:=-1)` / `apply_named(season, weather, hour, transition:=0.0)`: `transition > 0` smoothly blends the continuous shader globals below over that many seconds instead of snapping (use for in-game changes; leave 0 for debug/instant cuts — the atmosphere rig also uses `WorldState.last_transition_duration` to match its own sky/fog blending to the same duration).
+- Global shader uniforms (declare with `global uniform float snow_cover;` etc.): `snow_cover` 0–1, `wetness` 0–1, `season_foliage` (0 summer green → 0.75 autumn → 1 bare/winter), `wind_strength` 0–1, `night_factor` 0–1 (0 = daylight, 1 = full night; ramps over civil twilight — drive emissive windows/streetlights with this, e.g. `EMISSION = light_color * night_factor`; see `game/atmosphere/shaders/window_demo.gdshader` for a worked example).
+- Prefer `WorldState.get_snow_cover()` / `get_wetness()` / `get_foliage()` / `get_wind_strength()` over `RenderingServer.global_shader_parameter_get()` when reading these from a script — the latter is an editor-only debug call and errors at runtime in exported/running games.
 - Every material that is outdoors must respond to `snow_cover` (snow on upward-facing surfaces) and `wetness` (darker albedo, lower roughness, puddles on flat ground where appropriate).
+- Instance `res://atmosphere/atmosphere.tscn` once per scene for the full lighting/sky/weather rig (sun+moon positioned by real solar geometry, procedural sky, SDFGI/volumetric+depth fog, weather particles). It reacts to `WorldState` automatically — see `docs/atmosphere_notes.md`.
 
 ## Visual verification
 `game/tools/capture.sh <res://scene.tscn> <abs shots.json> <abs out_dir> [warmup_frames]`

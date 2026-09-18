@@ -14,7 +14,9 @@ var _road_mat: StandardMaterial3D
 var _canopy_mat: StandardMaterial3D
 const _TERRAIN_BASE := Color(0.16, 0.22, 0.11)
 const _ROAD_BASE := Color(0.07, 0.07, 0.075)
-const _CANOPY_BASE := Color(0.16, 0.28, 0.1)
+const _CANOPY_SUMMER := Color(0.16, 0.28, 0.1)
+const _CANOPY_AUTUMN := Color(0.78, 0.38, 0.18) # ochre #C8622A-ish
+const _CANOPY_BARE := Color(0.3, 0.26, 0.22) # grey-brown twigs, mostly transparent
 const _SNOW_WHITE := Color(0.85, 0.87, 0.9)
 
 func _ready() -> void:
@@ -27,21 +29,33 @@ func _ready() -> void:
 	_build_river()
 	_build_hills()
 	_build_preview_camera()
-	WorldState.changed.connect(_update_snow_response)
-	_update_snow_response()
+	WorldState.changed.connect(_update_weather_response)
+	_update_weather_response()
 
-## Placeholder snow response for this throwaway diorama only — the real
-## materials workstream will wire snow_cover into the shared material shaders
-## per docs/ARCHITECTURE.md's contract. Just blends toward white here so
-## winter captures are legible.
-func _update_snow_response() -> void:
-	var s := WorldState.get_snow_cover()
+## Placeholder weather/season response for this throwaway diorama only — the
+## real materials/vegetation workstreams will wire snow_cover/wetness/
+## season_foliage into the shared material shaders per docs/ARCHITECTURE.md's
+## contract. Just blends colors here so captures are legible and the
+## atmosphere grade can actually be judged against something that reacts.
+func _update_weather_response() -> void:
+	var snow := WorldState.get_snow_cover()
+	var wet := WorldState.get_wetness()
+	var foliage := WorldState.get_foliage()
 	if _terrain_mat:
-		_terrain_mat.albedo_color = _TERRAIN_BASE.lerp(_SNOW_WHITE, s)
+		var terrain_wet: Color = _TERRAIN_BASE * lerp(1.0, 0.7, wet)
+		_terrain_mat.albedo_color = terrain_wet.lerp(_SNOW_WHITE, snow)
+		_terrain_mat.roughness = lerp(0.95, 0.6, wet) * (1.0 - snow * 0.3)
 	if _road_mat:
-		_road_mat.albedo_color = _ROAD_BASE.lerp(_SNOW_WHITE * 0.6, s * 0.6)
+		var road_wet: Color = _ROAD_BASE * lerp(1.0, 0.6, wet)
+		_road_mat.albedo_color = road_wet.lerp(_SNOW_WHITE * 0.6, snow * 0.6)
+		_road_mat.roughness = lerp(0.9, 0.25, wet) * (1.0 - snow * 0.5)
 	if _canopy_mat:
-		_canopy_mat.albedo_color = _CANOPY_BASE.lerp(_SNOW_WHITE, s * 0.7)
+		var canopy: Color = _CANOPY_SUMMER.lerp(_CANOPY_AUTUMN, clamp(foliage / 0.75, 0.0, 1.0))
+		canopy = canopy.lerp(_CANOPY_BARE, clamp((foliage - 0.75) / 0.25, 0.0, 1.0))
+		canopy = canopy.lerp(_SNOW_WHITE, snow * 0.6)
+		_canopy_mat.albedo_color = canopy
+		# summer full canopy -> bare branches (mostly-transparent) at foliage=1
+		_canopy_mat.albedo_color.a = lerp(1.0, 0.2, clamp((foliage - 0.75) / 0.25, 0.0, 1.0))
 
 func _ground_height(x: float, z: float) -> float:
 	var d := Vector2(x, z).length()
@@ -150,8 +164,9 @@ func _build_trees() -> void:
 	canopy_mesh.radius = 2.2
 	canopy_mesh.height = 4.2
 	_canopy_mat = StandardMaterial3D.new()
-	_canopy_mat.albedo_color = _CANOPY_BASE
+	_canopy_mat.albedo_color = _CANOPY_SUMMER
 	_canopy_mat.roughness = 0.9
+	_canopy_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	canopy_mesh.material = _canopy_mat
 
 	var trunk_mm := MultiMesh.new()

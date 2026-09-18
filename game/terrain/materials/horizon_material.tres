@@ -1,0 +1,28 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://terrain/shaders/horizon.gdshader" id="1_q0xdc"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/albedo.jpg" id="2_s5kr4"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/normal.png" id="3_0k38v"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/albedo.jpg" id="4_6nkwt"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/normal.png" id="5_5ajoh"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/roughness.jpg" id="6_qtwrm"]
+[ext_resource type="Texture2D" path="res://materials/textures/dry_grass/albedo.jpg" id="7_6vgc3"]
+[ext_resource type="Texture2D" path="res://materials/textures/dry_grass/normal.png" id="8_j3emn"]
+[ext_resource type="Texture2D" path="res://materials/textures/forest_floor/albedo.jpg" id="9_wfdb6"]
+[ext_resource type="Texture2D" path="res://materials/textures/forest_floor/normal.png" id="10_ema2n"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_q0xdc")
+shader_parameter/wild_albedo = ExtResource("7_6vgc3")
+shader_parameter/wild_normal = ExtResource("8_j3emn")
+shader_parameter/wood_albedo = ExtResource("9_wfdb6")
+shader_parameter/wood_normal = ExtResource("10_ema2n")
+shader_parameter/rock_albedo = ExtResource("2_s5kr4")
+shader_parameter/rock_normal = ExtResource("3_0k38v")
+shader_parameter/snow_albedo_tex = ExtResource("4_6nkwt")
+shader_parameter/snow_normal_tex = ExtResource("5_5ajoh")
+shader_parameter/snow_roughness_tex = ExtResource("6_qtwrm")
+shader_parameter/uv_scale = 0.03
+shader_parameter/macro_scale = 0.006
+shader_parameter/snow_albedo_multiplier = 1.767

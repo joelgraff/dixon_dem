@@ -30,8 +30,17 @@ float snow_mask(vec3 world_normal, vec3 world_pos, float snow_cover, float slope
 
 // Blend albedo/roughness/normal toward a snow set using the mask. Kept as a plain
 // function (not overloaded) so call sites stay explicit about what's blending.
+//
+// snow_albedo_multiplier: the raw snow texture sample must be corrected the same way
+// every other material's albedo is (see surface.gdshader's albedo_multiplier / iter1
+// measurement pass) — snow_fresh.tres uses ~1.75 to hit the ~0.8-0.9 linear target from
+// ART_DIRECTION.md. apply_snow applies that correction itself (clamped) so any caller
+// blending toward a raw snow texture gets the right brightness without repeating the
+// multiply-and-clamp at every call site.
 void apply_snow(inout vec3 albedo, inout float roughness, inout vec3 normal_ts,
-		vec3 snow_albedo, float snow_roughness, vec3 snow_normal_ts, float mask) {
+		vec3 snow_albedo_raw, float snow_roughness, vec3 snow_normal_ts, float mask,
+		float snow_albedo_multiplier) {
+	vec3 snow_albedo = clamp(snow_albedo_raw * snow_albedo_multiplier, 0.0, 0.9);
 	albedo = mix(albedo, snow_albedo, mask);
 	roughness = mix(roughness, snow_roughness, mask);
 	normal_ts = normalize(mix(normal_ts, snow_normal_ts, mask));

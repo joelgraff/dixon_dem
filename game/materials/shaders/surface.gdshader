@@ -35,6 +35,11 @@ group_uniforms SnowSet;
 uniform sampler2D snow_albedo_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D snow_normal_tex : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D snow_roughness_tex : filter_linear_mipmap, repeat_enable;
+// The raw snow texture sample gets this multiply (clamped to 0.9) before blending in —
+// see apply_snow() in snow.gdshaderinc. Default matches snow_fresh.tres's own
+// albedo_multiplier so snow always reads as bright regardless of which material it's
+// layered onto.
+uniform float snow_albedo_multiplier : hint_range(0.5, 3.0) = 1.75;
 
 group_uniforms TintAndMacro;
 uniform vec4 albedo_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
@@ -48,7 +53,7 @@ uniform float macro_variation_scale : hint_range(0.005, 1.0) = 0.08;
 group_uniforms Mapping;
 uniform vec2 uv_scale = vec2(1.0, 1.0); // tiles per meter (= 1 / meters-per-tile)
 uniform bool use_world_uv = true; // false = use mesh UV0 (for hand-unwrapped props/buildings)
-uniform bool triplanar = false;
+uniform bool triplanar = false; // also auto-enables when use_world_uv and this surface point isn't near-horizontal (see fragment())
 uniform bool anti_tiling_enabled = true;
 uniform bool anti_tiling_rotation = true; // disable for strongly directional grain (brick, siding, shingles, corrugated metal)
 
@@ -69,11 +74,16 @@ uniform float puddle_scale : hint_range(0.01, 1.0) = 0.06;
 
 varying vec3 v_world_pos;
 varying vec3 v_world_normal;
+varying vec3 v_world_tangent;
+varying vec3 v_world_binormal;
 
 void vertex() {
-	// world_vertex_coords render mode puts VERTEX/NORMAL in world space already.
+	// world_vertex_coords render mode puts VERTEX/NORMAL/TANGENT/BINORMAL in world
+	// space already.
 	v_world_pos = VERTEX;
 	v_world_normal = NORMAL;
+	v_world_tangent = TANGENT;
+	v_world_binormal = BINORMAL;
 }
 
 struct SurfaceSample {
@@ -105,7 +115,14 @@ void fragment() {
 	vec3 wn = normalize(v_world_normal);
 	SurfaceSample surf;
 
-	if (triplanar) {
+	// Auto-triplanar: a pure top-down world_pos.xz projection is only correct on
+	// near-horizontal faces. Any world-planar material used on a vertical or steeply
+	// sloped face (curb faces, roof edges/parapets, slab sides) would otherwise smear
+	// the texture along the "flat" axis — so fall back to triplanar automatically
+	// whenever the surface isn't close to flat, in addition to the explicit toggle.
+	bool use_triplanar = triplanar || (use_world_uv && abs(wn.y) < 0.7);
+
+	if (use_triplanar) {
 		vec3 bw = pow(abs(wn), vec3(4.0));
 		bw /= max(bw.x + bw.y + bw.z, 0.0001);
 		SurfaceSample sx = sample_material(v_world_pos.zy * uv_scale);
@@ -114,11 +131,22 @@ void fragment() {
 		surf.albedo = sx.albedo * bw.x + sy.albedo * bw.y + sz.albedo * bw.z;
 		surf.rough = sx.rough * bw.x + sy.rough * bw.y + sz.rough * bw.z;
 		surf.ao = sx.ao * bw.x + sy.ao * bw.y + sz.ao * bw.z;
-		// Simplified triplanar normal blend: weighted tangent-space sum + renormalize.
-		// Not axis-reoriented like a full Whiteout blend, but adequate for the
-		// near-planar ground patches this mode is meant for; walls/props should use
-		// use_world_uv=false with a real UV unwrap instead.
-		surf.normal_ts = normalize(sx.normal_ts * bw.x + sy.normal_ts * bw.y + sz.normal_ts * bw.z);
+
+		// Whiteout blend (Golus): reorient each plane's tangent-space normal into
+		// world space before blending, instead of averaging raw tangent-space
+		// vectors from three different projections (which is only valid if all three
+		// happened to share a tangent frame, which they don't).
+		vec3 axis_sign = sign(wn);
+		vec3 nx = vec3(sx.normal_ts.xy + wn.zy, sx.normal_ts.z * axis_sign.x);
+		vec3 ny = vec3(sy.normal_ts.xy + wn.xz, sy.normal_ts.z * axis_sign.y);
+		vec3 nz = vec3(sz.normal_ts.xy + wn.xy, sz.normal_ts.z * axis_sign.z);
+		vec3 world_n = normalize(nx.zyx * bw.x + ny.xzy * bw.y + nz.xyz * bw.z);
+		// Re-express back in this fragment's own tangent frame so the rest of the
+		// pipeline (grime/snow/wet, and Godot's NORMAL_MAP->lighting decode) can stay
+		// uniformly tangent-space regardless of which path ran.
+		vec3 T = normalize(v_world_tangent);
+		vec3 B = normalize(v_world_binormal);
+		surf.normal_ts = normalize(vec3(dot(world_n, T), dot(world_n, B), dot(world_n, wn)));
 	} else {
 		vec2 uv = use_world_uv ? (v_world_pos.xz * uv_scale) : (UV * uv_scale);
 		surf = sample_material(uv);
@@ -159,7 +187,7 @@ void fragment() {
 		vec3 s_alb = texture(snow_albedo_tex, suv).rgb;
 		float s_rough = texture(snow_roughness_tex, suv).r;
 		vec3 s_norm = texture(snow_normal_tex, suv).rgb * 2.0 - 1.0;
-		apply_snow(albedo, rough, normal_ts, s_alb, s_rough, s_norm, smask);
+		apply_snow(albedo, rough, normal_ts, s_alb, s_rough, s_norm, smask, snow_albedo_multiplier);
 		ao = mix(ao, 1.0, smask * 0.5);
 	}
 

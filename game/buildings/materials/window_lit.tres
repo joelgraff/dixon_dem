@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://buildings/shaders/window_lit.gdshader" id="1"]
+
+[resource]
+resource_name = "window_lit"
+shader = ExtResource("1")
+shader_parameter/glass_tint = Color(0.6, 0.7, 0.72, 0.38)
+shader_parameter/glass_roughness = 0.07
+shader_parameter/pane_scale = Vector2(1.0, 1.0)
+shader_parameter/emission_strength = 1.8

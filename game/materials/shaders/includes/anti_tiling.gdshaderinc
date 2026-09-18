@@ -21,18 +21,29 @@ vec2 anti_tile_uv(vec2 uv, bool allow_rotation, out float rot_id) {
 	vec2 f = fract(uv);
 	rot_id = 0.0;
 	vec2 rotated = f;
+	vec2 off;
 	if (allow_rotation) {
 		float h = hash21(cell);
 		rot_id = floor(h * 4.0);
 		vec2 centered = f - 0.5;
 		float ang = rot_id * 1.5707963268; // 0/90/180/270 deg
 		rotated = rotate2(centered, ang) + 0.5;
+		// Modest offset in both axes: fine for non-directional materials (stone,
+		// gravel, asphalt, grass, dirt, snow) where there's no coursing to break.
+		off = hash22(cell + vec2(11.0, 71.0)) * 1.3;
+	} else {
+		// Directional/coursed materials (brick, siding, shingles, corrugated metal):
+		// a per-cell offset in Y breaks mortar/lap-line continuity at every tile
+		// boundary, and an unquantized X offset misaligns vertical joints between
+		// columns. So: zero vertical offset (courses stay continuous top-to-bottom),
+		// and a horizontal offset that (a) depends only on cell.x, so it's constant
+		// for an entire column and doesn't create seams within it, and (b) is
+		// quantized to a coarse module so a column-to-column shift reads as an
+		// intentional coursing offset between wall sections, not a random jump.
+		float hx = hash21(vec2(cell.x, 0.0) + 11.0);
+		float steps = 6.0;
+		off = vec2(floor(hx * steps) / steps, 0.0);
 	}
-	// Modest offset: enough to desync the crack/grain pattern between neighboring
-	// cells so the repeat isn't obvious, but small enough that a cell rarely lands
-	// on a wildly atypical patch of the source photo (which would read as an odd
-	// "different tile" square glued into an otherwise-uniform surface).
-	vec2 off = hash22(cell + vec2(11.0, 71.0)) * 1.3;
 	return rotated + off;
 }
 

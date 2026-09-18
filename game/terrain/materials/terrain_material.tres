@@ -1,0 +1,73 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://terrain/shaders/terrain.gdshader" id="1_oiuhh"]
+[ext_resource type="Texture2D" path="res://materials/textures/gravel_ballast/albedo.jpg" id="2_ug0nb"]
+[ext_resource type="Texture2D" path="res://materials/textures/gravel_ballast/normal.png" id="3_fbbjo"]
+[ext_resource type="Texture2D" path="res://materials/textures/gravel_ballast/roughness.jpg" id="4_g8gh7"]
+[ext_resource type="Texture2D" path="res://materials/textures/grass_lawn/albedo.jpg" id="5_ak1j5"]
+[ext_resource type="Texture2D" path="res://materials/textures/grass_lawn/normal.png" id="6_w8isr"]
+[ext_resource type="Texture2D" path="res://materials/textures/grass_lawn/roughness.jpg" id="7_04ha6"]
+[ext_resource type="Texture2D" path="res://materials/textures/mud/albedo.jpg" id="8_nch6i"]
+[ext_resource type="Texture2D" path="res://materials/textures/mud/normal.png" id="9_qxwyn"]
+[ext_resource type="Texture2D" path="res://materials/textures/mud/roughness.jpg" id="10_27i5x"]
+[ext_resource type="Texture2D" path="res://materials/textures/asphalt_patched/albedo.jpg" id="11_jape8"]
+[ext_resource type="Texture2D" path="res://materials/textures/asphalt_patched/normal.png" id="12_7xr5n"]
+[ext_resource type="Texture2D" path="res://materials/textures/asphalt_patched/roughness.jpg" id="13_tae0o"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/albedo.jpg" id="14_u75xk"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/normal.png" id="15_hahd1"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/roughness.jpg" id="16_arpi4"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/albedo.jpg" id="17_xv78k"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/normal.png" id="18_gijle"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/roughness.jpg" id="19_pdjne"]
+[ext_resource type="Texture2D" path="res://terrain/textures/terrain_splat_a.png" id="20_rfu6o"]
+[ext_resource type="Texture2D" path="res://terrain/textures/terrain_splat_b.png" id="21_r4ge8"]
+[ext_resource type="Texture2D" path="res://materials/textures/dry_grass/albedo.jpg" id="22_u8hfi"]
+[ext_resource type="Texture2D" path="res://materials/textures/dry_grass/normal.png" id="23_ocsco"]
+[ext_resource type="Texture2D" path="res://materials/textures/dry_grass/roughness.jpg" id="24_wrqko"]
+[ext_resource type="Texture2D" path="res://materials/textures/forest_floor/albedo.jpg" id="25_7kdwv"]
+[ext_resource type="Texture2D" path="res://materials/textures/forest_floor/normal.png" id="26_shq83"]
+[ext_resource type="Texture2D" path="res://materials/textures/forest_floor/roughness.jpg" id="27_myb46"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_oiuhh")
+shader_parameter/splat_a = ExtResource("20_rfu6o")
+shader_parameter/splat_b = ExtResource("21_r4ge8")
+shader_parameter/splat_origin_m = Vector2(0, -2700)
+shader_parameter/splat_size_m = Vector2(2700, 2700)
+shader_parameter/lawn_albedo = ExtResource("5_ak1j5")
+shader_parameter/lawn_normal = ExtResource("6_w8isr")
+shader_parameter/lawn_rough = ExtResource("7_04ha6")
+shader_parameter/wild_albedo = ExtResource("22_u8hfi")
+shader_parameter/wild_normal = ExtResource("23_ocsco")
+shader_parameter/wild_rough = ExtResource("24_wrqko")
+shader_parameter/wood_albedo = ExtResource("25_7kdwv")
+shader_parameter/wood_normal = ExtResource("26_shq83")
+shader_parameter/wood_rough = ExtResource("27_myb46")
+shader_parameter/gravel_albedo = ExtResource("2_ug0nb")
+shader_parameter/gravel_normal = ExtResource("3_fbbjo")
+shader_parameter/gravel_rough = ExtResource("4_g8gh7")
+shader_parameter/mud_albedo = ExtResource("8_nch6i")
+shader_parameter/mud_normal = ExtResource("9_qxwyn")
+shader_parameter/mud_rough = ExtResource("10_27i5x")
+shader_parameter/paved_albedo = ExtResource("11_jape8")
+shader_parameter/paved_normal = ExtResource("12_7xr5n")
+shader_parameter/paved_rough = ExtResource("13_tae0o")
+shader_parameter/rock_albedo = ExtResource("14_u75xk")
+shader_parameter/rock_normal = ExtResource("15_hahd1")
+shader_parameter/rock_rough = ExtResource("16_arpi4")
+shader_parameter/snow_albedo_tex = ExtResource("17_xv78k")
+shader_parameter/snow_normal_tex = ExtResource("18_gijle")
+shader_parameter/snow_roughness_tex = ExtResource("19_pdjne")
+shader_parameter/uv_scale = 0.35
+shader_parameter/anti_tiling_enabled = false
+shader_parameter/macro_variation_strength = 0.16
+shader_parameter/macro_variation_scale = 0.015
+shader_parameter/rock_slope_lo = 0.55
+shader_parameter/rock_slope_hi = 0.82
+shader_parameter/rock_height_low_m = 8.0
+shader_parameter/rock_height_high_m = 30.0
+shader_parameter/curvature_strength = 1.2
+shader_parameter/snow_noise_scale = 0.1
+shader_parameter/snow_albedo_multiplier = 1.767
+shader_parameter/puddle_scale = 0.04

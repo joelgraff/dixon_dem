@@ -1,0 +1,29 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://terrain/shaders/water.gdshader" id="1_lodf5"]
+[ext_resource type="Texture2D" path="res://materials/textures/ice/albedo.jpg" id="2_wi12j"]
+[ext_resource type="Texture2D" path="res://materials/textures/ice/normal.png" id="3_cyl8b"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/albedo.jpg" id="4_7ydn5"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/normal.png" id="5_62lvl"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/roughness.jpg" id="6_bo0gu"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_lodf5")
+shader_parameter/ice_albedo = ExtResource("2_wi12j")
+shader_parameter/ice_normal = ExtResource("3_cyl8b")
+shader_parameter/snow_albedo_tex = ExtResource("4_7ydn5")
+shader_parameter/snow_normal_tex = ExtResource("5_62lvl")
+shader_parameter/snow_roughness_tex = ExtResource("6_bo0gu")
+shader_parameter/flow_dir = Vector2(1, 0)
+shader_parameter/is_pond = false
+shader_parameter/dam_point = Vector2(1000000, 1000000)
+shader_parameter/dam_dir = Vector2(0, 1)
+shader_parameter/shallow_color = Color(0.42, 0.5, 0.42, 1)
+shader_parameter/deep_color = Color(0.29, 0.35, 0.28, 1)
+shader_parameter/absorption_depth_m = 2.2
+shader_parameter/snow_albedo_multiplier = 1.767
+shader_parameter/ripple_scale = 0.12
+shader_parameter/ripple_speed = 0.35
+shader_parameter/swell_scale = 0.02
+shader_parameter/rain_ripple_scale = 0.6

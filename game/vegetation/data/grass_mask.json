@@ -1,0 +1,8 @@
+{
+  "width": 1350,
+  "height": 1350,
+  "px_per_m": 0.5,
+  "origin_x": 0.0,
+  "origin_z_top": 0.0,
+  "note": "pixel (0,0) = world (x=0,z=0); +col = +x east; +row = -z (south). R channel = mown-lawn density 0-1 (val/200 clamped), G channel = tall/unmown density 0-1 (val/210 clamped)."
+}

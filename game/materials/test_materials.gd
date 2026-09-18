@@ -8,11 +8,14 @@ const LIB := "res://materials/lib/"
 
 func _ready() -> void:
 	_build_light_rig()
+	_build_ground_plane()
 	_build_ground_row()
 	_build_road_assembly()
 	_build_wall_row()
 	_build_roof_row()
 	_build_bark()
+	_build_wide_brick_wall()
+	_build_reference_chart()
 
 func _mat(name: String) -> ShaderMaterial:
 	return load(LIB + name + ".tres")
@@ -81,6 +84,11 @@ func _build_light_rig() -> void:
 	env.environment = e
 	add_child(env)
 
+func _build_ground_plane() -> void:
+	# A single lot-sized ground plane so every swatch reads as sitting IN a place
+	# rather than floating disconnected panels in empty sky.
+	_plane(Vector2(30.0, 26.0), Vector3(9.0, -0.08, 8.5), _mat("dry_grass"))
+
 func _build_ground_row() -> void:
 	var names := ["grass_lawn", "dry_grass", "forest_floor", "gravel_ballast", "mud", "snow_fresh", "snow_dirty", "ice"]
 	var x := 0.0
@@ -123,33 +131,81 @@ func _build_wall_row() -> void:
 	_wall_chunk(x, z, _mat("siding_sage"), "siding_sage"); x += 3.0
 	_wall_chunk(x, z, _mat("steel_rusted"), "steel_rusted"); x += 3.0
 
-func _gable(x: float, z: float, mat: Material, name: String) -> void:
+## Builds a gable (two roof pitches meeting cleanly at a ridge line along Z).
+## Each panel is positioned so its ridge-side edge lands exactly on ridge_point —
+## get this wrong (e.g. rotate a centered box without correcting its offset) and the
+## two panels cross into an X instead of meeting, which is what iter1 shipped.
+func _gable(ridge_point: Vector3, mat: Material, name: String, half_span: float = 1.3, pitch_deg: float = 22.0, depth: float = 1.7) -> void:
+	var pitch_rad := deg_to_rad(pitch_deg)
+	var slope_len := half_span / cos(pitch_rad)
+	var dx := (slope_len * 0.5) * cos(pitch_rad)
+	var dy := (slope_len * 0.5) * sin(pitch_rad)
+
+	var right := MeshInstance3D.new()
+	var rm := BoxMesh.new(); rm.size = Vector3(slope_len, 0.08, depth)
+	right.mesh = rm
+	right.position = ridge_point + Vector3(dx, -dy, 0.0)
+	right.rotation_degrees = Vector3(0, 0, -pitch_deg)
+	right.set_surface_override_material(0, mat)
+	add_child(right)
+
 	var left := MeshInstance3D.new()
-	var lm := BoxMesh.new(); lm.size = Vector3(2.6, 0.08, 1.7)
+	var lm := BoxMesh.new(); lm.size = Vector3(slope_len, 0.08, depth)
 	left.mesh = lm
-	left.position = Vector3(x - 0.62, 1.55, z)
-	left.rotation_degrees = Vector3(0, 0, 22)
+	left.position = ridge_point + Vector3(-dx, -dy, 0.0)
+	left.rotation_degrees = Vector3(0, 0, pitch_deg)
 	left.set_surface_override_material(0, mat)
 	add_child(left)
 
-	var right := MeshInstance3D.new()
-	var rm := BoxMesh.new(); rm.size = Vector3(2.6, 0.08, 1.7)
-	right.mesh = rm
-	right.position = Vector3(x + 0.62, 1.55, z)
-	right.rotation_degrees = Vector3(0, 0, -22)
-	right.set_surface_override_material(0, mat)
-	add_child(right)
-	_label(name, Vector3(x, 2.4, z))
+	_label(name, ridge_point + Vector3(0, 0.85, 0))
 
 func _build_roof_row() -> void:
 	var z := 15.0
-	_gable(0.0, z, _mat("shingles_dark"), "shingles_dark")
-	_gable(3.5, z, _mat("roof_metal"), "roof_metal")
-	# flat membrane roof w/ a short parapet lip
-	_box(Vector3(2.4, 0.15, 1.8), Vector3(7.5, 0.85, z), _mat("roof_membrane"))
-	_box(Vector3(2.4, 0.3, 0.12), Vector3(7.5, 1.0, z - 0.84), _mat("roof_membrane"))
-	_box(Vector3(2.4, 0.3, 0.12), Vector3(7.5, 1.0, z + 0.84), _mat("roof_membrane"))
-	_label("roof_membrane", Vector3(7.5, 1.6, z))
+	var ridge_h := 1.55
+	# A short support wall under each gable so the roof reads as sitting on a
+	# structure rather than floating.
+	_box(Vector3(2.2, ridge_h - 0.9, 1.5), Vector3(0.0, (ridge_h - 0.9) * 0.5, z), _mat("siding_white"))
+	_gable(Vector3(0.0, ridge_h, z), _mat("shingles_dark"), "shingles_dark")
+	_box(Vector3(2.2, ridge_h - 0.9, 1.5), Vector3(3.5, (ridge_h - 0.9) * 0.5, z), _mat("siding_white"))
+	_gable(Vector3(3.5, ridge_h, z), _mat("roof_metal"), "roof_metal")
+	# flat membrane roof w/ a short parapet lip, on its own support wall
+	_box(Vector3(2.4, ridge_h - 0.7, 1.8), Vector3(7.5, (ridge_h - 0.7) * 0.5, z), _mat("siding_white"))
+	_box(Vector3(2.4, 0.15, 1.8), Vector3(7.5, ridge_h - 0.7 + 0.075, z), _mat("roof_membrane"))
+	_box(Vector3(2.4, 0.3, 0.12), Vector3(7.5, ridge_h - 0.7 + 0.22, z - 0.84), _mat("roof_membrane"))
+	_box(Vector3(2.4, 0.3, 0.12), Vector3(7.5, ridge_h - 0.7 + 0.22, z + 0.84), _mat("roof_membrane"))
+	_label("roof_membrane", Vector3(7.5, ridge_h + 0.6, z))
+
+## A 20m-wide, unbroken brick_red wall for critic-requested scale/tiling checks
+## (head-on at 3m close-up and 25m distant).
+func _build_wide_brick_wall() -> void:
+	var z := 22.0
+	_box(Vector3(20.0, 3.5, 0.3), Vector3(10.0, 1.75, z), _mat("brick_red"))
+	_label("brick_red_20m", Vector3(10.0, 3.9, z))
+
+func _chip(hex: String, pos: Vector3, label_text: String) -> void:
+	var mi := MeshInstance3D.new()
+	var m := PlaneMesh.new()
+	m.size = Vector2(0.4, 0.4)
+	mi.mesh = m
+	mi.position = pos
+	mi.rotation_degrees = Vector3(90, 0, 0) # stand the card up, normal facing +Z (toward cameras placed at larger Z looking back at -Z, as used throughout this scene)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color.html(hex)
+	mi.set_surface_override_material(0, mat)
+	add_child(mi)
+	_label(label_text, pos + Vector3(0, 0.35, 0))
+
+## Flat, unlit reference chips at the real target hex values (from ART_DIRECTION /
+## critic feedback) next to the materials they correspond to, for direct numeric
+## comparison in captures — see docs/materials_notes.md's iter2 measurement notes.
+func _build_reference_chart() -> void:
+	var z := 3.0
+	var x := 13.0
+	_chip("#9A5B45", Vector3(x, 0.6, z), "ref_brick_red"); x += 0.7
+	_chip("#C4A876", Vector3(x, 0.6, z), "ref_brick_buff"); x += 0.7
+	_chip("#5B7B3F", Vector3(x, 0.6, z), "ref_grass_lawn"); x += 0.7
+	_chip("#F1EFE8", Vector3(x, 0.6, z), "ref_siding_white")
 
 func _build_bark() -> void:
 	var mi := MeshInstance3D.new()

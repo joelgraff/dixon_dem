@@ -15,18 +15,19 @@ var _t_start_usec := 0
 var _cam: Camera3D
 
 func _ready() -> void:
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED) # uncapped reading
 	var args := {}
 	for a in OS.get_cmdline_user_args():
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		args[kv[0]] = kv[1] if kv.size() > 1 else "true"
-	var diorama: Node = preload("res://atmosphere/test_diorama.tscn").instantiate()
+	var diorama: Node = preload("res://atmosphere/test_atmosphere.tscn").instantiate()
 	diorama.set_meta("capture_mode", true) # suppress debug UI/keys, matches capture.sh runs
 	add_child(diorama)
 	_cam = Camera3D.new()
-	_cam.position = Vector3(0, 1.7, 10)
-	_cam.look_at(Vector3(0, 1.5, -200), Vector3.UP)
 	_cam.far = 4000.0
 	add_child(_cam)
+	_cam.position = Vector3(0, 1.7, 10)
+	_cam.look_at(Vector3(0, 1.5, -200), Vector3.UP)
 	_cam.make_current()
 	WorldState.apply_named(args.get("season", "winter"), args.get("weather", "blizzard"), float(args.get("hour", "13.0")))
 	print("perf_probe: warming up ", WARMUP_FRAMES, " frames...")
