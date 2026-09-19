@@ -27,13 +27,31 @@ func _run() -> void:
 	var shots: Array = JSON.parse_string(FileAccess.get_file_as_string(_args.get("shots", "")))
 	if shots == null:
 		push_error("capture: could not read shots json"); get_tree().quit(1); return
+	# Timing instrumentation: world build/load dominates capture cost, so report it separately
+	# from per-shot warmup cost. Use these numbers before tuning warmup or the capture.sh timeout.
+	var t_start := Time.get_ticks_msec()
 	var root: Node = load(scene_path).instantiate()
 	# Let scenes know they are being captured (e.g. player controller should not grab the camera/mouse).
 	root.set_meta("capture_mode", true)
 	add_child(root)
+	# Wait for deferred world build (terrain chunks, road/building bakes) to settle before timing shots.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	print("capture: scene load+instantiate %.1f s" % ((Time.get_ticks_msec() - t_start) / 1000.0))
+	# --hide=NodeA,NodeB : hide top-level systems (Terrain, Roads, Buildings, ...) for diagnosis,
+	# e.g. to tell "this surface is terrain" from "the road mesh is missing here".
+	if _args.has("hide"):
+		for n in str(_args["hide"]).split(","):
+			var node := root.find_child(n, true, false)
+			if node and node is Node3D:
+				(node as Node3D).visible = false
+				print("capture: hid node ", n)
+			else:
+				push_warning("capture: --hide node not found: " + n)
 	var cam := Camera3D.new()
 	add_child(cam)
 	for s in shots:
+		var t_shot := Time.get_ticks_msec()
 		WorldState.apply_named(s.get("season", "summer"), s.get("weather", "clear"), float(s.get("hour", 12.0)))
 		if s.has("wetness_override"):
 			RenderingServer.global_shader_parameter_set("wetness", float(s["wetness_override"]))
@@ -51,5 +69,6 @@ func _run() -> void:
 		var img := get_viewport().get_texture().get_image()
 		var path := out_dir.path_join(str(s["name"]) + ".png")
 		img.save_png(path)
-		print("capture: saved ", path)
+		print("capture: saved %s (%.1f s)" % [path, (Time.get_ticks_msec() - t_shot) / 1000.0])
+	print("capture: total %.1f s for %d shot(s)" % [(Time.get_ticks_msec() - t_start) / 1000.0, shots.size()])
 	get_tree().quit(0)

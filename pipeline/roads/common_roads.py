@@ -378,9 +378,20 @@ def point_and_dir_at(pts, target_dist):
 def fillet_arc(a, dir_a, b, dir_b, center, n=5):
     """Rounded corner from a to b (n points incl. endpoints), using the
     intersection of the two edge-direction rays as the bezier control point;
-    falls back to a straight line (via the midpoint control) if degenerate."""
+    falls back to a straight line (via the midpoint control) if degenerate.
+    The elbow's allowed distance from the chord scales with the chord length
+    (`a`-to-`b`) itself, not a fixed absolute value -- a junction mixing a
+    wide arterial with a narrow side street produces asymmetric fillets
+    (e.g. sidewalk rings at very different offsets meeting at a sharp angle)
+    whose "reasonable" elbow position is naturally further out than a fixed
+    threshold would allow for a small residential corner, and conversely a
+    fixed generous threshold let a bad elbow balloon a big loop into a wild,
+    street-covering bulge at a real intersection -- this is what produced the
+    visible pale gap/blob artifacts fixed in this pass."""
     elbow = line_intersect(a, (a[0] + dir_a[0], a[1] + dir_a[1]), b, (b[0] + dir_b[0], b[1] + dir_b[1]))
     mid = ((a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5)
-    if elbow is None or dist(elbow, center) > 60.0 or dist(elbow, mid) > 40.0:
+    chord = dist(a, b)
+    limit = max(10.0, chord * 1.2)
+    if elbow is None or dist(elbow, mid) > limit:
         elbow = mid
     return [quadratic_bezier(a, elbow, b, i / (n - 1)) for i in range(n)]

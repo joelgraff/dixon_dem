@@ -34,6 +34,103 @@
   (additive edit, one `ext_resource` + one `[node]` line) and into
   `game/roads/test_roads.tscn` (roads + `atmosphere.tscn`, no player needed).
 
+## Perf
+
+`game/roads/tools/perf_probe.gd`/`.tscn` (same pattern as terrain's own
+probe) measures composed-world FPS at a busy downtown street viewpoint
+(Galena & 1st looking toward the bridge, world/world.tscn = atmosphere +
+terrain + buildings + roads together). Run:
+`flock .locks/gpu.lock godot --path game --resolution 1600x900 res://roads/tools/perf_probe.tscn`
+(not headless — needs real rendering). Latest result: **89.7 fps / 11.15 ms**,
+comfortably above the 60 fps target.
+
+## Known issue: composed frames show terrain, not road, on straight runs
+
+Iter1 captures (`captures/roads/iter1/`) show correctly-grey, correctly-
+cracked asphalt right at junctions (where I'm standing exactly on an
+original OSM node), but on the straight ribbon *between* junctions the
+visible ground is the terrain's own material, not mine — confirmed by
+direct inspection of the baked chunk JSON: `asphalt_road_plowed` triangles
+genuinely exist there (verified vertex/triangle density along the camera's
+view ray, correct XZ span, correct Y matching `heightmap_play_1m_road_conformed.r32`
+via the exact same bilinear-sample code terrain's own `TerrainHeight.gd`
+uses) — the geometry is present and positioned correctly against the
+authoritative heightmap. I could not find a road-side explanation after
+extensive triangle/vertex-level inspection (ruled out: material caching,
+junction fillet degeneracy, pullback/gap bugs — fixed two real bugs of that
+kind along the way, see below, neither changed this symptom).
+
+Best-supported explanation, given the coordinator's own brief: terrain is
+mid-fix on a **"heightmap-vs-mesh scale"** bug — if terrain's currently-
+rendered surface doesn't sit exactly on the heightmap file (likely a coarser/
+simplified mesh deviating from the raw heightmap between its own sample
+points, especially on slopes — Galena drops ~3m over a few hundred meters
+here), a road sitting only +2.5cm above the *heightmap* (per spec) would be
+occluded by a terrain surface that's locally higher than the heightmap. This
+would also explain why it's fine exactly at surveyed OSM nodes (junctions)
+but not along my resampled in-between points. **This is a terrain-side,
+already-flagged, in-progress issue, not something I could fix from the roads
+side without either guessing at a much larger/riskier Y-bias (which would
+float roads once terrain's fix lands) or duplicating terrain's own mesh
+logic.** Action for whoever picks this up: after terrain's scale fix lands,
+re-run `pipeline/roads/build_road_plan.py` + `build_roads.sh` (no road-side
+change needed) and re-capture; if the mismatch persists, compare
+`TerrainHeight.get_height(x,z)` against terrain's actual rendered vertex Y
+at a few of these exact points (e.g. `(1594.97, -1338.5)`, mid-block on South
+Galena Ave, confirmed by chunk inspection to have `asphalt_road_plowed`
+coverage there) to quantify the divergence.
+
+One more, separate, rendering oddity noticed while chasing the above: the
+`galena_bridge_deck` capture shows the camera as if submerged (murky green,
+blurred) even positioned 3.5m above the bridge deck's actual Y (11.04, from
+`bridges.json`, well above the ~5.9 river pool level) — this points at the
+water system rendering some effect (a tall fog/volume, not just a thin pool
+plane) reaching higher than the nominal water surface near the bridge. Not a
+roads-owned file; flagging for the water/terrain owner.
+
+## Fixes made this session (materials + a real geometry bug)
+
+- **Marking materials were badly over-driven**: `marking_yellow`/`marking_white`
+  used `albedo_multiplier` 1.9–2.05 on top of an already-bright (0.72 mean)
+  concrete texture, clipping toward white — reduced to 1.25–1.35 (tint is
+  now the dominant color, texture/multiplier just add subtle variation) and
+  removed an unnecessary roughness drop.
+- **`_plowed` asphalt variants were glossier than the frozen originals**:
+  `roughness_multiplier`/`roughness_bias` had been dropped to sell a "wet
+  slushy" look, but that made the *driving surface specifically* catch more
+  sky/GI highlight year-round (not just when actually wet), reading pale
+  under the atmosphere haze-fix's brighter/clearer look — reverted to the
+  frozen roughness. `asphalt_patched_plowed` (residential/service/alley
+  surfaces — the majority of street area by way count) also got a modest
+  darken + slight cool tint since its base texture is measurably warmer/
+  lighter than `asphalt_road`'s.
+- **Real geometry bug, `pipeline/roads/build_road_plan.py`**: pullback (the
+  4–8 m curb-return trim at junction ends) was being applied to *every*
+  `junction_nodes` entry, including simple degree-2 "pass-through" points
+  where OSM just split a way at an interior shaping vertex with nothing
+  actually crossing it — most of the ~1750 post-split junction nodes are
+  this, not real corners. On short segments, 8 m off *each* end left
+  near-degenerate slivers. Fixed: only real (3+-way) junctions get the full
+  curb-return radius; degree-2 nodes get a small fixed 1 m pullback
+  (`pullback_for_node()`). Triangle count barely moved (843k → 847k), as
+  expected for a coordinate fix rather than a topology change.
+- **`fillet_arc`'s elbow-sanity threshold was a fixed 40–60 m**, which is
+  fine for a same-width residential 4-way but too loose for a junction
+  mixing very different widths (Galena's 8.2 m half-width vs. 1st St's
+  3.3 m) — a bad elbow point could still pass and balloon a sidewalk/curb
+  loop into a wide, wrongly-shaped bulge. Changed to scale with the fillet's
+  own chord length (`max(10.0, chord * 1.2)`) instead of a fixed value.
+- Junction asphalt-fan material selection now prefers the neutral
+  `asphalt_road(_plowed)` over the warmer `asphalt_patched(_plowed)` whenever
+  any connecting leg is a through-class road, rather than a plain majority
+  vote — a big mixed-class intersection fan rendered in the residential
+  "patched" material read as a blotchy pale patch.
+
+None of the above four fixes were confirmed (via re-capture) to be *the*
+cause of the pale/missing-road look in composed frames — that turned out to
+most likely be the terrain issue above — but all four are real, independently
+justified correctness fixes I'd keep regardless.
+
 ## Regenerating (whenever roads/bridges/rails/heightmap data changes)
 
 ```

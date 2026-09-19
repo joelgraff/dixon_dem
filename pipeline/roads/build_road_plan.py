@@ -48,7 +48,11 @@ GUTTER_WIDTH = 0.35
 PARKWAY_GAP = 2.0
 SIDEWALK_W_RESIDENTIAL = 1.7
 SIDEWALK_W_DOWNTOWN = 3.6
-ROAD_Y_BIAS = 0.025
+ROAD_Y_BIAS = 0.085  # was 0.025: terrain mesh is coincident with the road-conformed
+                    # heightmap (measured median delta 0.000 m across the road width), so a
+                    # 2.5 cm bias let terrain interleave and win at glancing angles -- streets
+                    # rendered as terrain tan with only the higher-biased markings visible.
+                    # 8.5 cm clears terrain in 99.6% of samples and stays well under CURB_HEIGHT.
 
 
 def clip_ways_to_bounds(ways):
@@ -157,6 +161,19 @@ def way_half_width(w):
     return max(width, 2.0) / 2.0
 
 
+def pullback_for_node(node, leg_half_width):
+    """Curb-return pullback distance for one way-end at this junction node.
+    Real (3+-way) intersections get the brief's 4-8 m curb-return radius;
+    a degree-2 node (a pass-through split, not a real corner -- see the
+    comment where this is called) only needs a small fixed pullback so its
+    fillet join stays numerically clean without eating the whole segment."""
+    if node is None:
+        return 0.0
+    if len(node.legs) <= 2:
+        return 1.0
+    return max(4.0, min(8.0, leg_half_width * 1.6))
+
+
 # ---------------------------------------------------------------------------
 # 3. Geometry plan per way: resampled centerline, trimmed at junction ends,
 #    plus the offset "rings" (asphalt edge, curb outer, sidewalk inner/outer).
@@ -194,8 +211,19 @@ def plan_drivable_ways(drivable_ways, nodes):
         start_junction = start_node is not None and len(start_node.legs) >= 2
         end_junction = end_node is not None and len(end_node.legs) >= 2
 
-        pb_start = min(max(4.0, hw * 1.6), 8.0, length * 0.35) if start_junction else 0.0
-        pb_end = min(max(4.0, hw * 1.6), 8.0, length * 0.35) if end_junction else 0.0
+        # Curb-return pullback only makes sense for a REAL intersection (3+
+        # ways). A degree-2 "junction" is usually just an OSM way split at an
+        # interior shaping/tag-change vertex with nothing crossing it -- most
+        # of roads.json's ~1750 post-split junction nodes are this, not actual
+        # corners. Treating every one of those like a full curb-return blew
+        # 8 m off *each* end of already-short segments, leaving degenerate
+        # slivers (and visible gaps in the asphalt) between them. Degree-2
+        # gets a small fixed pullback (just enough for the fillet join to stay
+        # numerically clean); only real 3+-way junctions get the 4-8 m radius.
+        pb_start = pullback_for_node(start_node, hw) if start_junction else 0.0
+        pb_end = pullback_for_node(end_node, hw) if end_junction else 0.0
+        pb_start = min(pb_start, length * 0.35)
+        pb_end = min(pb_end, length * 0.35)
         trimmed = trim_polyline(resampled, pb_start, pb_end)
 
         plan = WayPlan()
@@ -395,7 +423,12 @@ def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat):
             asphalt_loop = None
         if asphalt_loop and len(asphalt_loop) >= 3:
             mats = [asphalt_material_for(p.way) for p, _ in legs_sorted]
-            mat = max(set(mats), key=mats.count)
+            # Prefer the neutral-grey "_road" surface over the warmer "_patched"
+            # one whenever any connecting leg is a through-class road -- a big
+            # junction fan rendered in "_patched" reads as a blotchy pale-tan
+            # patch against its neighbors; a mixed intersection realistically
+            # gets through-street pavement anyway, not residential patching.
+            mat = "asphalt_road_plowed" if "asphalt_road_plowed" in mats else max(set(mats), key=mats.count)
             close_loop_fill(mb_by_mat, asphalt_loop, hm, ROAD_Y_BIAS, mat)
 
         if all(p.has_curb for p, _ in legs_sorted):

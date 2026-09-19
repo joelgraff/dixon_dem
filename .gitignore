@@ -8,3 +8,6 @@ game/.godot/
 captures/
 *.import
 !game/**/*.png.import
+game/roads/_build/
+game/buildings/_build/
+game/terrain/cache/
