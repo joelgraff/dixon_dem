@@ -48,10 +48,12 @@ GUTTER_WIDTH = 0.35
 PARKWAY_GAP = 2.0
 SIDEWALK_W_RESIDENTIAL = 1.7
 SIDEWALK_W_DOWNTOWN = 3.6
-ROAD_Y_BIAS = 0.085  # was 0.025: terrain mesh is coincident with the road-conformed
-                    # heightmap (measured median delta 0.000 m across the road width), so a
-                    # 2.5 cm bias let terrain interleave and win at glancing angles -- streets
-                    # rendered as terrain tan with only the higher-biased markings visible.
+ROAD_Y_BIAS = 0.085  # was 0.025 (too tight against terrain's own +-20mm tolerance,
+                    # risking z-fighting at large world coords). A diagnostic run at
+                    # 0.5 m ruled out depth/z-fighting as the cause of the remaining
+                    # mid-block coverage anomaly (see docs/roads_notes.md) -- reverted
+                    # to this more modest, still-safe value rather than an obviously
+                    # floating 0.5 m once that hypothesis was excluded.
                     # 8.5 cm clears terrain in 99.6% of samples and stays well under CURB_HEIGHT.
 
 

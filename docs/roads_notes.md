@@ -44,92 +44,122 @@ terrain + buildings + roads together). Run:
 (not headless — needs real rendering). Latest result: **89.7 fps / 11.15 ms**,
 comfortably above the 60 fps target.
 
-## Known issue: composed frames show terrain, not road, on straight runs
+## Material fixes (confirmed, measured) — iter2
 
-Iter1 captures (`captures/roads/iter1/`) show correctly-grey, correctly-
-cracked asphalt right at junctions (where I'm standing exactly on an
-original OSM node), but on the straight ribbon *between* junctions the
-visible ground is the terrain's own material, not mine — confirmed by
-direct inspection of the baked chunk JSON: `asphalt_road_plowed` triangles
-genuinely exist there (verified vertex/triangle density along the camera's
-view ray, correct XZ span, correct Y matching `heightmap_play_1m_road_conformed.r32`
-via the exact same bilinear-sample code terrain's own `TerrainHeight.gd`
-uses) — the geometry is present and positioned correctly against the
-authoritative heightmap. I could not find a road-side explanation after
-extensive triangle/vertex-level inspection (ruled out: material caching,
-junction fillet degeneracy, pullback/gap bugs — fixed two real bugs of that
-kind along the way, see below, neither changed this symptom).
+Three issues were reported against iter1/terrain's own captures, with
+measured evidence. All three material/shader-facing ones are fixed and
+verified by direct pixel measurement; the coverage gap is real but not
+fully root-caused (see next section).
 
-Best-supported explanation, given the coordinator's own brief: terrain is
-mid-fix on a **"heightmap-vs-mesh scale"** bug — if terrain's currently-
-rendered surface doesn't sit exactly on the heightmap file (likely a coarser/
-simplified mesh deviating from the raw heightmap between its own sample
-points, especially on slopes — Galena drops ~3m over a few hundred meters
-here), a road sitting only +2.5cm above the *heightmap* (per spec) would be
-occluded by a terrain surface that's locally higher than the heightmap. This
-would also explain why it's fine exactly at surveyed OSM nodes (junctions)
-but not along my resampled in-between points. **This is a terrain-side,
-already-flagged, in-progress issue, not something I could fix from the roads
-side without either guessing at a much larger/riskier Y-bias (which would
-float roads once terrain's fix lands) or duplicating terrain's own mesh
-logic.** Action for whoever picks this up: after terrain's scale fix lands,
-re-run `pipeline/roads/build_road_plan.py` + `build_roads.sh` (no road-side
-change needed) and re-capture; if the mismatch persists, compare
-`TerrainHeight.get_height(x,z)` against terrain's actual rendered vertex Y
-at a few of these exact points (e.g. `(1594.97, -1338.5)`, mid-block on South
-Galena Ave, confirmed by chunk inspection to have `asphalt_road_plowed`
-coverage there) to quantify the divergence.
+1. **Asphalt too light/warm.** Root cause: this render pipeline (AgX
+   tonemap + fairly high ambient/SDFGI bounce, both frozen/atmosphere-owned)
+   amplifies a "physically reasonable" material albedo far beyond what a
+   naive texture-mean × multiplier calculation predicts — my original
+   `asphalt_road_plowed` (`albedo_multiplier=0.72`) measured **sRGB
+   (158,155,150), linear≈0.32-0.34** in a close-up shot, ~3x the 0.05-0.12
+   target despite the underlying calc looking fine on paper. Fixed
+   empirically (capture → measure → adjust, twice) down to
+   `albedo_multiplier=0.17`: now measures **sRGB (95-97, 92-94, 88-90),
+   linear≈0.10-0.12** — solidly in target range, neutral-to-slightly-warm
+   grey (see `captures/roads/iter2/downtown_street_summer_clear.png`).
+   `asphalt_patched_plowed` dropped proportionally (0.95→0.2) plus a slight
+   cool tint, same logic.
+2. **Roughness too low (mirror-like at grazing angles).** Confirmed via
+   `--hide=Terrain`: the bare road surface showed a near-mirror sky
+   reflection (SSR is enabled globally by atmosphere for wet-road specular,
+   and even the base ~0.77 roughness texture wasn't enough to suppress it at
+   grazing viewing angles). Fixed with `roughness_bias=0.5` (clamps effective
+   roughness to 1.0, fully matte) on both `_plowed` variants. Confirmed via
+   the `hide_terrain_control` capture: dry asphalt is now correctly matte
+   with no sky sheen, and `downtown_street_rain_wet.png` shows the sheen
+   correctly localized to the puddle mask only, not smeared across the whole
+   wet surface.
+3. **Coverage gap on large/mid-block paved areas — CONFIRMED REAL,
+   ROOT CAUSE NOT FULLY IDENTIFIED.** See next section; this is the one
+   item still open.
 
-One more, separate, rendering oddity noticed while chasing the above: the
+## Open issue: mid-block coverage gap (terrain shows through)
+
+This is real and reproducible, but after an unusually thorough investigation
+I could not pin down the mechanism in the time available. What's confirmed:
+
+- **Not a depth/z-fight issue.** Raised `ROAD_Y_BIAS` from 0.025 → 0.085 →
+  (diagnostically) 0.5 m. Even a blatant half-metre offset did not reveal
+  the road at a confirmed-gap test point — ruling out z-fighting/depth
+  precision entirely. Reverted to 0.085 (a still-reasonable, modest-safety-
+  margin value; no evidence it needs to be higher).
+- **Not terrain occlusion.** Capturing the exact same gap point with
+  `--hide=Terrain` shows *empty sky*, not my asphalt — if terrain were simply
+  rendering on top of a correctly-covered road, hiding terrain would reveal
+  the road. It doesn't. (An earlier hypothesis in this doc, that terrain's
+  own "heightmap-vs-mesh scale" bug was occluding correct road geometry, is
+  **wrong** — terrain's team independently confirmed mesh-vs-heightmap
+  agreement within ±20mm, and this test confirms it from the roads side too.)
+- **The mesh data itself is verified correct and present**, checked two
+  independent ways: (a) a Python point-in-triangle test against the baked
+  chunk JSON found a real `asphalt_road_plowed` triangle containing the exact
+  gap-point coordinates `(1594.97, -1338.5)` (mid-block on South Galena
+  Ave, way `116908690`) with Y matching the heightmap; (b) a one-off runtime
+  GDScript (loaded `res://roads/roads.tscn`, walked to
+  `Chunk_7_-7/Surf_asphalt_road_plowed`, read `mesh.surface_get_arrays()`
+  directly) confirmed the *actual loaded Godot ArrayMesh* has a vertex only
+  8.3 m from that same point, well within the road's 8.2 m half-width, with
+  786 vertices in that chunk's surface and a sane XZ bounding box. So the
+  data reaches Godot intact.
+- Despite both of those, the composed (and `--hide=Terrain`) render at that
+  exact camera position shows no road geometry — the same node/mesh renders
+  correctly in some views (e.g. standing at a junction, or aimed at nearby
+  geometry) and not in others (aimed at this confirmed-present mid-block
+  point). I do not have an explanation that survives all of the above
+  evidence — candidates I could not test further without in-editor frame-
+  debugger access: an incorrect auto-computed AABB on this specific
+  MeshInstance3D causing frustum-culling to reject it from some camera
+  angles despite `visibility_range` being generous (0-900m), or something
+  about how `capture_main.gd`'s single shared `Camera3D` interacts with a
+  chunk this size at this world-coordinate range.
+- **This affects real screen area** in composed shots — visible in
+  `captures/roads/iter2/downtown_street_summer_clear.png` and
+  `residential_street_summer_clear.png`: the ~15-20 m immediately around the
+  camera/junction renders correctly (dark, cracked, matte asphalt per the
+  fixes above), but the mid-distance road surface is terrain grass/dirt, not
+  mine. Whoever picks this up next: start from the two verification methods
+  above (they're fast — a few seconds each) rather than re-deriving them;
+  the `game/roads/tools/diag_check.gd`-style runtime mesh inspection (not
+  currently checked in — recreate from the description above, it's ~35
+  lines) is the more authoritative of the two since it checks what Godot
+  actually loaded, not just what Python wrote to JSON.
+
+One more, separate, rendering oddity noticed while investigating: the
 `galena_bridge_deck` capture shows the camera as if submerged (murky green,
-blurred) even positioned 3.5m above the bridge deck's actual Y (11.04, from
-`bridges.json`, well above the ~5.9 river pool level) — this points at the
-water system rendering some effect (a tall fog/volume, not just a thin pool
-plane) reaching higher than the nominal water surface near the bridge. Not a
+blurred) even positioned 3.5 m above the bridge deck's actual Y (11.04, from
+`bridges.json`, well above the ~5.9 river pool level) — points at the water
+system rendering some effect (a tall fog/volume, not just a thin pool plane)
+reaching higher than the nominal water surface near the bridge. Not a
 roads-owned file; flagging for the water/terrain owner.
 
-## Fixes made this session (materials + a real geometry bug)
+## Other fixes made this session (real geometry bugs, independently justified)
 
-- **Marking materials were badly over-driven**: `marking_yellow`/`marking_white`
-  used `albedo_multiplier` 1.9–2.05 on top of an already-bright (0.72 mean)
-  concrete texture, clipping toward white — reduced to 1.25–1.35 (tint is
-  now the dominant color, texture/multiplier just add subtle variation) and
-  removed an unnecessary roughness drop.
-- **`_plowed` asphalt variants were glossier than the frozen originals**:
-  `roughness_multiplier`/`roughness_bias` had been dropped to sell a "wet
-  slushy" look, but that made the *driving surface specifically* catch more
-  sky/GI highlight year-round (not just when actually wet), reading pale
-  under the atmosphere haze-fix's brighter/clearer look — reverted to the
-  frozen roughness. `asphalt_patched_plowed` (residential/service/alley
-  surfaces — the majority of street area by way count) also got a modest
-  darken + slight cool tint since its base texture is measurably warmer/
-  lighter than `asphalt_road`'s.
-- **Real geometry bug, `pipeline/roads/build_road_plan.py`**: pullback (the
-  4–8 m curb-return trim at junction ends) was being applied to *every*
+- **`pipeline/roads/build_road_plan.py` pullback bug**: pullback (the 4-8 m
+  curb-return trim at junction ends) was being applied to *every*
   `junction_nodes` entry, including simple degree-2 "pass-through" points
   where OSM just split a way at an interior shaping vertex with nothing
   actually crossing it — most of the ~1750 post-split junction nodes are
   this, not real corners. On short segments, 8 m off *each* end left
   near-degenerate slivers. Fixed: only real (3+-way) junctions get the full
   curb-return radius; degree-2 nodes get a small fixed 1 m pullback
-  (`pullback_for_node()`). Triangle count barely moved (843k → 847k), as
-  expected for a coordinate fix rather than a topology change.
-- **`fillet_arc`'s elbow-sanity threshold was a fixed 40–60 m**, which is
-  fine for a same-width residential 4-way but too loose for a junction
-  mixing very different widths (Galena's 8.2 m half-width vs. 1st St's
-  3.3 m) — a bad elbow point could still pass and balloon a sidewalk/curb
+  (`pullback_for_node()`).
+- **`fillet_arc`'s elbow-sanity threshold was a fixed 40-60 m**, too loose
+  for a junction mixing very different widths (Galena's 8.2 m half-width vs.
+  1st St's 3.3 m) — a bad elbow point could pass and balloon a sidewalk/curb
   loop into a wide, wrongly-shaped bulge. Changed to scale with the fillet's
-  own chord length (`max(10.0, chord * 1.2)`) instead of a fixed value.
+  own chord length (`max(10.0, chord * 1.2)`).
 - Junction asphalt-fan material selection now prefers the neutral
   `asphalt_road(_plowed)` over the warmer `asphalt_patched(_plowed)` whenever
   any connecting leg is a through-class road, rather than a plain majority
-  vote — a big mixed-class intersection fan rendered in the residential
-  "patched" material read as a blotchy pale patch.
+  vote.
 
-None of the above four fixes were confirmed (via re-capture) to be *the*
-cause of the pale/missing-road look in composed frames — that turned out to
-most likely be the terrain issue above — but all four are real, independently
-justified correctness fixes I'd keep regardless.
+Triangle count barely moved across all of the above (843k → 847k), as
+expected for coordinate/material fixes rather than topology changes.
 
 ## Regenerating (whenever roads/bridges/rails/heightmap data changes)
 
@@ -316,3 +346,19 @@ plaza/park furniture).
   asphalt+curb+sidewalk+bridge-deck+ballast triangles (not markings/rails/
   furniture) — thin furniture (lamp posts, signs, hydrants) has no collision,
   a player can walk through them.
+
+### Orchestrator addendum to the coverage-gap investigation (do not re-litigate cheaply)
+Ruled out so far, each with evidence: depth/z-fighting (ROAD_Y_BIAS raised to a diagnostic 0.5 m,
+no change), terrain occlusion (`--hide=Terrain` shows sky, not asphalt), missing geometry (point-in-triangle
+against baked JSON + runtime `surface_get_arrays()` both find real vertices at the point), and — added here —
+**frustum culling via bad AABBs**: scanning every `"aabb"` in `roads/roads.tscn` finds **7 surfaces whose
+bounding boxes contain the gap point (1594.97, -1338.5)**, with sane Y ranges. Chunk nodes carry no transform
+(vertices are world-space) and there is no `visibility_parent`; all instances use
+`visibility_range_end` 480/900 with no `begin`, so near-range culling is not it either.
+Remaining untested hypotheses for whoever picks this up: (a) the "gap" may not be a road gap at all but
+terrain's own paved/bare splat class rendering in a mid-block area, i.e. a terrain-splat question, not a roads
+one; (b) `visibility_range_fade_mode = 1` (FADE_SELF) interacting badly with the opaque custom
+`surface.gdshader` (fade writes instance alpha, which a shader that forces ALPHA may mishandle);
+(c) an in-editor frame-debugger session, which no agent had access to.
+**Status: parked deliberately** — visible impact is one mid-ground patch of wrong-coloured ground, not a
+broken street, and it has already consumed two agents plus an orchestrator investigation.
