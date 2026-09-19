@@ -37,8 +37,8 @@ APPROX_COLOR = {
     "brick_cream": (0.80, 0.71, 0.55),
     "siding_white": (0.90, 0.88, 0.83),
     "siding_sage": (0.60, 0.65, 0.56),
-    "siding_blue": (0.69, 0.79, 0.83),
-    "siding_butter": (0.91, 0.86, 0.67),
+    "siding_blue": (0.75, 0.80, 0.82),
+    "siding_butter": (0.82, 0.78, 0.70),
     "siding_gray": (0.75, 0.75, 0.75),
     "limestone": (0.80, 0.78, 0.70),
     "stone_foundation": (0.55, 0.53, 0.48),
@@ -50,9 +50,16 @@ APPROX_COLOR = {
     "trim_dark": (0.16, 0.14, 0.12),
 }
 
-BRICK_KEYS = ["brick_red", "brick_red", "brick_rose", "brick_dark", "brick_buff", "brick_cream"]
-CIVIC_BRICK_KEYS = ["brick_buff", "brick_cream", "brick_red"]
-SIDING_KEYS = ["siding_white", "siding_white", "siding_blue", "siding_butter", "siding_gray", "siding_sage"]
+# Weighted toward the real Midwest vernacular (docs/references/dixon_vernacular.md):
+# red-brown/buff brick dominates downtown, white/muted-gray siding dominates
+# residential streets -- pastel accents (blue/butter/sage) stay rare accents,
+# not a random rainbow (coordinator composed-frame review, 2026-09-19: pastel
+# blue/yellow/pink variety was reading too saturated/random at distance).
+BRICK_KEYS = ["brick_red", "brick_red", "brick_red", "brick_buff", "brick_buff",
+              "brick_dark", "brick_rose", "brick_cream"]
+CIVIC_BRICK_KEYS = ["brick_buff", "brick_buff", "brick_cream", "brick_red"]
+SIDING_KEYS = ["siding_white", "siding_white", "siding_white", "siding_white",
+               "siding_gray", "siding_gray", "siding_sage", "siding_blue", "siding_butter"]
 SHINGLE_KEYS = ["shingles_dark", "shingles_dark", "shingles_brown"]
 
 AWNING_COLORS = [

@@ -7,3 +7,12 @@
 6. Check Godot logs for SCRIPT ERROR/ERROR after every run.
 7. Write/refresh docs/<workstream>_notes.md (what exists, how to regenerate, how other systems integrate, perf).
 8. Final report ≤250 words: what changed, capture directory, measured FPS if relevant, known weaknesses. An independent harsh critic will review; expect iteration requests.
+
+## Waiting for the GPU capture lock (important)
+Captures are serialized by a flock and several agents may be queued, so a capture run can take far longer
+than the Bash tool's 10-minute foreground cap. Don't poll in a loop and don't just stop and wait. Do this:
+1. Launch the capture detached, writing a marker when it finishes:
+   `nohup bash -c 'game/tools/capture.sh <scene> <shots.json> <outdir> <warmup> > <outdir>.log 2>&1; echo done > <outdir>.marker' >/dev/null 2>&1 &`
+2. Then arm ONE notification with Bash `run_in_background`:
+   `until [ -f <outdir>.marker ]; do sleep 10; done` — you are re-invoked when it exits.
+3. On wake, check the log for `SCRIPT ERROR`/`ERROR`, then review the PNGs with Read.

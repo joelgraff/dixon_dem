@@ -207,18 +207,29 @@ func _build_profiles() -> void:
 	# vol_length / vol_sky_affect / aerial / sky_affect: fog shape tuning.
 	weather_profiles = {
 		WorldState.Weather.CLEAR: {
+			# Retuned with the real town in view: "visibility" feeds
+			# _env.fog_density = 3.0/visibility (95% extinction at that
+			# range). 5000m gave 59% opacity by 1500m and 21% by 400m —
+			# "washed to near-white" from the 1500m-altitude town overview,
+			# milky at 200-400m street level. A real Midwest clear day sees
+			# 20-40km; 30000m (mid-range) gives ~14% haze at 1500m and ~4%
+			# at 400m — legible town, subtle near-field aerial perspective.
 			"cloud_coverage": 0.28, "cloud_darkness": 0.05, "direct_scale": 1.0,
-			"fog_density": 0.0003, "visibility": 5000.0, "depth_begin": 300.0,
+			"fog_density": 0.0003, "visibility": 30000.0, "depth_begin": 500.0,
 			"vol_length": 64.0, "vol_sky_affect": 0.0,
-			"aerial": 0.25, "sky_affect": 0.1, "shadow_opacity": 1.0, "precip": 0.0,
+			"aerial": 0.15, "sky_affect": 0.08, "shadow_opacity": 1.0, "precip": 0.0,
 			"fog_color": Color(0.68, 0.76, 0.86),
 			"fog_h": 60.0, "height_density": 0.0, "sun_scatter": 0.25, "anisotropy": 0.2,
 		},
 		WorldState.Weather.OVERCAST: {
+			# Proportionally the same fix as CLEAR: overcast (no rain/fog)
+			# still sees 10-20km in reality. 16000m keeps it visibly hazier
+			# than CLEAR's 30000m (haze is part of the overcast mood) without
+			# the old 2600m's near-white wash at range.
 			"cloud_coverage": 0.95, "cloud_darkness": 0.55, "direct_scale": 0.12,
-			"fog_density": 0.0013, "visibility": 2600.0, "depth_begin": 120.0,
+			"fog_density": 0.0013, "visibility": 16000.0, "depth_begin": 350.0,
 			"vol_length": 80.0, "vol_sky_affect": 0.0,
-			"aerial": 0.2, "sky_affect": 0.15, "shadow_opacity": 1.0, "precip": 0.0,
+			"aerial": 0.14, "sky_affect": 0.12, "shadow_opacity": 1.0, "precip": 0.0,
 			"fog_color": Color(0.58, 0.60, 0.63),
 			"fog_h": 60.0, "height_density": 0.0, "sun_scatter": 0.25, "anisotropy": 0.2,
 		},

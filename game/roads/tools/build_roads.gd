@@ -72,6 +72,7 @@ func _run() -> void:
 
 	var root := Node3D.new()
 	root.name = "Roads"
+	root.set_script(load("res://roads/roads.gd"))
 
 	var chunks: Array = manifest["chunks"]
 	var n := 0

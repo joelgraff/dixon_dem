@@ -139,7 +139,11 @@ def main():
         tags = b.get("tags", {}) or {}
         arche = classify.classify(tags, cx, cz, area)
         counts[arche] = counts.get(arche, 0) + 1
-        ground_y = b.get("ground_y_min", 0.0)
+        # Resample ground level from the same road-conformed heightmap terrain.gd
+        # renders from (rather than trusting buildings.json's own ground_y_min,
+        # which may have been sampled from a slightly different pass) so
+        # buildings sit flush with the now-live terrain mesh.
+        ground_y = sampler.sample(cx, cz)
         height_m = b.get("height_m")
         bid = b.get("id")
         rng = rng_for("bld", bid)

@@ -15,11 +15,16 @@ const BUILD_DIR := "res://buildings/_build/"
 const MANIFEST := BUILD_DIR + "manifest.json"
 const OUT_SCENE := "res://buildings/buildings.tscn"
 
-const NEAR_END := 380.0
-const NEAR_FADE_MARGIN := 30.0
-const FAR_BEGIN := 340.0
-const FAR_END := 2400.0
-const FAR_FADE_MARGIN := 30.0
+## Real facade detail (storefront/window/cornice rhythm) stays visible out to
+## ~700m so a 200-400m street/across-the-river view still reads as a real
+## building, not a flat HLOD box (coordinator composed-frame review,
+## 2026-09-19). The near mesh is cheap (whole-town near LOD is ~300k tris
+## merged into ~10 materials/chunk), so this costs little on the RX 580.
+const NEAR_END := 700.0
+const NEAR_FADE_MARGIN := 60.0
+const FAR_BEGIN := 640.0
+const FAR_END := 2600.0
+const FAR_FADE_MARGIN := 60.0
 
 
 func _init() -> void:
