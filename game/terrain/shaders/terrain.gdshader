@@ -70,6 +70,28 @@ uniform sampler2D rock_albedo : source_color, filter_linear_mipmap, repeat_enabl
 uniform sampler2D rock_normal : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D rock_rough : filter_linear_mipmap, repeat_enable;
 
+// Raw textures read too bright/desaturated for ART_DIRECTION's linear-albedo
+// ranges (grass ~0.10-0.25 etc.) straight out of the JPGs -- mirrors the same
+// per-material tint/multiplier correction materials/lib/*.tres applies via
+// surface.gdshader's albedo_tint/albedo_multiplier (see materials_notes.md).
+// Defaults here match the current lib/*.tres values; terrain.gd also sets
+// them explicitly so a re-tune only needs updating in one of the two places.
+group_uniforms LayerCorrection;
+uniform vec4 lawn_tint : source_color = vec4(0.55, 0.95, 0.12, 1.0);
+uniform float lawn_albedo_mult : hint_range(0.0, 3.0) = 0.44;
+uniform vec4 wild_tint : source_color = vec4(0.75, 0.68, 0.45, 1.0);
+uniform float wild_albedo_mult : hint_range(0.0, 3.0) = 0.75;
+uniform vec4 wood_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float wood_albedo_mult : hint_range(0.0, 3.0) = 0.79;
+uniform vec4 gravel_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float gravel_albedo_mult : hint_range(0.0, 3.0) = 1.4;
+uniform vec4 mud_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float mud_albedo_mult : hint_range(0.0, 3.0) = 1.326;
+uniform vec4 paved_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float paved_albedo_mult : hint_range(0.0, 3.0) = 1.31;
+uniform vec4 rock_tint : source_color = vec4(0.85, 0.85, 0.82, 1.0);
+uniform float rock_albedo_mult : hint_range(0.0, 3.0) = 1.0; // no lib/stone_rough.tres to mirror; conservative estimate
+
 group_uniforms SnowSet;
 uniform sampler2D snow_albedo_tex : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D snow_normal_tex : hint_normal, filter_linear_mipmap, repeat_enable;
@@ -89,8 +111,8 @@ uniform float uv_scale : hint_range(0.05, 2.0) = 0.35; // tiles per meter, share
 uniform bool anti_tiling_enabled = false;
 
 group_uniforms MacroAndSlope;
-uniform float macro_variation_strength : hint_range(0.0, 0.5) = 0.16;
-uniform float macro_variation_scale : hint_range(0.001, 0.5) = 0.015; // low freq: whole play area
+uniform float macro_variation_strength : hint_range(0.0, 0.5) = 0.3;
+uniform float macro_variation_scale : hint_range(0.001, 0.5) = 0.008; // low freq (~125m patches): whole play area
 uniform float rock_slope_lo : hint_range(0.0, 1.0) = 0.55; // slope factor where rock starts blending in
 uniform float rock_slope_hi : hint_range(0.0, 1.0) = 0.82;
 uniform float rock_height_low_m : hint_range(0.0, 60.0) = 8.0; // above this local Y, bluffs favor rock at lower slope
@@ -162,9 +184,13 @@ void fragment() {
 	float slope_hi = mix(rock_slope_hi, rock_slope_lo, height_t); // bluffs expose rock more readily
 	// Curvature proxy: how fast the world normal changes across the pixel footprint
 	// (screen-space derivative) -- high at ridgelines, creek cuts, road-carved edges.
+	// Weighted down from 0.35 -- road-conformed corridors (flattened, then
+	// feathered back to raw terrain at the shoulder per pipeline_notes.md)
+	// have a real slope discontinuity at that feather edge, which read as an
+	// unwanted streak of exposed rock along road shoulders before roads
+	// existed to justify it.
 	float curvature = (length(dFdx(wn)) + length(dFdy(wn))) * curvature_strength;
-	float rock_t = 0.0; // DEBUG: temporarily disabled
-	//float rock_t = clamp(smoothstep(rock_slope_lo, slope_hi, slope) + curvature * 0.35, 0.0, 0.92);
+	float rock_t = clamp(smoothstep(rock_slope_lo, slope_hi, slope) + curvature * 0.12, 0.0, 0.92);
 	rock_t *= (1.0 - w_paved) * (1.0 - w_gravel); // never sprout rock through pavement/ballast
 
 	float keep = 1.0 - rock_t;
@@ -177,6 +203,13 @@ void fragment() {
 	SurfaceSample l_mud = sample_layer(mud_albedo, mud_normal, mud_rough, uv * 1.1, true);
 	SurfaceSample l_paved = sample_layer(paved_albedo, paved_normal, paved_rough, uv * 0.9, false);
 	SurfaceSample l_rock = sample_layer(rock_albedo, rock_normal, rock_rough, uv * 0.7, true);
+	l_lawn.albedo *= lawn_tint.rgb * lawn_albedo_mult;
+	l_wild.albedo *= wild_tint.rgb * wild_albedo_mult;
+	l_wood.albedo *= wood_tint.rgb * wood_albedo_mult;
+	l_gravel.albedo *= gravel_tint.rgb * gravel_albedo_mult;
+	l_mud.albedo *= mud_tint.rgb * mud_albedo_mult;
+	l_paved.albedo *= paved_tint.rgb * paved_albedo_mult;
+	l_rock.albedo *= rock_tint.rgb * rock_albedo_mult;
 
 	vec3 albedo = l_lawn.albedo * w_lawn + l_wild.albedo * w_wild + l_wood.albedo * w_wood
 			+ l_gravel.albedo * w_gravel + l_mud.albedo * w_mud + l_paved.albedo * w_paved
@@ -218,19 +251,20 @@ void fragment() {
 
 	// --- weather: wetness (rain darkening + puddles in flat low ground) ---
 	float wet_eff = wetness * (1.0 - smask * 0.9);
+	float spec = 0.5;
 	if (wet_eff > 0.0) {
 		float porosity = mix(0.55, 0.15, w_paved + rock_t); // paving/rock barely darkens vs. soil
 		apply_wetness_darkening(albedo, rough, wet_eff, porosity);
 		float pmask = puddle_mask(wn, v_world_pos, wet_eff, puddle_scale) * (w_mud * 0.6 + w_paved + w_wild * 0.2);
 		if (pmask > 0.0) {
-			apply_puddle(albedo, rough, normal_ts, clamp(pmask, 0.0, 1.0));
+			apply_puddle(albedo, rough, normal_ts, clamp(pmask, 0.0, 1.0), spec);
 		}
 	}
 
-	ALBEDO = vec3(1.0, 0.0, 0.0); // DEBUG
-	//ALBEDO = albedo;
+	ALBEDO = albedo;
 	ROUGHNESS = clamp(rough, 0.03, 1.0);
 	METALLIC = 0.0;
+	SPECULAR = spec;
 	AO = ao;
 	AO_LIGHT_AFFECT = 0.5;
 	NORMAL_MAP = normal_ts * 0.5 + 0.5;

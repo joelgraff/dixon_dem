@@ -262,3 +262,122 @@ game/tools/capture.sh res://materials/test_materials.tscn <shots.json> captures/
 - Exposure/brightness of light-colored materials (concrete, gravel, snow) depends heavily
   on the atmosphere workstream's WorldEnvironment/tonemap, which was still being iterated
   on concurrently — re-check materials once atmosphere settles.
+
+## iter3 (critic-fix pass, avg 4.5 → addressed all findings, measured with PIL)
+
+Captures in `captures/materials/iter3/`. **API changes other workstreams should know
+about:**
+- `anti_tile_uv(uv, allow_rotation, out rot_id)` signature unchanged, but now returns
+  the UV **unmodified** when `allow_rotation=false` (previously applied a column-offset
+  that broke coursing — see below). New function `anti_tile_blend(uv, allow_rotation,
+  out uv_a, out uv_b, out rot_a, out rot_b, out weight)` is the real fix: a genuine
+  2-grid stochastic blend for non-directional materials — sample every map at both UVs
+  and `mix(sample_a, sample_b, weight)`. Use this instead of the single-tap function for
+  anything that should tile seamlessly (ground/terrain splats especially).
+- `apply_snow(...)` gained a required trailing `snow_albedo_multiplier` argument (added
+  in iter2, unchanged since).
+- New `module_variation(module_uv, amount)` in `anti_tiling.gdshaderinc` — per-brick/
+  per-board color variation for directional materials, since neither rotation nor
+  offset can hide their repeat without breaking coursing.
+- `surface.gdshader` gained `normal_strength`, `separate_mortar`, `mortar_color`,
+  `mortar_saturation_threshold`, `module_uv_scale`, `module_variation_amount` uniforms
+  (all optional, default off/neutral — existing `.tres` files using only the old
+  uniforms are unaffected).
+- `wetness.gdshaderinc`'s `apply_wetness_darkening`/`puddle_mask`/`apply_puddle`
+  signatures are unchanged, but the internal curves changed significantly (see below) —
+  re-check anything tuned against the old response.
+- `game/tools/capture/capture_main.gd` (shared harness, not materials-owned) gained
+  optional `wetness_override`/`snow_cover_override` fields in shots.json, applied after
+  `WorldState.apply_named()` so weather/lighting can stay fixed while isolating a single
+  global — needed to prove a weather response without confounding it with a lighting
+  change. Purely additive; omitting the fields is unchanged behavior.
+
+**Findings and fixes, with measurements:**
+
+1. **Wetness invisible; the iter2 proof shot was invalid** (it varied weather, not
+   wetness — confounded with lighting). Root cause: `apply_wetness_darkening` pulled
+   roughness broadly toward 0.1 across the *whole* wet surface, not just puddles; that
+   turned the surface into a soft mirror that picked up enough ambient/sky light to
+   offset the albedo darkening in a full-frame average. Fixed: base wet response is now
+   a stronger, proportional darkening (albedo ×0.38–0.55 at full wetness) with only a
+   *mild* proportional roughness drop (×0.7); the strong near-mirror response is now
+   puddle-only (`puddle_mask`/`apply_puddle`, roughness floor 0.05). Raised
+   `puddle_scale` 0.05→0.35 on `asphalt_road`/`sidewalk_concrete` (0.05 gave ~20m noise
+   cells — a small test patch landed entirely inside or outside one). Proof:
+   `wet_sweep_{0,050,100}.png` — same overcast weather/hour/camera, only
+   `wetness_override` changed via the new capture-harness field. Measured asphalt
+   region: sRGB 81.3 → 75.8 → 70.1 (mono­tonic, −14% at full wetness), with a visible
+   puddle/reflection blob in the 100% shot. `wet_grazing_sky.png` shows a visible sheen
+   band along the wet road at a low grazing angle.
+2. **Brick repeated exactly (seam at a tile edge, r=0.74 left/right correlation) and
+   mortar was tinted the same as the brick.** Root cause: even with rotation off, the
+   per-cell offset still varied per column and wasn't a multiple of the brick's own
+   repeat, breaking coursing at the boundary — and a straight `albedo_tint` multiply
+   colors mortar along with brick. Fixed: directional materials
+   (`anti_tiling_rotation=false`) now get **no UV transform at all**; the repeat is
+   masked by real per-brick variation instead (`module_variation`, keyed off the
+   texture's actual brick-module UV size). `separate_mortar=true` on both brick
+   materials: mortar/grout is identified by low saturation and held at a fixed neutral
+   `mortar_color`, so only brick pixels get tinted or varied. Measured: `brick_red_flat_4tiles.png`
+   left/right-half correlation dropped 0.74 → 0.46, no visible seam.
+3. **Color overshoot**: `brick_red` sat 0.67→ retuned tint `(1.05,0.70,0.58)`×0.75,
+   measured sat **0.555** (target 0.55), hue 16.7° (target 15.5°). `brick_buff` retuned
+   tint `(1.0,0.85,0.60)`×0.95, measured hue 37.0° sat 0.354 val 0.706 (target hue 38.5°
+   sat 0.40 val 0.77). `grass_lawn` (was pastel lime, sRGB 152,189,124) retuned tint
+   `(0.55,0.95,0.12)`×0.44, measured sRGB 93,132,71, hue 98.3° sat 0.463 val 0.517
+   (target sRGB 91,123,63 / hue 92° / sat 0.49 / val 0.48) — close on all four axes.
+   Verified against real lit grey reference cards (see #10), not unlit hex chips.
+4. **Snow still measured mid-grey (~135–140 sRGB), comparison shot buried the
+   sidewalk.** Root cause: the snow-overlay blend-in code path (used when *other*
+   materials transition to snow) sampled `snow_albedo_tex` directly with a single hard
+   tap, bypassing both the albedo-multiplier fix *and* any tiling blend — a second,
+   separate bug from iter2's headline fix. Now uses the same `anti_tile_blend` 2-grid
+   blend as everything else. `snow_vs_concrete_card.png`: snow_fresh ground measured
+   sRGB 157–165, brighter than the 0.8-albedo reference card (149–152) and clearly
+   brighter than a snow-immune "dry concrete" reference card (122–128).
+5. **Shingle courses ran down the slope instead of across it.** The mesh-UV axis
+   assumption was backwards. Added an explicit `v_is_downslope` toggle instead of
+   guessing again; empirically confirmed correct orientation in
+   `shingles_gable_front.png` (bands now run parallel to the eave). Also added a
+   `wn.y < 0.3` fascia guard (edge/rake faces render a plain dark board instead of a
+   stretched procedural pattern) and lowered granule noise frequency 55→22 (the high
+   frequency was aliasing into streaky diagonal artifacts at grazing roof angles, which
+   is part of why the orientation looked wrong in the first close-up check).
+6. **Siding still read as bare/stained wood** (grain and knots visible even after
+   desaturating). Desaturation alone doesn't remove *luminance* grain. Reprocessed the
+   source with a horizontal box blur (grain runs along the board length) before
+   desaturating, and added `normal_strength=0.4` (60% bump reduction) plus
+   `roughness_bias=0.45` to push roughness into the 0.55–0.65 painted-look range.
+   `siding_window_close_2m.png` now shows clean flat lap boards.
+7. **Glass was a see-through grey veil.** Rewrote `glass.gdshader` fully opaque: dark
+   "interior" albedo (sRGB ~30–45) with a low-roughness Fresnel/specular sky response
+   instead of alpha blending, plus a thin painted frame inset from the pane edge.
+8. **Lot ground (`dry_grass`) read as beach sand.** Retinted `dry_grass` toward olive-
+   brown, and — more importantly — switched the test scene's lot ground plane to
+   `grass_lawn` (a Midwest yard is grass, not bare dirt); `lot_ground_mid.png`.
+9. **20m brick wall was a flat, unvaried field (std 5.8).** Raised `macro_variation_strength`
+   0.1→0.15 and `grime_strength` 0.3→0.25 (grime height narrowed to stay near-ground) on
+   both brick materials; combined with the new per-brick `module_variation`,
+   `brick_wide_3m`/`brick_wide_25m` now show real tonal variation across the span.
+10. **Reference chart was invalid** (unlit chips go through the same AgX tonemap as
+    everything else, so they don't measure as their hex value). Replaced with lit,
+    normally-shaded grey cards at known **linear** albedo (0.04/0.18/0.5/0.8 — a Godot
+    `Color` is used as linear by the renderer, so `Color(v,v,v)` directly gives linear
+    reflectance `v`, no conversion needed) via `_card()`/`_build_reference_chart()` in
+    `test_materials.gd`, placed next to grass_lawn, the road, and the snow field for
+    in-frame comparison, plus a fixed non-weather-reactive "dry concrete" card for the
+    snow comparison specifically. Labels shrunk (34→26pt) and chips spaced 0.9m apart to
+    stop overlapping.
+11. Also fixed (harness-adjacent, noted by the critic as not materials' fault but
+    cheap to fix here): the sidewalk/curb floating gap (lot ground plane raised from
+    y=-0.08 to y=-0.01) and the crossed-X gable geometry bug carried a stale note in
+    this file — corrected in iter2, holds.
+
+**Known residual weaknesses:** wetness's effect, while now real and monotonic, is still
+visually subtle under soft overcast light (physically expected — the dramatic "wet
+glint" needs a strong directional highlight; verify again under clear/sun weather if the
+critic wants a more dramatic look). Brick module variation is a hash-based approximation,
+not per-actual-brick-boundary — very close bricks within one hashed cell still share a
+tone. `v_is_downslope` on `shingles_dark.tres` is calibrated to this test scene's
+specific gable mesh; any other roof mesh's UV convention should be verified the same way
+(don't assume the default is universal).

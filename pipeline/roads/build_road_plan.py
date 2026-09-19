@@ -325,10 +325,14 @@ def close_loop_fill(mb_by_mat, loop, hm, y_bias, material_tag):
 
 
 def asphalt_material_for(w):
+    # "_plowed" variants (game/roads/materials/) reuse the frozen shared
+    # asphalt textures/shader but resist snow accumulation (very negative
+    # snow_slope_bias) so winter driving lanes read as plowed/wet-dark against
+    # full-coverage snow on curbs/sidewalks -- see docs/roads_notes.md.
     cls = w["tags"].get("highway")
     if cls in ("residential", "service", "track"):
-        return "asphalt_patched"
-    return "asphalt_road"
+        return "asphalt_patched_plowed"
+    return "asphalt_road_plowed"
 
 
 def build_way_surfaces(plans, hm, mb_by_mat):
@@ -584,6 +588,31 @@ def build_furniture(plans, hm, furniture):
             ry = math.atan2(dz, dx)
             furniture.setdefault("manhole", []).append([x, y, z, ry])
         manhole_phase = (manhole_phase + 53.0) % 150.0
+
+        # Windrows (plowed-snow piles) run both sides, right at the curb's
+        # outer face; leaf litter drifts along the gutter, inside the curb.
+        # Both are static geometry -- roads.gd toggles visibility by season.
+        windrow_off = plan.half_w + CURB_WIDTH + 0.18
+        gutter_off = plan.half_w - GUTTER_WIDTH * 0.6
+        n_wind = max(0, int(total // 1.8))
+        n_leaf = max(0, int(total // 7.0))
+        for side in (1.0, -1.0):
+            for i in range(n_wind):
+                d = 1.8 * 0.5 + i * 1.8
+                x, z, dx, dz = point_and_dir_at(full, d)
+                px, pz = x - dz * windrow_off * side, z + dx * windrow_off * side
+                y = hm.sample(px, pz)
+                ry = math.atan2(dz, dx)
+                furniture.setdefault("windrow", []).append([px, y, pz, ry])
+            for i in range(n_leaf):
+                d = 7.0 * 0.5 + i * 7.0 + side * 2.0
+                if d < 0 or d >= total:
+                    continue
+                x, z, dx, dz = point_and_dir_at(full, d)
+                px, pz = x - dz * gutter_off * side, z + dx * gutter_off * side
+                y = hm.sample(px, pz) + ROAD_Y_BIAS + 0.002
+                ry = math.atan2(dz, dx)
+                furniture.setdefault("leaf_litter", []).append([px, y, pz, ry])
 
 
 def build_stop_signs(nodes, plan_by_way_id, downtown_node_ids, hm, furniture):

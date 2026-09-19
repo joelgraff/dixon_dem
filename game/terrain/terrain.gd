@@ -55,15 +55,13 @@ func _ready() -> void:
 	var water_node := Node3D.new()
 	water_node.name = "Water"
 	add_child(water_node)
-	if false: # DEBUG toggle
-		_build_water(water_node)
+	_build_water(water_node)
 	var t_water := Time.get_ticks_msec()
 
 	var horizon_node := Node3D.new()
 	horizon_node.name = "Horizon"
 	add_child(horizon_node)
-	if false: # DEBUG toggle
-		_build_horizon(horizon_node)
+	_build_horizon(horizon_node)
 	var t_horizon := Time.get_ticks_msec()
 
 	perf = {
@@ -102,13 +100,31 @@ func _build_terrain_material() -> ShaderMaterial:
 		mat.set_shader_parameter(prefix + "_normal", _tex(tex_name, "normal.png"))
 		mat.set_shader_parameter(prefix + "_rough", _tex(tex_name, "roughness.jpg"))
 
+	# Raw JPGs read too bright for ART_DIRECTION's linear-albedo ranges;
+	# mirrors materials/lib/*.tres's albedo_tint/albedo_multiplier correction
+	# (see materials_notes.md) -- re-sync these if that workstream retunes.
+	# stone_rough has no lib/*.tres (materials didn't build one); estimated.
+	var correction := {
+		"lawn": [Color(0.55, 0.95, 0.12), 0.44],
+		"wild": [Color(0.75, 0.68, 0.45), 0.75],
+		"wood": [Color(1, 1, 1), 0.79],
+		"gravel": [Color(1, 1, 1), 1.4],
+		"mud": [Color(1, 1, 1), 1.326],
+		"paved": [Color(1, 1, 1), 1.31],
+		"rock": [Color(0.85, 0.85, 0.82), 1.0],
+	}
+	for prefix in correction:
+		mat.set_shader_parameter(prefix + "_tint", correction[prefix][0])
+		mat.set_shader_parameter(prefix + "_albedo_mult", correction[prefix][1])
+
 	mat.set_shader_parameter("snow_albedo_tex", _tex("snow_fresh", "albedo.jpg"))
 	mat.set_shader_parameter("snow_normal_tex", _tex("snow_fresh", "normal.png"))
 	mat.set_shader_parameter("snow_roughness_tex", _tex("snow_fresh", "roughness.jpg"))
+	mat.set_shader_parameter("snow_albedo_multiplier", 1.778)
 
 	var path := MAT_DIR + "terrain_material.tres"
 	ResourceSaver.save(mat, path)
-	return load(path) as ShaderMaterial
+	return mat # saved above; keep the in-memory instance (resource_path is now set for ext_resource reuse by mesh caching)
 
 func _build_horizon_material() -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
@@ -122,9 +138,16 @@ func _build_horizon_material() -> ShaderMaterial:
 	mat.set_shader_parameter("snow_albedo_tex", _tex("snow_fresh", "albedo.jpg"))
 	mat.set_shader_parameter("snow_normal_tex", _tex("snow_fresh", "normal.png"))
 	mat.set_shader_parameter("snow_roughness_tex", _tex("snow_fresh", "roughness.jpg"))
+	mat.set_shader_parameter("snow_albedo_multiplier", 1.778)
+	mat.set_shader_parameter("wild_tint", Color(0.75, 0.68, 0.45))
+	mat.set_shader_parameter("wild_albedo_mult", 0.75)
+	mat.set_shader_parameter("wood_tint", Color(1, 1, 1))
+	mat.set_shader_parameter("wood_albedo_mult", 0.79)
+	mat.set_shader_parameter("rock_tint", Color(0.85, 0.85, 0.82))
+	mat.set_shader_parameter("rock_albedo_mult", 1.0)
 	var path := MAT_DIR + "horizon_material.tres"
 	ResourceSaver.save(mat, path)
-	return load(path) as ShaderMaterial
+	return mat
 
 func _build_water_material() -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
@@ -136,7 +159,7 @@ func _build_water_material() -> ShaderMaterial:
 	mat.set_shader_parameter("snow_roughness_tex", _tex("snow_fresh", "roughness.jpg"))
 	var path := MAT_DIR + "water_material.tres"
 	ResourceSaver.save(mat, path)
-	return load(path) as ShaderMaterial
+	return mat
 
 # ---------------------------------------------------------------------------
 # Play-area chunks (LOD0/LOD1 render meshes + 1m collision), cached to disk
@@ -185,18 +208,22 @@ func _build_chunks(parent: Node3D, mat: ShaderMaterial) -> void:
 
 			var chunk := Node3D.new()
 			chunk.name = key
+			# Chunk mesh vertices are baked chunk-local (see _build_grid_mesh);
+			# position the node at the chunk's actual world location so
+			# visibility_range (measured from this transform's origin, not the
+			# mesh's baked AABB) and frustum culling use the real distance to
+			# the camera instead of the distance to world (0,0,0) for every
+			# chunk alike.
+			chunk.position = Vector3(x0, 0.0, z0)
 			parent.add_child(chunk)
 
 			var mi0 := MeshInstance3D.new()
 			mi0.name = "LOD0"
 			mi0.mesh = lod0
-			var dbgmat := StandardMaterial3D.new() # DEBUG
-			dbgmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			dbgmat.albedo_color = Color(1, 0, 1)
-			mi0.set_surface_override_material(0, dbgmat)
-			#mi0.visibility_range_end = LOD0_VISIBLE_END
-			#mi0.visibility_range_end_margin = LOD_FADE
-			#mi0.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			mi0.set_surface_override_material(0, mat)
+			mi0.visibility_range_end = LOD0_VISIBLE_END
+			mi0.visibility_range_end_margin = LOD_FADE
+			mi0.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 			chunk.add_child(mi0)
 
 			var mi1 := MeshInstance3D.new()
@@ -210,7 +237,7 @@ func _build_chunks(parent: Node3D, mat: ShaderMaterial) -> void:
 
 			var body := StaticBody3D.new()
 			body.name = "Collision"
-			body.position = Vector3(x0 + CHUNK_SIZE * 0.5, 0.0, z0 + CHUNK_SIZE * 0.5)
+			body.position = Vector3(CHUNK_SIZE * 0.5, 0.0, CHUNK_SIZE * 0.5) # relative to chunk's own origin now
 			var cshape := CollisionShape3D.new()
 			cshape.shape = col_shape
 			body.add_child(cshape)
@@ -218,9 +245,16 @@ func _build_chunks(parent: Node3D, mat: ShaderMaterial) -> void:
 	print("terrain: chunks built=%d loaded_from_cache=%d" % [built, loaded])
 
 ## Grid mesh for one square chunk. `stride` meters/vertex, world_vertex_coords
-## shader convention (VERTEX is world-space). A skirt ring (extra verts
-## dropped by skirt_depth) hides cracks against neighboring chunks at a
-## different LOD tier.
+## shader convention (VERTEX is world-space once the parent chunk Node3D's
+## transform -- positioned at (x0,0,z0) by _build_chunks -- is applied).
+## Vertices are baked CHUNK-LOCAL (0..size), not world-absolute: Godot's
+## visibility_range/frustum culling measure distance from this node's own
+## transform origin, so baking world-absolute positions under an identity
+## transform would make every chunk (near or far) report the same distance
+## (to world (0,0,0)) instead of its true distance to the camera. Height
+## lookups still use true world (x0+local, z0+local) coordinates. A skirt
+## ring (extra verts dropped by skirt_depth) hides cracks against
+## neighboring chunks at a different LOD tier.
 func _build_grid_mesh(x0: float, z0: float, size: float, stride: float, skirt_depth: float) -> ArrayMesh:
 	var n := int(round(size / stride)) + 1
 	var verts := PackedVector3Array()
@@ -228,25 +262,27 @@ func _build_grid_mesh(x0: float, z0: float, size: float, stride: float, skirt_de
 	verts.resize(n * n)
 	uvs.resize(n * n)
 	for row in n:
-		var z := z0 + row * stride
+		var z_local := row * stride
+		var z_world := z0 + z_local
 		for col in n:
-			var x := x0 + col * stride
-			var h: float = TerrainHeightScript.get_height(x, z)
+			var x_local := col * stride
+			var x_world := x0 + x_local
+			var h: float = TerrainHeightScript.get_height(x_world, z_world)
 			var idx := row * n + col
-			verts[idx] = Vector3(x, h, z)
+			verts[idx] = Vector3(x_local, h, z_local)
 			uvs[idx] = Vector2(float(col) / float(n - 1), float(row) / float(n - 1))
 
 	var normals := PackedVector3Array()
 	normals.resize(n * n)
 	for row in n:
-		var z := z0 + row * stride
+		var z_world := z0 + row * stride
 		for col in n:
 			var idx := row * n + col
-			var x := x0 + col * stride
-			var h_l: float = verts[idx - 1].y if col > 0 else TerrainHeightScript.get_height(x - stride, z)
-			var h_r: float = verts[idx + 1].y if col < n - 1 else TerrainHeightScript.get_height(x + stride, z)
-			var h_d: float = verts[idx - n].y if row > 0 else TerrainHeightScript.get_height(x, z - stride)
-			var h_u: float = verts[idx + n].y if row < n - 1 else TerrainHeightScript.get_height(x, z + stride)
+			var x_world := x0 + col * stride
+			var h_l: float = verts[idx - 1].y if col > 0 else TerrainHeightScript.get_height(x_world - stride, z_world)
+			var h_r: float = verts[idx + 1].y if col < n - 1 else TerrainHeightScript.get_height(x_world + stride, z_world)
+			var h_d: float = verts[idx - n].y if row > 0 else TerrainHeightScript.get_height(x_world, z_world - stride)
+			var h_u: float = verts[idx + n].y if row < n - 1 else TerrainHeightScript.get_height(x_world, z_world + stride)
 			var dx := (h_r - h_l) / (2.0 * stride)
 			var dz := (h_u - h_d) / (2.0 * stride)
 			normals[idx] = Vector3(-dx, 1.0, -dz).normalized()
@@ -260,8 +296,8 @@ func _build_grid_mesh(x0: float, z0: float, size: float, stride: float, skirt_de
 			var i1 := i0 + 1
 			var i2 := i0 + n
 			var i3 := i2 + 1
-			indices[ii] = i0; indices[ii + 1] = i2; indices[ii + 2] = i1
-			indices[ii + 3] = i1; indices[ii + 4] = i2; indices[ii + 5] = i3
+			indices[ii] = i0; indices[ii + 1] = i1; indices[ii + 2] = i2
+			indices[ii + 3] = i1; indices[ii + 4] = i3; indices[ii + 5] = i2
 			ii += 6
 
 	if skirt_depth > 0.0:

@@ -175,7 +175,13 @@ func _update_sun_moon() -> void:
 	var moon_vis: float = clamp(inverse_lerp(-4.0, 8.0, moon_elev_deg), 0.0, 1.0)
 	# Full-phase peak raised 0.16 -> 0.45 and colour cooled per critique #10 so
 	# night ground is actually readable instead of crushing to black.
-	moon.light_energy = moon_vis * lerp(0.05, 0.45, phase) * (1.0 - sun_energy_base * 0.9)
+	# Peak lowered 0.45 -> 0.25 (iter2 pushed night too bright stacked with
+	# other compensations). moon_vis (elevation-gated) is still the primary
+	# on/off switch — a "moonless" shot should be authored at an hour/season
+	# where the anti-sun position is actually below the horizon, not relied
+	# on phase alone, since this rig's phase is a coarse day-of-year proxy,
+	# not a real ephemeris.
+	moon.light_energy = moon_vis * lerp(0.05, 0.25, phase) * (1.0 - sun_energy_base * 0.9)
 	moon.light_color = Color(0.62, 0.70, 0.88)
 
 	var night_factor: float = clamp(inverse_lerp(-2.0, -10.0, elev_deg), 0.0, 1.0)
@@ -206,6 +212,7 @@ func _build_profiles() -> void:
 			"vol_length": 64.0, "vol_sky_affect": 0.0,
 			"aerial": 0.25, "sky_affect": 0.1, "shadow_opacity": 1.0, "precip": 0.0,
 			"fog_color": Color(0.68, 0.76, 0.86),
+			"fog_h": 60.0, "height_density": 0.0, "sun_scatter": 0.25, "anisotropy": 0.2,
 		},
 		WorldState.Weather.OVERCAST: {
 			"cloud_coverage": 0.95, "cloud_darkness": 0.55, "direct_scale": 0.12,
@@ -213,6 +220,7 @@ func _build_profiles() -> void:
 			"vol_length": 80.0, "vol_sky_affect": 0.0,
 			"aerial": 0.2, "sky_affect": 0.15, "shadow_opacity": 1.0, "precip": 0.0,
 			"fog_color": Color(0.58, 0.60, 0.63),
+			"fog_h": 60.0, "height_density": 0.0, "sun_scatter": 0.25, "anisotropy": 0.2,
 		},
 		WorldState.Weather.RAIN: {
 			"cloud_coverage": 0.98, "cloud_darkness": 0.72, "direct_scale": 0.06,
@@ -220,34 +228,52 @@ func _build_profiles() -> void:
 			"vol_length": 90.0, "vol_sky_affect": 0.0,
 			"aerial": 0.25, "sky_affect": 0.35, "shadow_opacity": 1.0, "precip": 1.0,
 			"fog_color": Color(0.55, 0.58, 0.60),
+			"fog_h": 60.0, "height_density": 0.0, "sun_scatter": 0.25, "anisotropy": 0.2,
 		},
 		WorldState.Weather.SNOW: {
+			# iter3: visibility/density were inverted vs BLIZZARD (a 1200m-
+			# visibility snow shower was hiding a 300m treeline completely).
+			# Lower near-field density + longer stated visibility so distant
+			# silhouettes actually survive.
 			"cloud_coverage": 0.9, "cloud_darkness": 0.35, "direct_scale": 0.10,
-			"fog_density": 0.0018, "visibility": 1200.0, "depth_begin": 80.0,
-			"vol_length": 90.0, "vol_sky_affect": 0.0,
+			"fog_density": 0.0006, "visibility": 1800.0, "depth_begin": 80.0,
+			"vol_length": 70.0, "vol_sky_affect": 0.0,
 			"aerial": 0.2, "sky_affect": 0.15, "shadow_opacity": 1.0, "precip": 0.6,
 			"fog_color": Color(0.68, 0.72, 0.78),
+			"fog_h": 60.0, "height_density": 0.0, "sun_scatter": 0.25, "anisotropy": 0.2,
 		},
 		WorldState.Weather.BLIZZARD: {
+			# iter3: sky_affect/vol_sky_affect were 0 (an over-literal fix of
+			# iter1's "fog painted the whole sky") — with the sky untouched, a
+			# horizon line and any silhouette against it survived no matter
+			# how dense the ground fog got, so it never read as a whiteout.
+			# BLIZZARD is the one weather that SHOULD fog the sky too.
 			"cloud_coverage": 1.0, "cloud_darkness": 0.6, "direct_scale": 0.03,
 			"fog_density": 0.0233, "visibility": 70.0, "depth_begin": 5.0,
-			"vol_length": 96.0, "vol_sky_affect": 0.3,
-			"aerial": 0.0, "sky_affect": 0.0, "shadow_opacity": 1.0, "precip": 1.0,
-			"fog_color": Color(0.78, 0.80, 0.83),
+			"vol_length": 96.0, "vol_sky_affect": 1.0,
+			"aerial": 0.0, "sky_affect": 1.0, "shadow_opacity": 1.0, "precip": 1.0,
+			"fog_color": Color(0.8, 0.82, 0.85),
+			"fog_h": 60.0, "height_density": 0.0, "sun_scatter": 0.25, "anisotropy": 0.2,
 		},
 		WorldState.Weather.FOG: {
 			"cloud_coverage": 0.6, "cloud_darkness": 0.2, "direct_scale": 0.25,
-			"fog_density": 0.02, "visibility": 200.0, "depth_begin": 5.0,
-			"vol_length": 160.0, "vol_sky_affect": 0.3,
-			"aerial": 0.0, "sky_affect": 0.0, "shadow_opacity": 1.0, "precip": 0.0,
+			"fog_density": 0.008, "visibility": 200.0, "depth_begin": 5.0,
+			"vol_length": 160.0, "vol_sky_affect": 0.8,
+			"aerial": 0.0, "sky_affect": 1.0, "shadow_opacity": 1.0, "precip": 0.0,
 			"fog_color": Color(0.62, 0.66, 0.64),
+			# ground-hugging layer: rooftops/tree crowns should clear it.
+			"fog_h": 9.0, "height_density": 0.14, "sun_scatter": 0.5, "anisotropy": 0.6,
 		},
 	}
+	# haze values lowered (was 0.15-0.45) and applied with pow(t,2) in the
+	# shader-facing calc below — iter2's horizon_haze hugged 14 deg of sky
+	# above the horizon and washed it out (clear-sky band at 15 deg had
+	# saturation 0.02, should be >= 0.12).
 	season_profiles = {
-		WorldState.Season.SPRING: {"saturation": 0.95, "haze": 0.3, "tint": Color(0.94, 0.98, 0.99)},
-		WorldState.Season.SUMMER: {"saturation": 1.0, "haze": 0.45, "tint": Color(1.0, 0.98, 0.9)},
-		WorldState.Season.AUTUMN: {"saturation": 0.92, "haze": 0.28, "tint": Color(0.98, 0.9, 0.78)},
-		WorldState.Season.WINTER: {"saturation": 0.82, "haze": 0.15, "tint": Color(0.86, 0.91, 1.0)},
+		WorldState.Season.SPRING: {"saturation": 0.95, "haze": 0.15, "tint": Color(0.94, 0.98, 0.99)},
+		WorldState.Season.SUMMER: {"saturation": 1.0, "haze": 0.22, "tint": Color(1.0, 0.98, 0.9)},
+		WorldState.Season.AUTUMN: {"saturation": 0.92, "haze": 0.18, "tint": Color(0.98, 0.9, 0.78)},
+		WorldState.Season.WINTER: {"saturation": 0.82, "haze": 0.12, "tint": Color(0.86, 0.91, 1.0)},
 	}
 
 # ---------------------------------------------------------------------------
@@ -347,7 +373,16 @@ func _build_rig() -> void:
 	# MUCH tighter near-camera box (was 36x2x36m — at that spread, almost every
 	# drop was 10-25m away and sub-pixel) and a lot more of them since the box
 	# is small. Lit colour (not additive glow-white) via BLEND_MODE_MIX.
-	rain_streaks = _make_particles("RainStreaks", 2200, 1.0, _make_mix_material(Color(0.72, 0.78, 0.85, 0.55)), Vector2(0.02, 0.9))
+	# Base quad was 0.9m tall — Y_TO_VELOCITY scales the mesh's Y extent BY
+	# the velocity magnitude (~6-9 m/s here), so every drop rendered 5-8m
+	# long (76-574px, 5.9% of frame pixels — "scratches on the lens", not
+	# rain). 0.12m * 6-9 m/s velocity -> ~0.7-1.1m streaks, which is what a
+	# fast-shutter photo of rain actually looks like. More, fainter drops to
+	# compensate for the much smaller footprint.
+	# Measured at 0.12m base: median streak 42px (target 10-25px) — still ~2x
+	# too long, so the empirical Y_TO_VELOCITY multiplier is milder than the
+	# naive "size * m/s" estimate. Halved again.
+	rain_streaks = _make_particles("RainStreaks", 5500, 1.0, _make_mix_material(Color(0.72, 0.78, 0.85, 0.4)), Vector2(0.015, 0.06))
 	rain_streaks.transform_align = GPUParticles3D.TRANSFORM_ALIGN_Z_BILLBOARD_Y_TO_VELOCITY
 	rain_streaks.visibility_aabb = AABB(Vector3(-25, -25, -25), Vector3(50, 50, 50))
 	var rain_mat: ParticleProcessMaterial = rain_streaks.process_material
@@ -361,44 +396,55 @@ func _build_rig() -> void:
 	rain_streaks.position = Vector3(0, 6.0, 0)
 	weather_rig.add_child(rain_streaks)
 
-	# Snow: a round soft sprite (2-4cm — snow_flake_mesh) that swaps to an
-	# elongated streak mesh (snow_streak_mesh) in blizzard, where high
-	# horizontal wind velocity + Y_TO_VELOCITY alignment reads as motion blur.
-	# Same tight near-camera box as rain, for the same "particles were 10-25m
-	# away and sub-pixel" reason.
+	# Snow: a round soft sprite that swaps to an elongated streak mesh in
+	# blizzard, where high horizontal wind velocity + Y_TO_VELOCITY alignment
+	# reads as motion blur. iter2's 6cm flake in a 6x1x6m box gave ~21 visible
+	# flakes/frame; bigger flakes (10-14cm, randomised per-particle), a
+	# taller/tighter box, and a grey tint (pure white was invisible against a
+	# white overcast/fog sky) all push toward actually reading as snowfall.
 	snow_flake_mesh = QuadMesh.new()
-	snow_flake_mesh.size = Vector2(0.035, 0.035)
+	snow_flake_mesh.size = Vector2(0.12, 0.12)
 	snow_streak_mesh = QuadMesh.new()
 	snow_streak_mesh.size = Vector2(0.03, 0.25)
-	var snow_material := _make_soft_material(Color(0.96, 0.97, 1.0, 0.95))
+	var snow_material := _make_soft_material(Color(0.86, 0.88, 0.93, 0.85))
 	snow_flake_mesh.material = snow_material
 	snow_streak_mesh.material = snow_material
 	snow_particles = GPUParticles3D.new()
 	snow_particles.name = "Snow"
-	snow_particles.amount = 1800
+	snow_particles.amount = 2500
 	snow_particles.lifetime = 4.5
 	snow_particles.local_coords = false
 	snow_particles.draw_order = GPUParticles3D.DRAW_ORDER_LIFETIME
 	snow_particles.draw_pass_1 = snow_flake_mesh
-	snow_particles.transform_align = GPUParticles3D.TRANSFORM_ALIGN_Z_BILLBOARD_Y_TO_VELOCITY
+	snow_particles.transform_align = GPUParticles3D.TRANSFORM_ALIGN_Z_BILLBOARD # calm default; swapped to Y_TO_VELOCITY only for blizzard, see _update_particles
 	snow_particles.visibility_aabb = AABB(Vector3(-30, -30, -30), Vector3(60, 60, 60))
 	var snow_mat := ParticleProcessMaterial.new()
 	snow_mat.direction = Vector3(0, -1, 0)
 	snow_mat.spread = 20.0
 	snow_mat.gravity = Vector3(0, -2.2, 0)
+	snow_mat.scale_min = 0.6
+	snow_mat.scale_max = 1.5
+	snow_mat.angular_velocity_min = -30.0
+	snow_mat.angular_velocity_max = 30.0
 	snow_mat.initial_velocity_min = 0.6
 	snow_mat.initial_velocity_max = 1.2
 	snow_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	snow_mat.emission_box_extents = Vector3(6.0, 1.0, 6.0)
+	snow_mat.emission_box_extents = Vector3(4.0, 3.0, 4.0)
 	snow_particles.process_material = snow_mat
-	snow_particles.position = Vector3(0, 6.0, 0)
+	snow_particles.position = Vector3(0, 4.0, 0)
 	weather_rig.add_child(snow_particles)
 
-	# Subtle drifting wisps only — the environment's volumetric/depth fog does
-	# the actual visibility reduction. MIX blend (not ADD) + proximity/distance
-	# fade so a wisp spawning right next to the camera fades out instead of
-	# reading as a flat card.
-	mist_particles = _make_particles("Mist", 30, 14.0, _make_mix_material(Color(0.82, 0.85, 0.88, 0.22), true), Vector2(1.2, 1.2))
+	# iter2's 1.2m quads (post soft-texture fix) turned out to read as
+	# obvious "cotton ball" discs up close (largest single blob measured 4.9%
+	# of frame). The environment's volumetric/depth fog already does the real
+	# visibility work; this is only meant to be barely-there texture. Bigger
+	# quads but far fewer, much lower alpha, and pushed into a distance band
+	# (4-12m) via distance-fade so none ever sits large and sharp near the lens.
+	var mist_material := _make_mix_material(Color(0.85, 0.87, 0.9, 0.05))
+	mist_material.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+	mist_material.distance_fade_min_distance = 4.0
+	mist_material.distance_fade_max_distance = 12.0
+	mist_particles = _make_particles("Mist", 10, 14.0, mist_material, Vector2(4.5, 4.5))
 	mist_particles.transform_align = GPUParticles3D.TRANSFORM_ALIGN_Z_BILLBOARD
 	mist_particles.visibility_aabb = AABB(Vector3(-45, -45, -45), Vector3(90, 90, 90))
 	var mist_mat: ParticleProcessMaterial = mist_particles.process_material
@@ -407,8 +453,10 @@ func _build_rig() -> void:
 	mist_mat.gravity = Vector3(0, 0, 0)
 	mist_mat.initial_velocity_min = 0.1
 	mist_mat.initial_velocity_max = 0.3
-	mist_mat.scale_min = 0.6
-	mist_mat.scale_max = 1.0
+	mist_mat.scale_min = 0.7
+	mist_mat.scale_max = 1.3
+	mist_mat.angular_velocity_min = -10.0
+	mist_mat.angular_velocity_max = 10.0
 	mist_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
 	mist_mat.emission_box_extents = Vector3(22.0, 6.0, 22.0)
 	mist_particles.position = Vector3(0, 2.0, 0)
@@ -472,6 +520,12 @@ func _make_soft_material(color: Color) -> StandardMaterial3D:
 	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	m.albedo_color = color
 	m.albedo_texture = _get_soft_dot_texture()
+	# Mipmapped minification was the real "snow invisible" bug: a small quad
+	# (real snowflake scale, a few cm) covers only a handful of screen pixels,
+	# so the GPU samples a heavily-blurred low mip of the radial gradient —
+	# averaging most of its alpha down to near zero. LINEAR (no mipmaps) keeps
+	# sampling the full-res texture so the bright centre always shows.
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 	return m
@@ -526,7 +580,7 @@ func _update_environment() -> void:
 	# night-purple once the sun is well below it — iter1 blended a warm
 	# twilight tint into the zenith across a wide elevation band, which is
 	# what produced the "whole dome salmon" complaint.
-	var zenith_day := Color(0.10, 0.22, 0.48) # deep blue, not washed pastel
+	var zenith_day := Color(0.08, 0.20, 0.52) # deep blue, not washed pastel
 	var zenith_night := Color(0.015, 0.02, 0.045)
 	var zenith_dusk_accent := Color(0.16, 0.14, 0.28)
 	var horizon_day := Color(0.62, 0.74, 0.88)
@@ -558,6 +612,15 @@ func _update_environment() -> void:
 	zenith = zenith.lerp(zenith * season_tint, 0.2)
 	horizon = horizon.lerp(horizon * season_tint, 0.2)
 	sun.light_color = sun.light_color.lerp(sun.light_color * season_tint, 0.15)
+
+	# iter3: overcast NIGHT was reading brighter than clear night (138/255 —
+	# dusk, not 22:00) because the grey-flattening blend above brightens dim
+	# night colors the same way it flattens bright day ones. Overcast should
+	# make a night sky *darker* (city glow blocked, no moon/starlight through
+	# cloud), not lighter — dim explicitly by the overcast*night combination.
+	var night_overcast_dim: float = lerp(1.0, 0.35, overcast_t * night_factor)
+	zenith = zenith * night_overcast_dim
+	horizon = horizon * night_overcast_dim
 
 	var twilight_strength: float = _cur.get("twilight_strength", 0.0)
 
@@ -595,7 +658,7 @@ func _update_environment() -> void:
 	_env.volumetric_fog_emission = Color(0, 0, 0)
 	_env.volumetric_fog_gi_inject = 0.25
 	_env.volumetric_fog_ambient_inject = 0.15
-	_env.volumetric_fog_anisotropy = 0.2
+	_env.volumetric_fog_anisotropy = _blend.get("anisotropy", 0.2)
 	_env.volumetric_fog_length = _blend.get("vol_length", 90.0)
 	_env.volumetric_fog_sky_affect = _blend.get("vol_sky_affect", 0.0)
 	_env.volumetric_fog_detail_spread = 2.0
@@ -603,15 +666,17 @@ func _update_environment() -> void:
 	_env.fog_enabled = true
 	_env.fog_light_color = fog_color
 	_env.fog_light_energy = 1.0
-	_env.fog_sun_scatter = 0.25
+	_env.fog_sun_scatter = _blend.get("sun_scatter", 0.25)
 	# 95% extinction at ~3/density, not 1/density (iter1 under-fogged by 3x).
 	_env.fog_density = 3.0 / maxf(_blend.get("visibility", 3000.0), 30.0)
 	_env.fog_depth_begin = _blend.get("depth_begin", 60.0)
 	_env.fog_depth_curve = 1.2
 	_env.fog_aerial_perspective = _blend.get("aerial", 0.3)
 	_env.fog_sky_affect = _blend.get("sky_affect", 0.5)
-	_env.fog_height = 60.0
-	_env.fog_height_density = 0.0
+	# ground-hugging layer (FOG only, others keep height_density=0 — see
+	# weather_profiles): rooftops/tree crowns should clear a shallow fog deck.
+	_env.fog_height = _blend.get("fog_h", 60.0)
+	_env.fog_height_density = _blend.get("height_density", 0.0)
 
 	# --- shadows -----------------------------------------------------------
 	# Full opacity always now that direct_scale actually dims the light — a
@@ -622,7 +687,11 @@ func _update_environment() -> void:
 
 	# --- tonemap / exposure / color grading ---------------------------------
 	_env.tonemap_mode = Environment.TONE_MAPPER_AGX
-	_env.tonemap_exposure = lerp(2.6, 1.6, day_t) * lerp(1.0, 0.92, overcast_t * 0.5)
+	# Night was overexposed to compensate for a since-fixed ambient bug,
+	# stacking with the ambient/moon boosts below into "night reads as dusk"
+	# (overcast night sky measured 138/255). Pulled back toward a sane night
+	# floor; overcast now genuinely darkens exposure instead of a token 4%.
+	_env.tonemap_exposure = lerp(2.0, 1.6, day_t) * lerp(1.0, 0.78, overcast_t)
 	_env.tonemap_agx_contrast = lerp(0.95, 1.3, direct_scale)
 	_env.tonemap_agx_white = lerp(9.0, 6.5, direct_scale)
 	_env.adjustment_enabled = true
@@ -643,7 +712,26 @@ func _update_environment() -> void:
 	# of ambient still reads as adequately lit.
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	_env.ambient_light_sky_contribution = 1.0
-	_env.ambient_light_energy = lerp(1.6, 1.0, direct_scale)
+	# Multipliers, each answering a different complaint:
+	# - DAYTIME overcast/rain/snow ground needs MORE ambient (sky carries the
+	#   light, the ground shouldn't go dark). Gated out by night_factor below
+	#   — iter3 bug: this boost was keyed only on direct_scale, so it was
+	#   still fully active at night too, making overcast NIGHT ~2x brighter
+	#   than clear night (measured sky 82.6 vs 49.7) — backwards.
+	# - true night needs LESS ambient than the daytime floor, and the SAME
+	#   less regardless of weather (the overcast day-boost fades to a neutral
+	#   1.0 by full night, then the flat night dimming applies equally), or
+	#   "moonlit night" and "overcast noon" end up similarly lit.
+	# - twilight (sun right at the horizon) needs MORE, since direct light
+	#   has almost vanished there but skylight hasn't yet — this is what was
+	#   crushing winter sunset to 27% black pixels.
+	var overcast_day_boost: float = lerp(2.0, 1.0, direct_scale)
+	var ambient_energy: float = lerp(overcast_day_boost, 1.0, night_factor)
+	# 0.45 crushed a moonless night to ~65% of the lower frame at <=5 luma —
+	# "dark but readable" per ART_DIRECTION, not pitch black.
+	ambient_energy *= lerp(1.0, 0.6, night_factor)
+	ambient_energy *= lerp(1.0, 1.9, twilight_strength)
+	_env.ambient_light_energy = ambient_energy
 
 	# --- glow (windows/streetlights at night, sun/moon glints) --------------
 	_env.glow_enabled = true
@@ -699,10 +787,16 @@ func _update_particles(_delta: float) -> void:
 		var smat: ParticleProcessMaterial = snow_particles.process_material
 		if is_blizzard:
 			# Strong horizontal wind + Y_TO_VELOCITY streaks the flakes into
-			# visible motion blur; swap to the elongated streak mesh.
+			# visible motion blur; swap to the elongated streak mesh. NOTE:
+			# Y_TO_VELOCITY scales the mesh by velocity magnitude, which is
+			# why calm snow (below, ~1 m/s) must NOT use it — at that speed
+			# the stretch scale collapses the flake to sub-pixel and it
+			# vanishes entirely (this was iter2's "no snow visible" bug).
+			snow_particles.transform_align = GPUParticles3D.TRANSFORM_ALIGN_Z_BILLBOARD_Y_TO_VELOCITY
 			smat.gravity = Vector3(wind * 14.0, -3.5, wind * 5.0)
 			snow_particles.draw_pass_1 = snow_streak_mesh
 		else:
+			snow_particles.transform_align = GPUParticles3D.TRANSFORM_ALIGN_Z_BILLBOARD
 			smat.gravity = Vector3(wind * 2.0, -2.2, wind * 0.8)
 			snow_particles.draw_pass_1 = snow_flake_mesh
 		# precip is 0.6 for SNOW / 1.0 for BLIZZARD in weather_profiles, so this

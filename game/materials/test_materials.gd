@@ -16,6 +16,7 @@ func _ready() -> void:
 	_build_bark()
 	_build_wide_brick_wall()
 	_build_reference_chart()
+	_build_snow_field()
 
 func _mat(name: String) -> ShaderMaterial:
 	return load(LIB + name + ".tres")
@@ -24,8 +25,8 @@ func _label(text: String, pos: Vector3) -> void:
 	var l := Label3D.new()
 	l.text = text
 	l.position = pos
-	l.font_size = 34
-	l.outline_size = 10
+	l.font_size = 26
+	l.outline_size = 8
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.no_depth_test = false
 	add_child(l)
@@ -86,8 +87,11 @@ func _build_light_rig() -> void:
 
 func _build_ground_plane() -> void:
 	# A single lot-sized ground plane so every swatch reads as sitting IN a place
-	# rather than floating disconnected panels in empty sky.
-	_plane(Vector2(30.0, 26.0), Vector3(9.0, -0.08, 8.5), _mat("dry_grass"))
+	# rather than floating disconnected panels in empty sky. iter2 used dry_grass here,
+	# which the critic correctly read as beach sand (a Midwest lot isn't bare dirt) —
+	# switched to grass_lawn. Also raised from y=-0.08 to y=-0.01: the previous gap
+	# left curb/sidewalk boxes visibly floating with daylight showing underneath.
+	_plane(Vector2(30.0, 26.0), Vector3(9.0, -0.01, 8.5), _mat("grass_lawn"))
 
 func _build_ground_row() -> void:
 	var names := ["grass_lawn", "dry_grass", "forest_floor", "gravel_ballast", "mud", "snow_fresh", "snow_dirty", "ice"]
@@ -182,30 +186,85 @@ func _build_wide_brick_wall() -> void:
 	_box(Vector3(20.0, 3.5, 0.3), Vector3(10.0, 1.75, z), _mat("brick_red"))
 	_label("brick_red_20m", Vector3(10.0, 3.9, z))
 
-func _chip(hex: String, pos: Vector3, label_text: String) -> void:
+## A LIT (normally shaded, not unshaded) grey card of known LINEAR albedo — Godot's
+## Color values are used as linear by the renderer, so Color(v,v,v) directly gives
+## linear reflectance v. iter2's unlit hex chips went through the same AgX tonemap as
+## everything else and so didn't measure as their hex value at all; a lit grey card of
+## known albedo is the standard photographic reference instead (a real light/dark
+## calibration target, not a specific paint color).
+func _card(albedo: float, pos: Vector3, label_text: String) -> void:
 	var mi := MeshInstance3D.new()
 	var m := PlaneMesh.new()
 	m.size = Vector2(0.4, 0.4)
 	mi.mesh = m
 	mi.position = pos
-	mi.rotation_degrees = Vector3(90, 0, 0) # stand the card up, normal facing +Z (toward cameras placed at larger Z looking back at -Z, as used throughout this scene)
+	mi.rotation_degrees = Vector3(90, 0, 0) # stand the card up, normal facing +Z
 	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Color.html(hex)
+	mat.albedo_color = Color(albedo, albedo, albedo, 1.0)
+	mat.roughness = 0.85
+	mi.set_surface_override_material(0, mat)
+	add_child(mi)
+	_label(label_text, pos + Vector3(0, 0.45, 0))
+
+## Same as _card() but lying FLAT (coplanar with the ground), not standing up. iter3's
+## snow-vs-card proof used only vertical cards next to a horizontal snow surface — under
+## an overcast sky dome a vertical surface receives roughly half the irradiance of a
+## horizontal one, so "snow matches a vertical 0.8 card" actually implied an albedo of
+## only ~0.4-0.5. A flat card removes that confound entirely.
+func _card_flat(albedo: float, pos: Vector3, label_text: String) -> void:
+	var mi := MeshInstance3D.new()
+	var m := PlaneMesh.new()
+	m.size = Vector2(0.5, 0.5)
+	mi.mesh = m
+	mi.position = pos
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(albedo, albedo, albedo, 1.0)
+	mat.roughness = 0.85
 	mi.set_surface_override_material(0, mat)
 	add_child(mi)
 	_label(label_text, pos + Vector3(0, 0.35, 0))
 
-## Flat, unlit reference chips at the real target hex values (from ART_DIRECTION /
-## critic feedback) next to the materials they correspond to, for direct numeric
-## comparison in captures — see docs/materials_notes.md's iter2 measurement notes.
+## Four lit grey reference cards (linear albedo 0.04/0.18/0.5/0.8) in the open, well
+## clear of other geometry so nothing blocks them and their labels don't overlap. Plus
+## extra copies of the 0.18/0.8 cards placed right next to specific swatches the iter3
+## critique asked for in-frame comparisons against (lawn, wet asphalt, snow).
 func _build_reference_chart() -> void:
 	var z := 3.0
 	var x := 13.0
-	_chip("#9A5B45", Vector3(x, 0.6, z), "ref_brick_red"); x += 0.7
-	_chip("#C4A876", Vector3(x, 0.6, z), "ref_brick_buff"); x += 0.7
-	_chip("#5B7B3F", Vector3(x, 0.6, z), "ref_grass_lawn"); x += 0.7
-	_chip("#F1EFE8", Vector3(x, 0.6, z), "ref_siding_white")
+	_card(0.04, Vector3(x, 0.6, z), "card_0.04"); x += 0.9
+	_card(0.18, Vector3(x, 0.6, z), "card_0.18"); x += 0.9
+	_card(0.50, Vector3(x, 0.6, z), "card_0.50"); x += 0.9
+	_card(0.80, Vector3(x, 0.6, z), "card_0.80")
+
+	# Next to grass_lawn ground swatch (x=0, z=0) for lawn_vs_card shots.
+	_card(0.18, Vector3(-1.3, 0.3, 0.6), "card_0.18")
+	# Next to the road assembly (asphalt at x~2, sidewalk at x~8.4, z=5) for the wet sweep.
+	_card(0.18, Vector3(2.0, 0.3, 7.3), "card_0.18")
+	# Next to snow_fresh ground swatch (x=13.0 in the ground row, z=0): FLAT cards at
+	# 0.2/0.5/0.8 (matched orientation — see _card_flat) plus one vertical 0.8 for the
+	# explicit vertical-vs-horizontal comparison, plus a plain (non-weather-reactive)
+	# concrete-grey card as the "snow-free concrete" reference (a real concrete swatch
+	# would itself pick up snow under snow_cover).
+	_card_flat(0.20, Vector3(12.4, 0.001, -1.5), "flat_0.20")
+	_card_flat(0.50, Vector3(13.0, 0.001, -1.5), "flat_0.50")
+	_card_flat(0.80, Vector3(13.6, 0.001, -1.5), "flat_0.80")
+	_card(0.80, Vector3(14.3, 0.3, -1.5), "vert_0.80")
+	var concrete_ref := MeshInstance3D.new()
+	var crm := PlaneMesh.new(); crm.size = Vector2(0.5, 0.5)
+	concrete_ref.mesh = crm
+	concrete_ref.position = Vector3(15.0, 0.001, -1.5)
+	var cmat := StandardMaterial3D.new()
+	cmat.albedo_color = Color(0.35, 0.35, 0.33, 1.0) # ~real sidewalk_concrete's dry linear albedo, snow-immune
+	cmat.roughness = 0.85
+	concrete_ref.set_surface_override_material(0, cmat)
+	add_child(concrete_ref)
+	_label("concrete_ref_dry", Vector3(15.0, 0.35, -1.5))
+
+## A large (40x40m) snow_fresh field, well clear of other geometry, for a wide
+## repetition check from eye height (critique's snow_wide_40m.png).
+func _build_snow_field() -> void:
+	_plane(Vector2(40.0, 40.0), Vector3(-40.0, 0.0, 20.0), _mat("snow_fresh"))
+	_label("snow_field_40m", Vector3(-40.0, 0.6, 20.0))
 
 func _build_bark() -> void:
 	var mi := MeshInstance3D.new()

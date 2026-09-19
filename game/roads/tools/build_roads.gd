@@ -20,6 +20,8 @@ const FURN_VIS_MARGIN := 40.0
 const MATERIAL_PATHS := {
 	"asphalt_road": "res://materials/lib/asphalt_road.tres",
 	"asphalt_patched": "res://materials/lib/asphalt_patched.tres",
+	"asphalt_road_plowed": "res://roads/materials/asphalt_road_plowed.tres",
+	"asphalt_patched_plowed": "res://roads/materials/asphalt_patched_plowed.tres",
 	"curb_concrete": "res://materials/lib/curb_concrete.tres",
 	"sidewalk_concrete": "res://materials/lib/sidewalk_concrete.tres",
 	"gravel_ballast": "res://materials/lib/gravel_ballast.tres",
@@ -28,8 +30,8 @@ const MATERIAL_PATHS := {
 	"marking_white": "res://roads/materials/marking_white.tres",
 	"bridge_deck": "res://roads/materials/bridge_deck.tres",
 }
-const WALKABLE := ["asphalt_road", "asphalt_patched", "curb_concrete", "sidewalk_concrete",
-	"bridge_deck", "gravel_ballast"]
+const WALKABLE := ["asphalt_road", "asphalt_patched", "asphalt_road_plowed", "asphalt_patched_plowed",
+	"curb_concrete", "sidewalk_concrete", "bridge_deck", "gravel_ballast"]
 
 var _material_cache := {}
 var _prop_mesh_cache := {}
@@ -269,7 +271,7 @@ func _build_prop_mesh(kind: String) -> ArrayMesh:
 			st2.begin(Mesh.PRIMITIVE_TRIANGLES)
 			_append_cyl(st2, 0.09, 0.09, 0.16, Vector3(0.35, 4.05, 0))
 			_append_cyl(st2, 0.09, 0.09, 0.16, Vector3(-0.35, 4.05, 0))
-			mesh = _surface_from(st2, _flat_mat(Color(0.95, 0.92, 0.75), 0.5, 0.0), mesh)
+			mesh = _surface_from(st2, _lamp_head_mat(Color(0.98, 0.92, 0.72), "lamp_head_downtown"), mesh)
 		"lamp_residential":
 			var st := SurfaceTool.new()
 			st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -279,7 +281,7 @@ func _build_prop_mesh(kind: String) -> ArrayMesh:
 			var st2 := SurfaceTool.new()
 			st2.begin(Mesh.PRIMITIVE_TRIANGLES)
 			_append_box(st2, Vector3(0.18, 0.12, 0.14), Vector3(0.68, 5.82, 0))
-			mesh = _surface_from(st2, _flat_mat(Color(0.12, 0.12, 0.12), 0.5, 0.2), mesh)
+			mesh = _surface_from(st2, _lamp_head_mat(Color(0.92, 0.85, 0.65), "lamp_head_residential"), mesh)
 		"hydrant":
 			var st := SurfaceTool.new()
 			st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -343,6 +345,27 @@ func _build_prop_mesh(kind: String) -> ArrayMesh:
 			st.begin(Mesh.PRIMITIVE_TRIANGLES)
 			_append_box(st, Vector3(0.22, 0.15, 2.5), Vector3(0, 0, 0))
 			mesh = _surface_from(st, _flat_mat(Color(0.10, 0.07, 0.05), 0.9, 0.0), mesh)
+		"windrow":
+			# Plowed-snow pile along the curb -- roads.gd toggles/scales this
+			# by WorldState snow_cover (invisible outside winter).
+			var st := SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			_append_box(st, Vector3(0.9, 0.22, 1.0), Vector3(0, 0.11, 0))
+			_append_cyl(st, 0.0, 0.4, 0.3, Vector3(0, 0.32, 0), 6)
+			mesh = _surface_from(st, _flat_mat(Color(0.82, 0.85, 0.88), 0.75, 0.0), mesh)
+		"leaf_litter":
+			# Autumn leaf drift in the gutter -- roads.gd toggles by season.
+			var st := SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			var colors := [Color(0.72, 0.36, 0.10), Color(0.62, 0.22, 0.08), Color(0.78, 0.55, 0.12)]
+			for i in 5:
+				var ang := i * 1.256
+				var r := 0.12 + (i % 3) * 0.08
+				var pos := Vector3(cos(ang) * r, 0.01, sin(ang) * r)
+				var pm := PlaneMesh.new()
+				pm.size = Vector2(0.35, 0.35)
+				st.append_from(pm, 0, Transform3D(Basis(Vector3.UP, ang * 1.7), pos))
+			mesh = _surface_from(st, _flat_mat(Color(0.66, 0.34, 0.10), 0.85, 0.0), mesh)
 		"crossbuck":
 			var st := SurfaceTool.new()
 			st.begin(Mesh.PRIMITIVE_TRIANGLES)

@@ -2,7 +2,13 @@ extends Node
 ## Screenshot harness. Usage (via tools/capture.sh):
 ##   --scene=res://path.tscn --shots=/abs/shots.json --out=/abs/dir [--warmup=90]
 ## shots.json: [{"name":"x","pos":[x,y,z],"look_at":[x,y,z],"fov":70,
-##               "season":"summer","weather":"clear","hour":12.0}]
+##               "season":"summer","weather":"clear","hour":12.0,
+##               "wetness_override":0.5,"snow_cover_override":0.0}]
+## wetness_override/snow_cover_override are optional and applied AFTER
+## WorldState.apply_named() for that shot, so season/weather/hour can stay fixed
+## (same sun/exposure) while isolating just the wetness or snow_cover global — needed to
+## prove a weather-reactive shader response without confounding it with a lighting
+## change. Omit them to use whatever the weather preset implies (unchanged behavior).
 ## Saves <out>/<name>.png. Any cameras in the target scene are overridden.
 
 var _args := {}
@@ -29,6 +35,10 @@ func _run() -> void:
 	add_child(cam)
 	for s in shots:
 		WorldState.apply_named(s.get("season", "summer"), s.get("weather", "clear"), float(s.get("hour", 12.0)))
+		if s.has("wetness_override"):
+			RenderingServer.global_shader_parameter_set("wetness", float(s["wetness_override"]))
+		if s.has("snow_cover_override"):
+			RenderingServer.global_shader_parameter_set("snow_cover", float(s["snow_cover_override"]))
 		var p: Array = s["pos"]; var t: Array = s["look_at"]
 		cam.fov = float(s.get("fov", 70.0))
 		cam.far = float(s.get("far", 4000.0))

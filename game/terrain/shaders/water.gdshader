@@ -19,6 +19,7 @@ render_mode world_vertex_coords, blend_mix, diffuse_burley, specular_schlick_ggx
 
 global uniform float snow_cover;
 global uniform float wetness;
+global uniform float night_factor;
 
 uniform sampler2D depth_tex : hint_depth_texture, filter_linear;
 uniform sampler2D ice_albedo : source_color, filter_linear_mipmap, repeat_enable;
@@ -115,7 +116,10 @@ void fragment() {
 	vec3 foam_color = vec3(0.86, 0.9, 0.88);
 	albedo = mix(albedo, foam_color, foam);
 
-	float rough = mix(0.045, 0.35, clamp(foam + wetness * 0.1, 0.0, 1.0));
+	// Baseline 0.1, not mirror-smooth -- a big flat specular hotspot under a
+	// high sun was a major contributor to water reading as a flat pale/grey
+	// smear instead of a murky river.
+	float rough = mix(0.1, 0.35, clamp(foam + wetness * 0.1, 0.0, 1.0));
 	float alpha = mix(0.88, 1.0, absorb_t) ; // slightly more transparent in the shallows
 	alpha = clamp(mix(alpha, 1.0, foam), 0.0, 1.0);
 
@@ -149,18 +153,21 @@ void fragment() {
 		}
 	}
 
-	// Fresnel: glancing angles brighten toward a sky-ish tone; the renderer's
-	// own sky/SDFGI reflection (low roughness here) supplies the actual
-	// reflected image, this just keeps the grazing-angle brightening plausible
-	// even where the reflection probe is weak (e.g. under a bridge).
+	// Fresnel: glancing angles brighten slightly toward a sky-ish tone; kept
+	// deliberately subtle since the renderer's own sky/SDFGI reflection (low
+	// roughness here) supplies the actual reflected image -- this is just a
+	// cheap fill for grazing angles where the reflection probe is weak (e.g.
+	// under a bridge). A hardcoded bright daytime blue here previously made
+	// the water the brightest thing in frame at dusk/night; damp it hard by
+	// night_factor so it never out-luminances a dark sky.
 	float fres = pow(1.0 - clamp(dot(wn, view_dir), 0.0, 1.0), 4.0);
-	vec3 sky_ish = vec3(0.62, 0.72, 0.82);
-	albedo = mix(albedo, sky_ish, fres * 0.35 * (1.0 - ice_mask));
+	vec3 sky_ish = vec3(0.55, 0.62, 0.68) * mix(1.0, 0.06, night_factor);
+	albedo = mix(albedo, sky_ish, fres * 0.16 * (1.0 - ice_mask));
 
 	ALBEDO = albedo;
-	ROUGHNESS = clamp(rough, 0.03, 1.0);
+	ROUGHNESS = clamp(rough, 0.06, 1.0);
 	METALLIC = 0.0;
-	SPECULAR = 0.6;
+	SPECULAR = 0.35;
 	ALPHA = alpha;
 	NORMAL_MAP = wn * 0.5 + 0.5;
 	NORMAL_MAP_DEPTH = 0.9;

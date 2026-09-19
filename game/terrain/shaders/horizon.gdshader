@@ -26,7 +26,16 @@ uniform sampler2D snow_roughness_tex : filter_linear_mipmap, repeat_enable;
 
 uniform float uv_scale : hint_range(0.001, 0.5) = 0.03;
 uniform float macro_scale : hint_range(0.0005, 0.05) = 0.006;
-uniform float snow_albedo_multiplier : hint_range(0.5, 3.0) = 1.767;
+uniform float snow_albedo_multiplier : hint_range(0.5, 3.0) = 1.778;
+
+// Same raw-texture brightness correction as terrain.gdshader -- see its
+// LayerCorrection comment.
+uniform vec4 wild_tint : source_color = vec4(0.75, 0.68, 0.45, 1.0);
+uniform float wild_albedo_mult : hint_range(0.0, 3.0) = 0.75;
+uniform vec4 wood_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float wood_albedo_mult : hint_range(0.0, 3.0) = 0.79;
+uniform vec4 rock_tint : source_color = vec4(0.85, 0.85, 0.82, 1.0);
+uniform float rock_albedo_mult : hint_range(0.0, 3.0) = 1.0;
 
 varying vec3 v_world_pos;
 varying vec3 v_world_normal;
@@ -47,9 +56,9 @@ void fragment() {
 	float w_rock = smoothstep(0.45, 0.75, slope);
 	float w_grass = clamp(1.0 - w_wood - w_rock, 0.0, 1.0);
 
-	vec3 grass_alb = texture(wild_albedo, uv).rgb;
-	vec3 wood_alb = texture(wood_albedo, uv * 0.8).rgb;
-	vec3 rock_alb = texture(rock_albedo, uv * 0.6).rgb;
+	vec3 grass_alb = texture(wild_albedo, uv).rgb * wild_tint.rgb * wild_albedo_mult;
+	vec3 wood_alb = texture(wood_albedo, uv * 0.8).rgb * wood_tint.rgb * wood_albedo_mult;
+	vec3 rock_alb = texture(rock_albedo, uv * 0.6).rgb * rock_tint.rgb * rock_albedo_mult;
 	vec3 grass_n = texture(wild_normal, uv).rgb * 2.0 - 1.0;
 	vec3 wood_norm = texture(wood_normal, uv * 0.8).rgb * 2.0 - 1.0;
 	vec3 rock_n = texture(rock_normal, uv * 0.6).rgb * 2.0 - 1.0;

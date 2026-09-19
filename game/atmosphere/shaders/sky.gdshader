@@ -108,27 +108,49 @@ void sky() {
 		col += vec3(0.85, 0.9, 1.0) * star * star_visibility * (1.0 - cloud_coverage * 0.85);
 	}
 
-	// clouds: project onto a curved dome (iter1's flat dir.xz/up projection
-	// went singular at the horizon and streaked radially — dividing by
-	// (up + 0.25) instead keeps it well-behaved all the way down).
+	// clouds: intersect the view ray with a cloud shell at a fixed world
+	// height (standard sky-dome technique). iter2's dir.xz/(up+0.25) divide
+	// made cells shrink toward a point at the zenith (near-zenith dir.xz is
+	// ~0 for every direction there, so the whole upper sky sampled almost
+	// one noise value — "one continuous cloud mass"). t = height/up keeps
+	// world-space cell size constant and cells get *smaller* toward the
+	// horizon, which is the correct perspective.
 	float cloud_alpha = 0.0;
 	vec3 cloud_col = cloud_light_color;
 	if (up > -0.05) {
-		float up_c = max(up, -0.05);
-		vec2 cuv = dir.xz / (up_c + 0.25) * 0.35 + wind_dir * cloud_time * 0.015;
-		float density = fbm(cuv * 1.6);
-		float edge0 = 0.5 - cloud_coverage * 0.5;
-		density = smoothstep(edge0, edge0 + 0.25, density);
-		density = floor(density * 5.0) / 5.0; // posterize into soft painted steps
+		float t = 1500.0 / max(up, 0.06);
+		vec2 cuv = dir.xz * t * 0.0016 + wind_dir * cloud_time * 0.02;
+		float density = fbm(cuv);
+		// fbm's value-noise octaves sum to a mean around ~0.48 with limited
+		// spread, so a threshold near that mean (iter2's edge0 = 0.5-cov*0.5)
+		// let most of the sky exceed it once the old hard floor() quantizer
+		// (which incidentally snapped low-density fringes to 0) was removed
+		// for the posterization fix — the whole sky read as one cloud mass.
+		// Anchoring near the noise's bright tail instead makes `cloud_coverage`
+		// track the actual visible fraction.
+		float edge0 = 1.0 - cloud_coverage;
+		density = smoothstep(edge0 - 0.06, edge0 + 0.14, density);
 		float sun_up = clamp(sun_dir.y, 0.0, 1.0);
-		float night_light = max(sun_up, moon_energy * 0.6 + 0.03);
 		cloud_col = mix(cloud_shadow_color, cloud_light_color, 0.35 + 0.65 * sun_up);
 		cloud_col = mix(cloud_col, cloud_col * 0.55, cloud_darkness);
+		// Lit relative to the sky's OWN radiance, not a hardcoded floor —
+		// iter2 clouds sat at ~0.27 minimum brightness against a ~0.02 night
+		// sky (>10x too bright, "clouds glow at night"). Under a full moon
+		// clouds should be a silvery grey modestly brighter than the sky
+		// (~1.3x), not a near-white disc.
+		vec3 sky_here = mix(horizon_color, zenith_color, sky_t);
+		float sky_lum = dot(sky_here, vec3(0.2126, 0.7152, 0.0722));
+		// A thick deck should hide the moon, not relay it: moon_energy here is
+		// computed independent of weather, so a 95%-coverage OVERCAST night
+		// was getting its clouds lit almost as brightly as a CLEAR night's
+		// (measured: overcast night sky 82.6 vs clear night 49.4 — backwards).
+		float moon_through_cloud = moon_energy * 0.35 * (1.0 - cloud_coverage * 0.95);
+		float night_light = clamp(max(sun_up, moon_through_cloud), sky_lum * 0.9, 1.0);
 		cloud_col *= night_light;
 		// faint warm town light-pollution glow on the underside of the deck
-		cloud_col += vec3(0.05, 0.035, 0.02) * cloud_coverage * (1.0 - sun_up) * star_visibility;
+		cloud_col += vec3(0.05, 0.035, 0.02) * cloud_coverage * (1.0 - sun_up) * star_visibility * 0.6;
 		float fade = smoothstep(-0.05, 0.15, up);
-		cloud_alpha = density * fade;
+		cloud_alpha = clamp(density, 0.0, 1.0) * fade;
 	}
 	col = mix(col, cloud_col, clamp(cloud_alpha, 0.0, 1.0));
 

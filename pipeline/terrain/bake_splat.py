@@ -139,16 +139,19 @@ def main():
     # Railway corridors -> gravel ballast. width_m per track bed, generous
     # enough to read clearly at 2m/texel.
     for way in rails:
-        draw_buffered_line(gravel, way.get("vertices", []), width_m=4.0)
+        draw_buffered_line(gravel, way.get("vertices", []), width_m=6.0)
 
     # Riverbank mud: buffer around every water reach polygon's boundary and
-    # every minor stream line.
+    # every minor stream line. Widened from the original 9m/5m -- at typical
+    # eye-height viewing distances along a riverbank the earlier width read
+    # as a near-invisible sliver; this is a visible mud/brush band without
+    # swallowing the whole near-shore lawn.
     for reach in water.get("reaches", []):
         ring = reach.get("polygon", [])
         verts = [{"x": p["x"], "y": 0, "z": p["z"]} for p in ring]
-        draw_buffered_line(mud, verts + ([verts[0]] if verts else []), width_m=9.0)
+        draw_buffered_line(mud, verts + ([verts[0]] if verts else []), width_m=16.0)
     for stream in water.get("streams", []):
-        draw_buffered_line(mud, stream.get("vertices", []), width_m=5.0)
+        draw_buffered_line(mud, stream.get("vertices", []), width_m=8.0)
 
     print(f"landuse matches: lawn={n_lawn} wood={n_wood} gravel_landuse={n_gravel} "
           f"mud_natural={n_mud} paved={n_paved} dirt={n_dirt} "
