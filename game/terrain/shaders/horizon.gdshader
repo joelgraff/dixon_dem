@@ -16,6 +16,8 @@ global uniform float season_foliage;
 
 uniform sampler2D wild_albedo : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D wild_normal : hint_normal, filter_linear_mipmap, repeat_enable;
+uniform sampler2D lawn_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D lawn_normal : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D wood_albedo : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D wood_normal : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D rock_albedo : source_color, filter_linear_mipmap, repeat_enable;
@@ -32,6 +34,8 @@ uniform float snow_albedo_multiplier : hint_range(0.5, 3.0) = 1.778;
 // LayerCorrection comment.
 uniform vec4 wild_tint : source_color = vec4(0.75, 0.68, 0.45, 1.0);
 uniform float wild_albedo_mult : hint_range(0.0, 3.0) = 0.75;
+uniform vec4 lawn_tint : source_color = vec4(0.55, 0.95, 0.12, 1.0);
+uniform float lawn_albedo_mult : hint_range(0.0, 3.0) = 0.44;
 uniform vec4 wood_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform float wood_albedo_mult : hint_range(0.0, 3.0) = 0.79;
 uniform vec4 rock_tint : source_color = vec4(0.85, 0.85, 0.82, 1.0);
@@ -56,18 +60,24 @@ void fragment() {
 	float w_rock = smoothstep(0.45, 0.75, slope);
 	float w_grass = clamp(1.0 - w_wood - w_rock, 0.0, 1.0);
 
-	vec3 grass_alb = texture(wild_albedo, uv).rgb * wild_tint.rgb * wild_albedo_mult;
+	// Same summer-green-by-default fix as terrain.gdshader's w_wild: this
+	// "wild" set is the whole horizon's default ground (no baked landuse out
+	// here at all), so it must not default to dry_grass's permanently tan
+	// look -- blend toward it only as season_foliage rises.
+	float wild_dryness = smoothstep(0.0, 0.55, season_foliage);
+	vec3 wild_alb_raw = mix(texture(lawn_albedo, uv).rgb * lawn_tint.rgb * lawn_albedo_mult,
+			texture(wild_albedo, uv).rgb * wild_tint.rgb * wild_albedo_mult, wild_dryness);
+	vec3 wild_n_raw = mix(texture(lawn_normal, uv).rgb, texture(wild_normal, uv).rgb, wild_dryness) * 2.0 - 1.0;
 	vec3 wood_alb = texture(wood_albedo, uv * 0.8).rgb * wood_tint.rgb * wood_albedo_mult;
 	vec3 rock_alb = texture(rock_albedo, uv * 0.6).rgb * rock_tint.rgb * rock_albedo_mult;
-	vec3 grass_n = texture(wild_normal, uv).rgb * 2.0 - 1.0;
 	vec3 wood_norm = texture(wood_normal, uv * 0.8).rgb * 2.0 - 1.0;
 	vec3 rock_n = texture(rock_normal, uv * 0.6).rgb * 2.0 - 1.0;
 
-	vec3 albedo = grass_alb * w_grass + wood_alb * w_wood + rock_alb * w_rock;
-	vec3 normal_ts = normalize(grass_n * w_grass + wood_norm * w_wood + rock_n * w_rock);
+	vec3 albedo = wild_alb_raw * w_grass + wood_alb * w_wood + rock_alb * w_rock;
+	vec3 normal_ts = normalize(wild_n_raw * w_grass + wood_norm * w_wood + rock_n * w_rock);
 
 	vec3 autumn_tint = vec3(1.05, 0.86, 0.52);
-	albedo = mix(albedo, albedo * mix(vec3(1.0), autumn_tint, smoothstep(0.0, 0.8, season_foliage)), w_grass);
+	albedo = mix(albedo, albedo * mix(vec3(1.0), autumn_tint, smoothstep(0.4, 1.0, season_foliage) * 0.5), w_grass);
 
 	float n = fbm(v_world_pos.xz * macro_scale);
 	albedo *= mix(0.9, 1.08, n);

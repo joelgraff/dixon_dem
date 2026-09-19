@@ -223,3 +223,85 @@ warm scene load ~1-1.4s.
   both terrain.gdshader and horizon.gdshader) is this workstream's own
   conservative estimate, not a cross-checked measurement like the other six
   layers -- revisit if materials ever adds a real stone_rough material.
+
+## iter3: splat coverage, water seam gap, and the road-occlusion investigation
+
+**Splat fallback painted the whole map tan (fixed).** `w_wild` -- the
+"no baked landuse data here" weight -- covers most of the play area (OSM
+landuse polygons are sparse; ordinary yards/fields/lots mostly have no
+polygon at all) and was rendered as the permanently-tan `dry_grass` texture
+regardless of season. Real fixes, two parts:
+1. `terrain.gd` had hardcoded a stale duplicate of materials' `dry_grass.tres`
+   tint/multiplier. Replaced with `_lib_param()`, which reads the *live*
+   `materials/lib/*.tres` shader parameters at build time -- terrain can no
+   longer drift out of sync with a materials retune. Applied to every layer
+   (lawn/wild/wood/gravel/mud/paved/snow), not just wild.
+2. The actual color bug: `w_wild`'s texture set is now a `mix(grass_lawn,
+   dry_grass, dryness)` blend where `dryness = smoothstep(0, 0.55,
+   season_foliage)` -- green in summer/spring, transitioning to dry_grass's
+   tan-brown by autumn/winter, instead of always sampling dry_grass. Same fix
+   mirrored in `horizon.gdshader` (added a `lawn_albedo/lawn_normal` sampler
+   pair + the same blend). This is a **texture-set swap for the fallback
+   weight**, not a change to the baked splat weights themselves -- explicit
+   lawn/wood/gravel/mud/paved areas are unaffected and still use their own
+   baked category.
+
+**River reading bright green (fixed).** Not a material bug -- a real
+coverage gap. `river_upstream_0/1/2` (split around Van Arnam Island) and
+`river_downstream` are independently-generated polygons that don't align to
+sub-meter precision at their shared seams; pixel-diffing the reach-polygon
+union against a low-elevation mask of the heightmap found a literal hairline
+crack cutting across the channel right at the seam near downtown -- bare
+terrain (with whatever splat category applies there) rendered through the
+gap. Fixed in `_build_water()` by outward-offsetting every reach polygon
+`WATER_SEAM_BRIDGE_M` (4m) via `Geometry2D.offset_polygon()` before
+triangulating, so neighboring pieces overlap at the seam instead of leaving
+a crack. Small enough not to visibly widen the river against its real banks.
+
+**Terrain occluding the road surface -- investigated at length, root cause
+is NOT terrain height.** Sampled the actual built mesh (not just
+`TerrainHeightScript`) at three downtown points, comparing LOD0 (2m stride)
+against the road-conformed heightmap directly:
+
+| point (world x,z) | heightmap | LOD0 mesh | delta |
+|---|---|---|---|
+| (1693.9,-1221.6) | 26.987 | 27.003 | +0.016 m |
+| (1690.1,-1245.4) | 27.110 | 27.090 | -0.020 m |
+| (1686.4,-1249.4) | 26.679 | 26.671 | -0.008 m |
+
+Sub-2cm, matching the coordinator's own independent measurement (18,166
+points, median 0.000m, p90 12mm) almost exactly -- no row/col swap, no
+Z-sign flip, no Y offset/scale on chunks. Separately sampled 4 real road
+vertices straight out of `game/roads/_build/chunk_*.json` against the same
+heightmap: deltas were a consistent **+0.071 to +0.093m**, matching roads'
+own `ROAD_Y_BIAS` (~0.085) -- roads' own data is correctly offset *above*
+raw terrain, as intended.
+
+Given that, added `TERRAIN_RENDER_BIAS` (render-mesh-only recede, collision
+unaffected) as insurance against a genuine near-tie, and tested it at 0.05m,
+0.12m, and **1.0m** -- rebuilding the chunk cache fresh each time (confirmed
+via the `chunks built=324` build log) and recapturing the identical shot.
+Zero visible change at any value, including 1.0m. A full-meter recede that
+still doesn't reveal a road surface cannot be a depth-fight; if it were
+height, 1m would have made it obvious. Left at 0.12m (still under the 15cm
+curb reveal from ART_DIRECTION.md) as reasonable general insurance, not as
+the fix for this bug.
+
+What actually explains the render: **coverage is location-dependent, not
+uniform.** A street-level (1.7m eye height) shot at real road vertices
+pulled from `roads/_build/*.json` (e.g. world (1596.5,-1399.7)) renders full
+correct pavement with no grass bleed-through at all. Re-shooting the
+*original* problem location (a large plaza/lot-like open area near
+(1691.9,-1300), not a narrow mapped street) at proper eye level instead of
+an elevated look-down angle shows grass close to the camera but correct dark
+pavement visible ~200m+ away at the same location -- i.e. real pavement
+geometry exists nearby and further out, just not in this specific open
+area close-up. This is the same shape of bug as the water seam gap above:
+a coverage hole in generated geometry for a specific area (here, a
+plaza/lot rather than a narrow street corridor), not a systematic height or
+depth-test problem. Recommend roads/buildings check generation coverage for
+large paved lots/plazas specifically, not just linear street corridors.
+`captures/terrain/iter3/downtown_street_summer_clear.png` is the corrected
+street-level shot (real pavement, no grass); the plaza-area shot is not
+included since it would misleadingly look like a regression when it's the
+same pre-existing coverage gap, now just correctly colored instead of tan.

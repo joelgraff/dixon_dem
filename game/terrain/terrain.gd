@@ -36,6 +36,26 @@ const COLLISION_STRIDE := 1.0 # brief: HeightMapShape3D per chunk at 1m
 const HORIZON_STRIDE := 50.0
 const HORIZON_HOLE_MARGIN := 30.0 # inset from the play square where the horizon mesh is omitted
 
+const WATER_SEAM_BRIDGE_M := 4.0 # outward offset closing hairline gaps between adjacent reach pieces
+
+# Render-only recede, as cheap insurance against genuine marginal z-fighting
+# (median terrain-vs-road height delta measured ~0.000m at sampled points --
+# see docs/terrain_notes.md). Collision is NOT biased -- players/vehicles
+# still stand at the true height.
+#
+# NOTE: this is NOT what's burying the road surface in captures/terrain/iter3
+# -- proven by elimination: raised this constant 0.05 -> 0.12 -> 1.0 m with
+# ZERO visible change in the render each time (same downtown_street shot,
+# rebuilt from a clean cache every time). A 1m recede that still doesn't let
+# a road surface through cannot be a depth-fight; road *base pavement* must
+# not be present as geometry at that location at all (lane markings and
+# curbs, which come from separate meshes, DO show). This mirrors the water
+# reach coverage gap found the same session (see _build_water) -- likely a
+# roads-side coverage gap, not a terrain height problem. Left at 0.12 (still
+# under the 15cm curb reveal from ART_DIRECTION.md) as a reasonable default;
+# see docs/terrain_notes.md for the full writeup and numbers.
+const TERRAIN_RENDER_BIAS := 0.12
+
 var perf := {} # build timings, read by test_terrain.gd for an on-screen readout
 
 func _ready() -> void:
@@ -79,6 +99,19 @@ func _ready() -> void:
 func _tex(name: String, kind: String) -> Texture2D:
 	return load(TEX_DIR + name + "/" + kind) as Texture2D
 
+## Reads a live shader_parameter off materials/lib/<lib_name>.tres so tint/
+## multiplier corrections never drift out of sync with that workstream's own
+## tuning (see materials_notes.md). Falls back + warns if the .tres is gone.
+func _lib_param(lib_name: String, param: String, fallback):
+	var lib_path := "res://materials/lib/" + lib_name + ".tres"
+	if ResourceLoader.exists(lib_path):
+		var lib_mat: ShaderMaterial = load(lib_path)
+		var v = lib_mat.get_shader_parameter(param)
+		if v != null:
+			return v
+	push_warning("terrain: materials/lib/%s.tres missing %s, using fallback" % [lib_name, param])
+	return fallback
+
 func _build_terrain_material() -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = TERRAIN_SHADER
@@ -100,27 +133,29 @@ func _build_terrain_material() -> ShaderMaterial:
 		mat.set_shader_parameter(prefix + "_normal", _tex(tex_name, "normal.png"))
 		mat.set_shader_parameter(prefix + "_rough", _tex(tex_name, "roughness.jpg"))
 
-	# Raw JPGs read too bright for ART_DIRECTION's linear-albedo ranges;
-	# mirrors materials/lib/*.tres's albedo_tint/albedo_multiplier correction
-	# (see materials_notes.md) -- re-sync these if that workstream retunes.
-	# stone_rough has no lib/*.tres (materials didn't build one); estimated.
-	var correction := {
-		"lawn": [Color(0.55, 0.95, 0.12), 0.44],
-		"wild": [Color(0.75, 0.68, 0.45), 0.75],
-		"wood": [Color(1, 1, 1), 0.79],
-		"gravel": [Color(1, 1, 1), 1.4],
-		"mud": [Color(1, 1, 1), 1.326],
-		"paved": [Color(1, 1, 1), 1.31],
-		"rock": [Color(0.85, 0.85, 0.82), 1.0],
+	# Raw JPGs read too bright/desaturated for ART_DIRECTION's linear-albedo
+	# ranges; materials/lib/*.tres already carries the correction (per-material
+	# albedo_tint/albedo_multiplier -- see materials_notes.md) for every one of
+	# these textures except stone_rough (no lib/*.tres exists for it). Read the
+	# LIVE .tres values via _lib_param() instead of duplicating them as
+	# constants -- a hardcoded copy went stale the moment materials retuned
+	# dry_grass and painted most of the map the wrong color.
+	var layer_libs := {
+		"lawn": "grass_lawn", "wild": "dry_grass", "wood": "forest_floor",
+		"gravel": "gravel_ballast", "mud": "mud", "paved": "asphalt_patched",
 	}
-	for prefix in correction:
-		mat.set_shader_parameter(prefix + "_tint", correction[prefix][0])
-		mat.set_shader_parameter(prefix + "_albedo_mult", correction[prefix][1])
+	for prefix in layer_libs:
+		var lib_name: String = layer_libs[prefix]
+		mat.set_shader_parameter(prefix + "_tint", _lib_param(lib_name, "albedo_tint", Color(1, 1, 1)))
+		mat.set_shader_parameter(prefix + "_albedo_mult", _lib_param(lib_name, "albedo_multiplier", 1.0))
+	# stone_rough: no lib/*.tres to mirror; this workstream's own conservative estimate.
+	mat.set_shader_parameter("rock_tint", Color(0.85, 0.85, 0.82))
+	mat.set_shader_parameter("rock_albedo_mult", 1.0)
 
 	mat.set_shader_parameter("snow_albedo_tex", _tex("snow_fresh", "albedo.jpg"))
 	mat.set_shader_parameter("snow_normal_tex", _tex("snow_fresh", "normal.png"))
 	mat.set_shader_parameter("snow_roughness_tex", _tex("snow_fresh", "roughness.jpg"))
-	mat.set_shader_parameter("snow_albedo_multiplier", 1.778)
+	mat.set_shader_parameter("snow_albedo_multiplier", _lib_param("snow_fresh", "albedo_multiplier", 1.778))
 
 	var path := MAT_DIR + "terrain_material.tres"
 	ResourceSaver.save(mat, path)
@@ -138,13 +173,18 @@ func _build_horizon_material() -> ShaderMaterial:
 	mat.set_shader_parameter("snow_albedo_tex", _tex("snow_fresh", "albedo.jpg"))
 	mat.set_shader_parameter("snow_normal_tex", _tex("snow_fresh", "normal.png"))
 	mat.set_shader_parameter("snow_roughness_tex", _tex("snow_fresh", "roughness.jpg"))
-	mat.set_shader_parameter("snow_albedo_multiplier", 1.778)
-	mat.set_shader_parameter("wild_tint", Color(0.75, 0.68, 0.45))
-	mat.set_shader_parameter("wild_albedo_mult", 0.75)
-	mat.set_shader_parameter("wood_tint", Color(1, 1, 1))
-	mat.set_shader_parameter("wood_albedo_mult", 0.79)
+	mat.set_shader_parameter("snow_albedo_multiplier", _lib_param("snow_fresh", "albedo_multiplier", 1.778))
+	mat.set_shader_parameter("wild_tint", _lib_param("dry_grass", "albedo_tint", Color(1, 1, 1)))
+	mat.set_shader_parameter("wild_albedo_mult", _lib_param("dry_grass", "albedo_multiplier", 1.0))
+	mat.set_shader_parameter("wood_tint", _lib_param("forest_floor", "albedo_tint", Color(1, 1, 1)))
+	mat.set_shader_parameter("wood_albedo_mult", _lib_param("forest_floor", "albedo_multiplier", 1.0))
 	mat.set_shader_parameter("rock_tint", Color(0.85, 0.85, 0.82))
 	mat.set_shader_parameter("rock_albedo_mult", 1.0)
+	# Horizon also gets the lawn set for its own wild/lawn seasonal blend (see fragment()).
+	mat.set_shader_parameter("lawn_albedo", _tex("grass_lawn", "albedo.jpg"))
+	mat.set_shader_parameter("lawn_normal", _tex("grass_lawn", "normal.png"))
+	mat.set_shader_parameter("lawn_tint", _lib_param("grass_lawn", "albedo_tint", Color(1, 1, 1)))
+	mat.set_shader_parameter("lawn_albedo_mult", _lib_param("grass_lawn", "albedo_multiplier", 1.0))
 	var path := MAT_DIR + "horizon_material.tres"
 	ResourceSaver.save(mat, path)
 	return mat
@@ -168,7 +208,7 @@ func _cache_is_valid() -> bool:
 	var meta_path := CACHE_DIR + "_meta.json"
 	var src := DATA_DIR + "heightmap_play_1m_road_conformed.r32"
 	var mtime := FileAccess.get_modified_time(ProjectSettings.globalize_path(src))
-	var sig := "%d|%d|%d|%d|%d" % [mtime, int(CHUNK_SIZE), int(LOD0_STRIDE * 10), int(LOD1_STRIDE * 10), int(SKIRT_DEPTH)]
+	var sig := "%d|%d|%d|%d|%d|%d" % [mtime, int(CHUNK_SIZE), int(LOD0_STRIDE * 10), int(LOD1_STRIDE * 10), int(SKIRT_DEPTH), int(TERRAIN_RENDER_BIAS * 1000)]
 	if FileAccess.file_exists(meta_path):
 		var f := FileAccess.open(meta_path, FileAccess.READ)
 		if f.get_as_text() == sig:
@@ -267,7 +307,7 @@ func _build_grid_mesh(x0: float, z0: float, size: float, stride: float, skirt_de
 		for col in n:
 			var x_local := col * stride
 			var x_world := x0 + x_local
-			var h: float = TerrainHeightScript.get_height(x_world, z_world)
+			var h: float = TerrainHeightScript.get_height(x_world, z_world) - TERRAIN_RENDER_BIAS
 			var idx := row * n + col
 			verts[idx] = Vector3(x_local, h, z_local)
 			uvs[idx] = Vector2(float(col) / float(n - 1), float(row) / float(n - 1))
@@ -403,6 +443,22 @@ func _build_water(parent: Node3D) -> void:
 		var poly := PackedVector2Array()
 		for p in ring:
 			poly.append(Vector2(p.x, p.z))
+		# Adjacent reaches that share a surface_y (e.g. the river_upstream_0/1/2
+		# pieces split around Van Arnam Island) can leave a hairline gap at
+		# their shared seam -- each polygon was independently rasterized/
+		# hydro-flattened, so their boundaries don't align to sub-meter
+		# precision. A real gap there shows bare terrain (splat-textured
+		# ground) cutting across the channel instead of water. Outward-offset
+		# every reach polygon a few meters before triangulating so neighboring
+		# pieces overlap at the seam instead of leaving a crack; small enough
+		# not to visibly widen the river against its actual banks.
+		var offset_result: Array = Geometry2D.offset_polygon(poly, WATER_SEAM_BRIDGE_M, Geometry2D.JOIN_ROUND)
+		if not offset_result.is_empty():
+			var best: PackedVector2Array = offset_result[0]
+			for cand in offset_result:
+				if abs(Geometry2D.triangulate_polygon(cand).size()) > abs(Geometry2D.triangulate_polygon(best).size()):
+					best = cand
+			poly = best
 		var tris := Geometry2D.triangulate_polygon(poly)
 		if tris.is_empty():
 			continue

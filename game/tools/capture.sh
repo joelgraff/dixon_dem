@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Serialized GPU capture. Only one Godot render at a time across all agents.
-# Usage: tools/capture.sh <res://scene.tscn> <abs shots.json> <abs out dir> [warmup_frames]
+# Usage: tools/capture.sh <res://scene.tscn> <abs shots.json> <abs out dir> [warmup_frames] [extra capture_main args...]
+# extra args pass straight through, e.g. --hide=Terrain,Roads for a diagnostic control shot.
 #
 # Timeout is scaled to the workload instead of a flat 600 s, because loading world.tscn
 # (terrain chunks + road/building bakes) costs minutes before the first shot renders, and a
@@ -29,4 +30,4 @@ fi
 
 # flock wait must exceed the run budget so a queued capture isn't dropped while waiting its turn.
 exec flock -w $(( BUDGET * 3 )) "$LOCK" timeout "$BUDGET" "$GODOT" --path "$PROJ" --resolution 1600x900 \
-  res://tools/capture/capture_main.tscn -- --scene="$1" --shots="$2" --out="$3" --warmup="$WARMUP"
+  res://tools/capture/capture_main.tscn -- --scene="$1" --shots="$2" --out="$3" --warmup="$WARMUP" "${@:5}"

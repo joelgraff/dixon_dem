@@ -211,20 +211,38 @@ void fragment() {
 	l_paved.albedo *= paved_tint.rgb * paved_albedo_mult;
 	l_rock.albedo *= rock_tint.rgb * rock_albedo_mult;
 
-	vec3 albedo = l_lawn.albedo * w_lawn + l_wild.albedo * w_wild + l_wood.albedo * w_wood
+	// w_wild (the "no baked landuse data here" fallback) covers most of the
+	// play area -- OSM landuse polygons are sparse, so ordinary yards/fields/
+	// vacant lots mostly fall through to this weight, not w_lawn. Rendering
+	// that fallback as the permanently-dry/tan dry_grass texture painted the
+	// entire map tan/desert in summer, when un-mown Midwest ground is green
+	// most of the year -- dry_grass's tan-brown is a LATE-SEASON look, not a
+	// baseline. Blend the fallback's own texture set toward dry_grass only as
+	// season_foliage rises (autumn/winter); summer/spring use the green
+	// grass_lawn set instead. This changes what "wild" looks like, not the
+	// splat weights themselves -- explicit lawn/wood/gravel/mud/paved areas
+	// are unaffected.
+	float wild_dryness = smoothstep(0.0, 0.55, season_foliage);
+	vec3 wild_albedo_eff = mix(l_lawn.albedo, l_wild.albedo, wild_dryness);
+	float wild_rough_eff = mix(l_lawn.rough, l_wild.rough, wild_dryness);
+	vec3 wild_normal_eff = normalize(mix(l_lawn.normal_ts, l_wild.normal_ts, wild_dryness));
+
+	vec3 albedo = l_lawn.albedo * w_lawn + wild_albedo_eff * w_wild + l_wood.albedo * w_wood
 			+ l_gravel.albedo * w_gravel + l_mud.albedo * w_mud + l_paved.albedo * w_paved
 			+ l_rock.albedo * rock_t;
-	float rough = l_lawn.rough * w_lawn + l_wild.rough * w_wild + l_wood.rough * w_wood
+	float rough = l_lawn.rough * w_lawn + wild_rough_eff * w_wild + l_wood.rough * w_wood
 			+ l_gravel.rough * w_gravel + l_mud.rough * w_mud + l_paved.rough * w_paved
 			+ l_rock.rough * rock_t;
-	vec3 normal_ts = normalize(l_lawn.normal_ts * w_lawn + l_wild.normal_ts * w_wild + l_wood.normal_ts * w_wood
+	vec3 normal_ts = normalize(l_lawn.normal_ts * w_lawn + wild_normal_eff * w_wild + l_wood.normal_ts * w_wood
 			+ l_gravel.normal_ts * w_gravel + l_mud.normal_ts * w_mud + l_paved.normal_ts * w_paved
 			+ l_rock.normal_ts * rock_t);
 
 	// --- seasonal grass response (summer green -> autumn yellow-brown -> winter dormant tan) ---
+	// Lighter now that wild_dryness above already carries most of the
+	// summer->autumn transition via the texture blend itself.
 	float grassy = clamp(w_lawn + w_wild, 0.0, 1.0);
 	vec3 autumn_tint = vec3(1.05, 0.86, 0.52);
-	vec3 seasonal = mix(vec3(1.0), autumn_tint, smoothstep(0.0, 0.8, season_foliage));
+	vec3 seasonal = mix(vec3(1.0), autumn_tint, smoothstep(0.4, 1.0, season_foliage) * 0.5);
 	albedo = mix(albedo, albedo * seasonal, grassy);
 	// Spring: wet, slightly more saturated green (low foliage + high wetness = spring rain).
 	float spring_t = wetness * (1.0 - season_foliage) * 0.4;
