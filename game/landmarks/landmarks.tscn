@@ -2035,108 +2035,108 @@ _surfaces = [{
 [sub_resource type="BoxShape3D" id="BoxShape3D_pte41"]
 size = Vector3(25, 18, 14)
 
-[node name="Landmarks" type="Node3D" unique_id=893076952]
+[node name="Landmarks" type="Node3D" unique_id=210408666]
 
-[node name="lee_county_courthouse" type="Node3D" parent="." unique_id=1633478298 instance=ExtResource("1_d3fno")]
+[node name="lee_county_courthouse" type="Node3D" parent="." unique_id=551553427 instance=ExtResource("1_d3fno")]
 transform = Transform3D(0.9617414, 0, 0.273959, 0, 1, 0, -0.273959, 0, 0.9617414, 1691.9, 27.17078, -1233.5)
 
-[node name="Mesh" type="MeshInstance3D" parent="lee_county_courthouse" unique_id=1949780929]
+[node name="Mesh" type="MeshInstance3D" parent="lee_county_courthouse" unique_id=1011311169]
 mesh = SubResource("ArrayMesh_gs0mn")
 
-[node name="Collision" type="StaticBody3D" parent="lee_county_courthouse" unique_id=694692619]
+[node name="Collision" type="StaticBody3D" parent="lee_county_courthouse" unique_id=533788616]
 
-[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=2078527740]
+[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=901953127]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
 shape = SubResource("BoxShape3D_n2r3p")
 
-[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=1580903715]
+[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=165932751]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, -13.95)
 shape = SubResource("BoxShape3D_o31h5")
 
-[node name="dixon_arch_complex" type="Node3D" parent="." unique_id=933785026 instance=ExtResource("20_8yboh")]
+[node name="dixon_arch_complex" type="Node3D" parent="." unique_id=745649194 instance=ExtResource("20_8yboh")]
 
-[node name="DixonArch" type="Node3D" parent="dixon_arch_complex" unique_id=1002874506]
+[node name="DixonArch" type="Node3D" parent="dixon_arch_complex" unique_id=143340702]
 transform = Transform3D(0.955793, 0, 0.29404032, 0, 1, 0, -0.29404032, 0, 0.955793, 1631.3, 22.890856, -1214.2)
 
-[node name="@MeshInstance3D@4" type="MeshInstance3D" parent="dixon_arch_complex/DixonArch" unique_id=1554204504]
+[node name="@MeshInstance3D@4" type="MeshInstance3D" parent="dixon_arch_complex/DixonArch" unique_id=1520867430]
 mesh = SubResource("ArrayMesh_nph81")
 
-[node name="Collision" type="StaticBody3D" parent="dixon_arch_complex/DixonArch" unique_id=1989190852]
+[node name="Collision" type="StaticBody3D" parent="dixon_arch_complex/DixonArch" unique_id=1898585458]
 
-[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=1214333982]
+[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=719189819]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.8, 1.15, 0)
 shape = SubResource("BoxShape3D_xu5xt")
 
-[node name="@CollisionShape3D@6" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=482828884]
+[node name="@CollisionShape3D@6" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=934692868]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.8, 1.15, 0)
 shape = SubResource("BoxShape3D_xu1k5")
 
-[node name="GalenaBridgeDressing" type="Node3D" parent="dixon_arch_complex" unique_id=1386600895]
+[node name="GalenaBridgeDressing" type="Node3D" parent="dixon_arch_complex" unique_id=2047633349]
 
-[node name="@MeshInstance3D@7" type="MeshInstance3D" parent="dixon_arch_complex/GalenaBridgeDressing" unique_id=1459750709]
+[node name="@MeshInstance3D@7" type="MeshInstance3D" parent="dixon_arch_complex/GalenaBridgeDressing" unique_id=298889754]
 mesh = SubResource("ArrayMesh_fw87q")
 
-[node name="DixonDam" type="Node3D" parent="dixon_arch_complex" unique_id=1144446316]
+[node name="DixonDam" type="Node3D" parent="dixon_arch_complex" unique_id=744474589]
 
-[node name="@MeshInstance3D@8" type="MeshInstance3D" parent="dixon_arch_complex/DixonDam" unique_id=293219568]
+[node name="@MeshInstance3D@8" type="MeshInstance3D" parent="dixon_arch_complex/DixonDam" unique_id=1926414617]
 mesh = SubResource("ArrayMesh_nysrp")
 
-[node name="lincoln_statue" type="Node3D" parent="." unique_id=712768184 instance=ExtResource("40_xcjkj")]
+[node name="lincoln_statue" type="Node3D" parent="." unique_id=1269346627 instance=ExtResource("40_xcjkj")]
 transform = Transform3D(0.2756374, 0, -0.9612617, 0, 1, 0, 0.9612617, 0, 0.2756374, 1387.8, 7.140526, -1726.6)
 
-[node name="@MeshInstance3D@9" type="MeshInstance3D" parent="lincoln_statue" unique_id=2072071876]
+[node name="@MeshInstance3D@9" type="MeshInstance3D" parent="lincoln_statue" unique_id=1539801645]
 mesh = SubResource("ArrayMesh_0ve0k")
 
-[node name="Collision" type="StaticBody3D" parent="lincoln_statue" unique_id=1750348588]
+[node name="Collision" type="StaticBody3D" parent="lincoln_statue" unique_id=78313755]
 
-[node name="@CollisionShape3D@10" type="CollisionShape3D" parent="lincoln_statue/Collision" unique_id=1154762366]
+[node name="@CollisionShape3D@10" type="CollisionShape3D" parent="lincoln_statue/Collision" unique_id=2038705898]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("BoxShape3D_5u0ih")
 
-[node name="dixon_theatre" type="Node3D" parent="." unique_id=1324860981 instance=ExtResource("46_1hlwp")]
-transform = Transform3D(0.27731472, 0, -0.96077913, 0, 1, 0, 0.96077913, 0, 0.27731472, 1610.5, 15.864652, -1381.2)
+[node name="dixon_theatre" type="Node3D" parent="." unique_id=1162981987 instance=ExtResource("46_1hlwp")]
+transform = Transform3D(-0.2722803, 0, 0.962218, 0, 1, 0, -0.962218, 0, -0.2722803, 1629.2, 18.891842, -1336.9)
 
-[node name="@MeshInstance3D@11" type="MeshInstance3D" parent="dixon_theatre" unique_id=271010465]
+[node name="@MeshInstance3D@11" type="MeshInstance3D" parent="dixon_theatre" unique_id=429729887]
 mesh = SubResource("ArrayMesh_d50d6")
 
-[node name="Collision" type="StaticBody3D" parent="dixon_theatre" unique_id=1132846334]
+[node name="Collision" type="StaticBody3D" parent="dixon_theatre" unique_id=11857808]
 
-[node name="@CollisionShape3D@12" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=489588452]
+[node name="@CollisionShape3D@12" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=1705165756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, 6)
 shape = SubResource("BoxShape3D_frkh7")
 
-[node name="@CollisionShape3D@13" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=1193739836]
+[node name="@CollisionShape3D@13" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=484134929]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 7, 25)
 shape = SubResource("BoxShape3D_7nk0e")
 
-[node name="reagan_boyhood_home" type="Node3D" parent="." unique_id=2113160535 instance=ExtResource("52_44pef")]
+[node name="reagan_boyhood_home" type="Node3D" parent="." unique_id=2146090966 instance=ExtResource("52_44pef")]
 transform = Transform3D(0.29070225, 0, -0.9568136, 0, 1, 0, 0.9568136, 0, 0.29070225, 1723.1, 30.518219, -590)
 
-[node name="@MeshInstance3D@14" type="MeshInstance3D" parent="reagan_boyhood_home" unique_id=1146973633]
+[node name="@MeshInstance3D@14" type="MeshInstance3D" parent="reagan_boyhood_home" unique_id=151765120]
 mesh = SubResource("ArrayMesh_ba580")
 
-[node name="Collision" type="StaticBody3D" parent="reagan_boyhood_home" unique_id=1092212949]
+[node name="Collision" type="StaticBody3D" parent="reagan_boyhood_home" unique_id=738583112]
 
-[node name="@CollisionShape3D@15" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=1911654920]
+[node name="@CollisionShape3D@15" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=1500883544]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 shape = SubResource("BoxShape3D_5x6qv")
 
-[node name="@CollisionShape3D@16" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=1252782451]
+[node name="@CollisionShape3D@16" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=1129116101]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.3, -6.4)
 shape = SubResource("BoxShape3D_bd3fi")
 
-[node name="@CollisionShape3D@17" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=722572313]
+[node name="@CollisionShape3D@17" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=56599482]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 2.2, 1)
 shape = SubResource("BoxShape3D_s6rum")
 
-[node name="nachusa_house" type="Node3D" parent="." unique_id=1601526084 instance=ExtResource("54_ayhbl")]
+[node name="nachusa_house" type="Node3D" parent="." unique_id=982491674 instance=ExtResource("54_ayhbl")]
 transform = Transform3D(0.3040331, 0, -0.95266145, 0, 1, 0, 0.95266145, 0, 0.3040331, 1601.5, 22.157463, -1219.8)
 
-[node name="@MeshInstance3D@18" type="MeshInstance3D" parent="nachusa_house" unique_id=390419124]
+[node name="@MeshInstance3D@18" type="MeshInstance3D" parent="nachusa_house" unique_id=212280403]
 mesh = SubResource("ArrayMesh_xb8cg")
 
-[node name="Collision" type="StaticBody3D" parent="nachusa_house" unique_id=967781220]
+[node name="Collision" type="StaticBody3D" parent="nachusa_house" unique_id=1215448613]
 
-[node name="@CollisionShape3D@19" type="CollisionShape3D" parent="nachusa_house/Collision" unique_id=1922148711]
+[node name="@CollisionShape3D@19" type="CollisionShape3D" parent="nachusa_house/Collision" unique_id=1851699802]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 0)
 shape = SubResource("BoxShape3D_pte41")

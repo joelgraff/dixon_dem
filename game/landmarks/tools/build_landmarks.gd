@@ -52,7 +52,12 @@ func _init() -> void:
 	_placements.append(_place("lee_county_courthouse", _build_courthouse(), Vector2(1691.9, -1233.5), 344.1, true))
 	_placements.append(_place("dixon_arch_complex", _build_dixon_arch_complex(), Vector2.ZERO, 0.0, false, true))
 	_placements.append(_place("lincoln_statue", _build_lincoln_statue(), Vector2(1387.8, -1726.6), 74.0, true))
-	_placements.append(_place("dixon_theatre", _build_dixon_theatre(), Vector2(1610.5, -1381.2), 73.9, true))
+	# Position/bearing corrected 2026-09-20: the data pipeline tags THREE buildings with
+	# landmark_id "dixon_theatre" (including First Baptist Church), and this used the first
+	# match -- an unnamed 439 m2 building that put the theatre in the middle of Galena Ave.
+	# The real one is the OSM way named "The Dixon: Historic Theatre": centroid
+	# (1629.2, -1336.9), 901 m2, 32.4 m from South Galena Avenue, which it faces (yaw 254.2).
+	_placements.append(_place("dixon_theatre", _build_dixon_theatre(), Vector2(1629.2, -1336.9), 254.2, true))
 	_placements.append(_place("reagan_boyhood_home", _build_reagan_home(), Vector2(1723.1, -590.0), 73.1, true))
 	_placements.append(_place("nachusa_house", _build_nachusa_house(), Vector2(1601.5, -1219.8), 72.3, true))
 	_build_landmarks_tscn()

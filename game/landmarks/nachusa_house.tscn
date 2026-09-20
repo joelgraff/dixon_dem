@@ -344,13 +344,13 @@ _surfaces = [{
 [sub_resource type="BoxShape3D" id="BoxShape3D_pte41"]
 size = Vector3(25, 18, 14)
 
-[node name="NachusaHouse" type="Node3D" unique_id=1601526084]
+[node name="NachusaHouse" type="Node3D" unique_id=982491674]
 
-[node name="@MeshInstance3D@18" type="MeshInstance3D" parent="." unique_id=390419124]
+[node name="@MeshInstance3D@18" type="MeshInstance3D" parent="." unique_id=212280403]
 mesh = SubResource("ArrayMesh_xb8cg")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=967781220]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1215448613]
 
-[node name="@CollisionShape3D@19" type="CollisionShape3D" parent="Collision" unique_id=1922148711]
+[node name="@CollisionShape3D@19" type="CollisionShape3D" parent="Collision" unique_id=1851699802]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 0)
 shape = SubResource("BoxShape3D_pte41")

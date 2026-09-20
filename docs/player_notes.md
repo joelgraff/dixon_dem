@@ -167,3 +167,15 @@ confirming the capture_mode contract holds end-to-end through
   foundations/stairs, since buildings interiors aren't walkable content yet.
 - Footstep audio is a single generic click (no per-surface waveforms yet),
   by design per the brief ("no audio assets required now").
+
+## Exploration HUD + screenshot tool (2026-09-20) — all toggleable, all off during captures
+`game/player/hud.gd`, instanced as a `HUD` CanvasLayer in `world/world.tscn`.
+- **F7** location readout — nearest named street, or "A & B" when within 35 m of a second named street,
+  plus "near <POI>" within 60 m; also shows season/weather. Built from `game/data/roads.json` +
+  `pois.json`, i.e. the same vectors the world is generated from, so names always match the geometry.
+- **F8** minimap — top-down vector map (arterials thicker/yellow), player marker with heading, scale
+  readout. **F9** cycles zoom 120 / 250 / 600 m.
+- **F12** screenshot → `captures/manual/`, filename carries timestamp, x_y_z, season, weather and hour,
+  so a screenshot is self-describing when it comes back as a bug report.
+  **Shift+F12** hides the HUD first (clean shot).
+- Everything checks `capture_mode` and hides itself, so the offline capture harness is unaffected.
