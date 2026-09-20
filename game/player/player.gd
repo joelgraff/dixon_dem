@@ -18,10 +18,10 @@ signal footstep(surface_type: String, global_pos: Vector3)
 # docs/terrain_notes.md "How other systems sample terrain height".
 const SpawnPoints = preload("res://player/spawn_points.gd")
 
-const WALK_SPEED := 1.4
-const RUN_SPEED := 3.5
-const CROUCH_SPEED := 0.9
-const JUMP_HEIGHT := 1.0
+const WALK_SPEED := 10.4
+const RUN_SPEED := 30.5
+const CROUCH_SPEED := 9.9
+const JUMP_HEIGHT := 4.0
 const GRAVITY := 9.8
 
 const STAND_HEIGHT := 1.8

@@ -44,3 +44,10 @@ Do **not** run git commands; the orchestrator commits.
 - After adding textures/models run `game/tools/import.sh`.
 - Put captures in `~/Projects/dixon_dem/captures/<workstream>/iterN/` (gitignored). Look at your own screenshots with the Read tool before claiming anything.
 - Every workstream provides a standalone test scene `res://<folder>/test_<folder>.tscn` that includes a minimal lighting rig by instancing `res://atmosphere/atmosphere.tscn` if it exists (else a temporary DirectionalLight3D + WorldEnvironment with AgX tonemap).
+
+## User-owned settings (do not revert)
+- `game/player/player.gd` movement constants (WALK/RUN/CROUCH speed, JUMP_HEIGHT) were tuned by the user
+  for fast inspection flying (walk 10.4, run 30.5, crouch 9.9, jump 4.0). Treat these as user-owned:
+  never reset them to "realistic" values without being asked. If a gameplay-realistic profile is needed,
+  add it as a separate selectable profile.
+- `references/` (project root) holds user-supplied landmark reference photos. Read-only for agents.
