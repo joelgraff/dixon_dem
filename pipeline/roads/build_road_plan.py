@@ -378,7 +378,17 @@ def build_way_surfaces(plans, hm, mb_by_mat):
     for plan in plans:
         mat = asphalt_material_for(plan.way)
         sub = MeshBuild()
-        add_ribbon(sub, plan.rings["edge_L"], plan.rings["edge_R"], hm, y_bias=ROAD_Y_BIAS)
+        # double_sided: the analytically-derived single-sided winding for this
+        # L/R pair was found (empirically, via --hide=Terrain + a bright
+        # diagnostic tint) to backface-cull the entire straight-run asphalt
+        # ribbon from normal eye-height viewing angles across the whole map --
+        # only junction fans (already double-sided) were ever actually
+        # visible. Rather than re-derive the winding under time pressure,
+        # double-side this one call; it's the single largest mesh so the
+        # perf cost is the most real of any double-siding in this file, but
+        # correctness (the road being visible at all) wins here.
+        add_ribbon(sub, plan.rings["edge_L"], plan.rings["edge_R"], hm, y_bias=ROAD_Y_BIAS,
+                   double_sided=True)
         if not sub.is_empty():
             mb_by_mat.setdefault(mat, MeshBuild()).extend(sub)
 

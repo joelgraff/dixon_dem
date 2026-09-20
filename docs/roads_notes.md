@@ -78,56 +78,53 @@ fully root-caused (see next section).
    ROOT CAUSE NOT FULLY IDENTIFIED.** See next section; this is the one
    item still open.
 
-## Open issue: mid-block coverage gap (terrain shows through)
+## RESOLVED: "mid-block coverage gap" — real cause found, fixed
 
-This is real and reproducible, but after an unusually thorough investigation
-I could not pin down the mechanism in the time available. What's confirmed:
+This was open for most of the session and got misdiagnosed twice before the
+actual cause surfaced. For the record, in order:
 
-- **Not a depth/z-fight issue.** Raised `ROAD_Y_BIAS` from 0.025 → 0.085 →
-  (diagnostically) 0.5 m. Even a blatant half-metre offset did not reveal
-  the road at a confirmed-gap test point — ruling out z-fighting/depth
-  precision entirely. Reverted to 0.085 (a still-reasonable, modest-safety-
-  margin value; no evidence it needs to be higher).
-- **Not terrain occlusion.** Capturing the exact same gap point with
-  `--hide=Terrain` shows *empty sky*, not my asphalt — if terrain were simply
-  rendering on top of a correctly-covered road, hiding terrain would reveal
-  the road. It doesn't. (An earlier hypothesis in this doc, that terrain's
-  own "heightmap-vs-mesh scale" bug was occluding correct road geometry, is
-  **wrong** — terrain's team independently confirmed mesh-vs-heightmap
-  agreement within ±20mm, and this test confirms it from the roads side too.)
-- **The mesh data itself is verified correct and present**, checked two
-  independent ways: (a) a Python point-in-triangle test against the baked
-  chunk JSON found a real `asphalt_road_plowed` triangle containing the exact
-  gap-point coordinates `(1594.97, -1338.5)` (mid-block on South Galena
-  Ave, way `116908690`) with Y matching the heightmap; (b) a one-off runtime
-  GDScript (loaded `res://roads/roads.tscn`, walked to
-  `Chunk_7_-7/Surf_asphalt_road_plowed`, read `mesh.surface_get_arrays()`
-  directly) confirmed the *actual loaded Godot ArrayMesh* has a vertex only
-  8.3 m from that same point, well within the road's 8.2 m half-width, with
-  786 vertices in that chunk's surface and a sane XZ bounding box. So the
-  data reaches Godot intact.
-- Despite both of those, the composed (and `--hide=Terrain`) render at that
-  exact camera position shows no road geometry — the same node/mesh renders
-  correctly in some views (e.g. standing at a junction, or aimed at nearby
-  geometry) and not in others (aimed at this confirmed-present mid-block
-  point). I do not have an explanation that survives all of the above
-  evidence — candidates I could not test further without in-editor frame-
-  debugger access: an incorrect auto-computed AABB on this specific
-  MeshInstance3D causing frustum-culling to reject it from some camera
-  angles despite `visibility_range` being generous (0-900m), or something
-  about how `capture_main.gd`'s single shared `Camera3D` interacts with a
-  chunk this size at this world-coordinate range.
-- **This affects real screen area** in composed shots — visible in
-  `captures/roads/iter2/downtown_street_summer_clear.png` and
-  `residential_street_summer_clear.png`: the ~15-20 m immediately around the
-  camera/junction renders correctly (dark, cracked, matte asphalt per the
-  fixes above), but the mid-distance road surface is terrain grass/dirt, not
-  mine. Whoever picks this up next: start from the two verification methods
-  above (they're fast — a few seconds each) rather than re-deriving them;
-  the `game/roads/tools/diag_check.gd`-style runtime mesh inspection (not
-  currently checked in — recreate from the description above, it's ~35
-  lines) is the more authoritative of the two since it checks what Godot
-  actually loaded, not just what Python wrote to JSON.
+1. **First hypothesis (wrong): terrain's heightmap-vs-mesh scale bug
+   occluding correct road geometry.** Ruled out — terrain confirmed ±20mm
+   agreement, and pushing `ROAD_Y_BIAS` to a blatant 0.5 m diagnostic value
+   didn't reveal anything either.
+2. **Real contributing bug #1: a stray `Transform3D` on the `Roads` node in
+   the shared `world/world.tscn`** — `(-1149.8868, -77.292175, 795.5365)`
+   translation, apparently saved accidentally by the buildings workstream
+   (the `Buildings` node had the identical transform). This put my entire
+   road network ~1.4 km away from where curbs/terrain/buildings actually
+   were, in whatever real geometry happened to exist at the *offset*
+   coordinates — which is exactly why some of my own test captures looked
+   locally convincing (real asphalt, just the wrong asphalt) while composed
+   `world.tscn` frames looked broken. **Fixed by the buildings agent**;
+   verify the `Roads` node in `world/world.tscn` carries no `transform` line.
+3. **Real contributing bug #2 (the actual remaining cause, mine): backface
+   winding on the main asphalt ribbon.** Even after the transform was
+   removed, straight-run asphalt still didn't render in composed frames —
+   confirmed via `--hide=Terrain` (revealed empty sky, not occluded asphalt)
+   and via an extreme bright-tint diagnostic material in both `test_roads.tscn`
+   and `world.tscn`: the tint never appeared near the camera on straight
+   runs, only glowing at extreme distance — while **junction fan geometry
+   (always built double-sided) rendered correctly everywhere**. That contrast
+   was the tell: the single-sided winding I derived early in this session for
+   the straight-ribbon `edge_L`/`edge_R` pair (`build_way_surfaces`'s main
+   `add_ribbon` call) was backface-culled from normal eye-height viewing
+   angles across the *entire* map — curbs/sidewalks/markings use a different,
+   apparently-correct flip convention, which is why only the asphalt itself
+   was ever missing. **Fixed** by adding a `double_sided` option to
+   `add_ribbon()` (`common_roads.py`) and using it for that one call
+   (`pipeline/roads/build_road_plan.py`) rather than re-deriving the correct
+   single-sided winding under time pressure — it's the single largest mesh
+   in the scene so it's the most expensive double-siding in this file, but
+   correctness (the road rendering at all) matters more than that margin.
+   Triangle count: 847k → 902k (+6.5%).
+
+Verified fixed in composed `world.tscn` at the coordinator's exact
+verification viewpoint (`pos=[1515,14.32,-1372.4]`,
+`look_at=[1796.1,14.5,-1453.8]`) — see `captures/roads/iter3/final/` (normal)
+and `captures/roads/iter3/final_hideterrain/` (`--hide=Terrain`, confirms the
+asphalt is self-sufficient, not terrain showing through). Measured asphalt
+in that shot: **sRGB (98, 90, 83), linear ≈ 0.10** — within the 0.05-0.12
+target.
 
 One more, separate, rendering oddity noticed while investigating: the
 `galena_bridge_deck` capture shows the camera as if submerged (murky green,

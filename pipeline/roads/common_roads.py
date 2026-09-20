@@ -273,7 +273,7 @@ class MeshBuild:
 
 
 def add_ribbon(mb: MeshBuild, left_pts_xz, right_pts_xz, heightmap: Heightmap, y_bias=0.0,
-               u_left=0.0, u_right=1.0, v_scale=1.0, flip=False):
+               u_left=0.0, u_right=1.0, v_scale=1.0, flip=False, double_sided=False):
     """Build a triangle strip between two parallel 2D polylines of equal length,
     sampling Y + normal from the heightmap. v runs along the strip length."""
     n = len(left_pts_xz)
@@ -301,6 +301,11 @@ def add_ribbon(mb: MeshBuild, left_pts_xz, right_pts_xz, heightmap: Heightmap, y
             mb.add_quad(right_idx[i], right_idx[i + 1], left_idx[i + 1], left_idx[i])
         else:
             mb.add_quad(left_idx[i], left_idx[i + 1], right_idx[i + 1], right_idx[i])
+        if double_sided:
+            if flip:
+                mb.add_quad(left_idx[i], left_idx[i + 1], right_idx[i + 1], right_idx[i])
+            else:
+                mb.add_quad(right_idx[i], right_idx[i + 1], left_idx[i + 1], left_idx[i])
 
 
 def fan_fill(mb: MeshBuild, loop_xz, heightmap: Heightmap, y_bias=0.0):
