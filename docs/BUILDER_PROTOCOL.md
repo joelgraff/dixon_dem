@@ -16,3 +16,11 @@ than the Bash tool's 10-minute foreground cap. Don't poll in a loop and don't ju
 2. Then arm ONE notification with Bash `run_in_background`:
    `until [ -f <outdir>.marker ]; do sleep 10; done` — you are re-invoked when it exits.
 3. On wake, check the log for `SCRIPT ERROR`/`ERROR`, then review the PNGs with Read.
+
+## Camera heights in shot lists — use "eye": true
+Do NOT hand-guess camera Y. Terrain downtown runs ~15-27 m local and a camera even 0.5 m low renders
+the ground from underneath as a flat pale sheet that looks like a giant misplaced plane (this caused two
+wrong diagnoses on 2026-09-20). Instead write `"pos": [x, 0, z], "look_at": [x2, 0, z2], "eye": true`
+and the harness raycasts the world collision and places both at ground + 1.7 m (override with
+`"eye_height"`). Verify a suspicious "huge flat plane" with `game/tools/probe_ground.gd` before blaming
+a system for it.

@@ -72,6 +72,15 @@ func _run() -> void:
 		if s.has("snow_cover_override"):
 			RenderingServer.global_shader_parameter_set("snow_cover", float(s["snow_cover_override"]))
 		var p: Array = s["pos"]; var t: Array = s["look_at"]
+		# "eye": true -> put the camera at ground + eye_height (default 1.7 m) at
+		# this x/z, and aim at ground + eye height too. Hand-guessed Y values put
+		# several diagnostic shots BELOW the terrain, which renders the ground from
+		# underneath as a flat pale sheet and looks exactly like a giant misplaced
+		# plane -- two wrong diagnoses came from that before this existed.
+		if bool(s.get("eye", false)):
+			var eye_h := float(s.get("eye_height", 1.7))
+			p = [p[0], _ground_y(float(p[0]), float(p[2])) + eye_h, p[2]]
+			t = [t[0], _ground_y(float(t[0]), float(t[2])) + eye_h, t[2]]
 		cam.fov = float(s.get("fov", 70.0))
 		cam.far = float(s.get("far", 4000.0))
 		cam.global_position = Vector3(p[0], p[1], p[2])
@@ -92,3 +101,15 @@ func _all_nodes(n: Node, acc: Array = []) -> Array:
 	for c in n.get_children():
 		_all_nodes(c, acc)
 	return acc
+
+
+## Raycasts down onto world collision to find the ground at (x, z).
+## Falls back to 0 if nothing is hit (caller is then outside the collidable world).
+func _ground_y(x: float, z: float) -> float:
+	var space := get_viewport().world_3d.direct_space_state
+	var q := PhysicsRayQueryParameters3D.create(Vector3(x, 400.0, z), Vector3(x, -100.0, z))
+	var hit := space.intersect_ray(q)
+	if hit.is_empty():
+		push_warning("capture: no ground under (%f, %f)" % [x, z])
+		return 0.0
+	return hit.position.y
