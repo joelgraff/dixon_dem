@@ -693,6 +693,36 @@ def build_stop_signs(nodes, plan_by_way_id, downtown_node_ids, hm, furniture):
         furniture.setdefault("stopsign", []).append([pos[0], y, pos[1], ry])
 
 
+
+# ---------------------------------------------------------------------------
+# Aerial-traced paved surfaces (parking lots, aprons, service yards)
+# ---------------------------------------------------------------------------
+def build_aerial_paved(hm, mb_by_mat, carriageway_segs=None):
+    """Lays the paved quads extracted from the Google Earth aerial.
+
+    OSM has almost no parking data for downtown Dixon (2 landuse areas in the whole
+    aerial) even though the lots are a large share of the visible ground plane, so
+    they are traced from the photo instead -- see pipeline/aerial/extract_paved.py.
+    Quads are axis-aligned in aerial pixel space and tile exactly, so they are laid
+    as flat fills at terrain height. Quads whose centre falls inside a carriageway
+    are skipped so a lot never paves over a street.
+    """
+    path = os.path.join(pc.ROOT, "game", "data", "aerial_paved.json")
+    if not os.path.exists(path):
+        return 0
+    quads = json.load(open(path)).get("quads", [])
+    laid = 0
+    for q in quads:
+        cx = sum(p[0] for p in q) / 4.0
+        cz = sum(p[1] for p in q) / 4.0
+        if carriageway_segs and _in_carriageway(cx, cz, carriageway_segs, margin=0.0):
+            continue
+        loop = [(p[0], p[1]) for p in q]
+        close_loop_fill(mb_by_mat, loop, hm, ROAD_Y_BIAS, "asphalt_patched_plowed")
+        laid += 1
+    print(f"  {laid} aerial-traced paved quads ({len(quads) - laid} skipped inside carriageways)")
+    return laid
+
 # ---------------------------------------------------------------------------
 # Non-drivable paths (footway/cycleway/path/pedestrian/steps)
 # ---------------------------------------------------------------------------
@@ -1093,6 +1123,9 @@ def main():
     # Pass the carriageway extents so footway slabs are clipped out of the street
     # (OSM maps crossings as footways straight across the road).
     build_pathy(split_ways, hm, mb_by_mat, _carriageway_index(plans))
+
+    print("Building aerial-traced paved surfaces...")
+    build_aerial_paved(hm, mb_by_mat, _carriageway_index(plans))
 
     print("Building bridges...")
     build_bridges(bridges, hm, mb_by_mat, furniture)
