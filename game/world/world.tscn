@@ -25,4 +25,4 @@ script = ExtResource("1")
 [node name="Landmarks" parent="." unique_id=114504746 instance=ExtResource("8")]
 
 [node name="Player" parent="." unique_id=284278643 instance=ExtResource("6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1557.2562, 0, -1447.215)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1631.3, 24.2, -1214.2)

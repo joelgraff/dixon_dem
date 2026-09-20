@@ -51,6 +51,58 @@ class MeshBuild:
             return
         g["indices"].extend([a, b, c])
 
+    # --- outward orientation ------------------------------------------------
+    # The blanket index mirror below is correct for HORIZONTAL caps (roofs, floors,
+    # awning tops -- those render fine today) but not for VERTICAL walls, whose
+    # submitted order depends on which way the footprint ring runs. That is why
+    # buildings showed missing sides with awnings floating over nothing
+    # (user report 2026-09-20). For near-vertical faces we therefore ignore the
+    # convention entirely and orient each face by geometry: its normal must point
+    # away from the building's own centroid.
+    def set_outward_ref(self, cx, cz):
+        self._out_ref = (cx, cz)
+
+    def _outward_normal(self, pts, normal):
+        """Flip a caller-supplied shading normal if it points INTO the building.
+
+        Walls pass an explicit normal derived from the footprint edge direction
+        (facade.wall_backdrop), whose sign depends on which way the ring runs.
+        When it pointed inward the facade was shaded as if facing away from the
+        sun -- the near-black walls reported 2026-09-20. Triangle winding alone
+        cannot fix this, because the stored normal is what lighting uses.
+        """
+        ref = getattr(self, "_out_ref", None)
+        if ref is None or normal is None:
+            return normal
+        if abs(normal[1]) >= 0.7:
+            return normal              # horizontal face: leave it alone
+        fx = sum(q[0] for q in pts) / len(pts)
+        fz = sum(q[2] for q in pts) / len(pts)
+        if normal[0] * (fx - ref[0]) + normal[2] * (fz - ref[1]) < 0.0:
+            return (-normal[0], -normal[1], -normal[2])
+        return normal
+
+    def _orient(self, pts, idx_default, idx_mirror):
+        ref = getattr(self, "_out_ref", None)
+        a, b, c = pts[0], pts[1], pts[2]
+        ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
+        vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
+        nx = uy * vz - uz * vy
+        ny = uz * vx - ux * vz
+        nz = ux * vy - uy * vx
+        ln = math.sqrt(nx * nx + ny * ny + nz * nz)
+        if ln < 1e-9:
+            return idx_mirror
+        ny_norm = abs(ny / ln)
+        if ref is None or ny_norm >= 0.7:
+            return idx_mirror          # horizontal cap: keep the verified convention
+        # vertical-ish face: point the normal away from the centroid
+        fx = sum(q[0] for q in pts) / len(pts)
+        fz = sum(q[2] for q in pts) / len(pts)
+        if nx * (fx - ref[0]) + nz * (fz - ref[1]) >= 0.0:
+            return idx_default          # already outward as submitted
+        return idx_mirror
+
     def add_quad(self, material, p0, p1, p2, p3, normal=None, uvs=None, color=(1.0, 1.0, 1.0, 1.0)):
         """p0..p3 CCW as seen from the face's front (normal points toward viewer).
 
@@ -70,8 +122,14 @@ class MeshBuild:
         instead of (0,1,2)/(0,2,3) -- flips winding, keeps every vertex/UV/
         normal/color exactly as the caller specified.
         """
+        # Decide orientation FIRST, then derive the shading normal from the winding
+        # actually emitted. Getting this wrong is what made walls render near-black:
+        # the stored normal pointed into the building while the triangles faced out,
+        # so the facade was lit as if facing away from the sun.
+        _mode = self._orient((p0, p1, p2, p3), "default", "mirror")
         if normal is None:
-            normal = tri_normal(p0, p2, p1)
+            normal = tri_normal(p0, p1, p2) if _mode == "default" else tri_normal(p0, p2, p1)
+        normal = self._outward_normal((p0, p1, p2, p3), normal)
         if uvs is None:
             uvs = ((0, 0), (1, 0), (1, 1), (0, 1))
         colors = color if isinstance(color, (list, tuple)) and isinstance(color[0], (list, tuple)) else (color,) * 4
@@ -79,21 +137,30 @@ class MeshBuild:
         base = len(g["verts"])
         for p, uv, c in zip((p0, p1, p2, p3), uvs, colors):
             self.add_vertex(material, p, normal, uv, c)
-        self.add_tri(material, base, base + 2, base + 1)
-        self.add_tri(material, base, base + 3, base + 2)
+        if _mode == "default":
+            self.add_tri(material, base, base + 1, base + 2)
+            self.add_tri(material, base, base + 2, base + 3)
+        else:
+            self.add_tri(material, base, base + 2, base + 1)
+            self.add_tri(material, base, base + 3, base + 2)
 
     def add_tri_face(self, material, p0, p1, p2, normal=None, uvs=None, color=(1.0, 1.0, 1.0, 1.0)):
         """p0,p1,p2 CCW per the (x,z) shoelace convention -- see add_quad's
         winding note; submitted mirrored (0,2,1) to render front-facing."""
+        _mode = self._orient((p0, p1, p2), "default", "mirror")
         if normal is None:
-            normal = tri_normal(p0, p2, p1)
+            normal = tri_normal(p0, p1, p2) if _mode == "default" else tri_normal(p0, p2, p1)
+        normal = self._outward_normal((p0, p1, p2), normal)
         if uvs is None:
             uvs = ((0, 0), (1, 0), (0.5, 1))
         colors = color if isinstance(color, (list, tuple)) and isinstance(color[0], (list, tuple)) else (color,) * 3
         base = len(self._grp(material)["verts"])
         for p, uv, c in zip((p0, p1, p2), uvs, colors):
             self.add_vertex(material, p, normal, uv, c)
-        self.add_tri(material, base, base + 2, base + 1)
+        if _mode == "default":
+            self.add_tri(material, base, base + 1, base + 2)
+        else:
+            self.add_tri(material, base, base + 2, base + 1)
 
     def add_box(self, material, cx, cz, y0, y1, sx, sz, color=(1.0, 1.0, 1.0, 1.0), yaw=0.0, uv_scale=1.0):
         """Axis-ish aligned box (optionally yawed around Y), sx/sz = full extents."""

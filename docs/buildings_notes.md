@@ -280,3 +280,35 @@ night (summer/clear/21:30) to show `night_factor` lit windows.
   scenes with zero buildings geometry — confirmed pre-existing in the
   atmosphere sky shader, not a buildings-workstream issue; a haze/fog retune
   was reported landing separately.
+
+## 2026-09-20 orchestrator pass — winding/normals fixed, but the black walls are a MATERIAL bug
+Two mesh-level correctness fixes were made (both kept, both verified harmless):
+1. `common_buildings.MeshBuild._orient()` — vertical faces are now oriented by geometry (normal must
+   point away from the building centroid, set per building via `set_outward_ref`) instead of relying on
+   a blanket index mirror. The mirror is correct for horizontal caps but not for walls, whose submitted
+   order depends on the footprint ring direction — the "missing sides / awnings over nothing" class.
+2. `_outward_normal()` — a caller-supplied shading normal (walls pass one from
+   `facade.wall_backdrop`, derived from the edge direction) is flipped if it points into the building.
+   Winding alone cannot fix shading, because lighting uses the stored normal.
+
+**Measured result: no visible change.** Facade band mean sRGB before -> after: first_st 106.6 -> 106.6,
+downtown_block 170.3 -> 170.2, residential_house 121.2 -> 121.5. So the normals were already outward and
+these were latent-correctness fixes, not the cause of the dark facades.
+
+**Actual cause of the near-black walls, found by tallying triangles per material across all chunks:**
+| material | tris | share |
+|---|---|---|
+| trim_dark | 81,226 | 27.2% |
+| window_lit | 73,392 | 24.6% |
+| limestone | 48,000 | 16.1% |
+| siding_white | 38,950 | 13.1% |
+| stone_foundation | 12,240 | 4.1% |
+| brick_red | 11,280 | 3.8% |
+| **all brick combined** | ~17,300 | **~5.8%** |
+
+Over half of all building surface area is `trim_dark` + `window_lit`. The facade generator is covering
+the bulk of each wall with dark trim and window/glass material instead of brick or siding — which is
+exactly why downtown blocks read as black slabs and the residential house reads as a glass curtain wall.
+**Next step:** fix the facade area budget so brick/siding dominates (a real commercial block is ~60-75%
+masonry, ~20-30% glazing, the rest trim), and check the window-band UV/scale that lets glazing span whole
+walls. This is a facade-composition bug, not a winding, normal, lighting or material-library bug.

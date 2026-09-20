@@ -148,6 +148,11 @@ def main():
         bid = b.get("id")
         rng = rng_for("bld", bid)
         c = chunk_for(cx, cz)
+        # Tell the mesh builders which point counts as "inside" this building, so
+        # vertical faces can be oriented outward by geometry rather than by the
+        # caller's ring-winding convention (see common_buildings._orient).
+        c["near"].set_outward_ref(cx, cz)
+        c["far"].set_outward_ref(cx, cz)
         mb, mb_far = c["near"], c["far"]
 
         try:
