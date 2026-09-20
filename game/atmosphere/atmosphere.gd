@@ -689,6 +689,8 @@ func _update_environment() -> void:
 	_env.fog_height = _blend.get("fog_h", 60.0)
 	_env.fog_height_density = _blend.get("height_density", 0.0)
 
+	_apply_airborne_depth()
+
 	# --- shadows -----------------------------------------------------------
 	# Full opacity always now that direct_scale actually dims the light — a
 	# weak sun already gives a weak-contrast shadow; opacity<1 on top of that
@@ -831,3 +833,85 @@ func _update_debug_ui() -> void:
 	debug_label.text = "%s / %s / %02d:%02d  (F1 season · F2 weather · F3/F4 hour)" % [
 		season_name, weather_name, int(WorldState.hour), int(fmod(WorldState.hour, 1.0) * 60.0)
 	]
+
+
+# ---------------------------------------------------------------------------
+# Airborne depth pass (user review 2026-09-20: "flat ... airborne effects —
+# weather, seasons, time of day").
+#
+# Before this, every preset except FOG ran height_density = 0, anisotropy 0.2,
+# sun_scatter 0.25 and vol_sky_affect 0 — i.e. a uniform fog slab with almost no
+# forward scattering. Distance then reads as a flat wash instead of layered air,
+# and time of day barely changes the air at all.
+#
+# This layers three physically-motivated modulations ON TOP of the weather
+# presets (it never replaces them, so the measured visibility ladders per
+# weather still hold):
+#   1. Valley fog deck — Dixon sits in the Rock River valley (river surface
+#      local Y ~4-8, downtown rim ~27, bluffs ~41). A shallow deck that pools
+#      in the valley and lets rooftops/canopy stand clear of it is the strongest
+#      available depth cue, and it is free: two Environment properties.
+#   2. Forward scattering — anisotropy + fog_sun_scatter rise sharply when the
+#      sun is low, so haze glows toward the sun at dawn/dusk and stays neutral
+#      at noon. This is what makes air read as a medium rather than a tint.
+#   3. Season/time character — summer afternoon haze, crisp dry winter air,
+#      humid spring/autumn dawn mist that burns off by mid-morning.
+func _apply_airborne_depth() -> void:
+	var elev_deg: float = _cur.get("elev_deg", 45.0)
+	var night_factor: float = _cur.get("night_factor", 0.0)
+	var weather: int = WorldState.weather
+	var season: int = WorldState.season
+	var hour: float = WorldState.hour
+
+	# --- 1. valley fog deck ------------------------------------------------
+	# Deck top sits a little above the downtown rim so the valley fills and the
+	# bluffs/rooftops emerge. FOG/BLIZZARD keep their own (already tuned) decks.
+	var deck_density := 0.0
+	var deck_top := 26.0
+	match weather:
+		WorldState.Weather.CLEAR:    deck_density = 0.005
+		WorldState.Weather.OVERCAST: deck_density = 0.022
+		WorldState.Weather.RAIN:     deck_density = 0.040
+		WorldState.Weather.SNOW:     deck_density = 0.030
+		_:                           deck_density = -1.0  # FOG / BLIZZARD: leave preset alone
+
+	# --- 3. season + time character ---------------------------------------
+	# Dawn mist: humid seasons pool fog in the valley overnight; it burns off as
+	# the sun climbs. Strongest spring/autumn, weakest winter.
+	var dawn := clampf(inverse_lerp(9.5, 5.0, hour), 0.0, 1.0)
+	var season_humidity := 1.0
+	match season:
+		WorldState.Season.SPRING: season_humidity = 1.35
+		WorldState.Season.SUMMER: season_humidity = 1.10
+		WorldState.Season.AUTUMN: season_humidity = 1.30
+		WorldState.Season.WINTER: season_humidity = 0.55
+	var mist := dawn * season_humidity * clampf(1.0 - night_factor * 0.5, 0.35, 1.0)
+
+	# Summer afternoon haze thickens the general air a little; winter air is crisp.
+	var afternoon := clampf(inverse_lerp(12.0, 17.0, hour), 0.0, 1.0)
+	var haze := 1.0
+	match season:
+		WorldState.Season.SUMMER: haze = lerp(1.0, 1.18, afternoon)
+		WorldState.Season.WINTER: haze = 0.80
+		_:                        haze = lerp(1.0, 1.08, afternoon)
+
+	if deck_density >= 0.0:
+		_env.fog_height = deck_top + lerp(6.0, -8.0, mist)   # deck sinks/tightens with mist
+		# Mist multiplies the valley deck, not whole-scene fog: dawn should pool in
+		# the valley, never lay a uniform film over the far bluffs.
+		_env.fog_height_density = deck_density * (1.0 + mist * 3.0)
+		_env.fog_density *= lerp(1.0, haze, 0.5)
+		_env.volumetric_fog_density *= haze
+
+	# --- 2. forward scattering --------------------------------------------
+	# Low sun -> strongly forward-scattering, glowing air; high sun -> neutral.
+	var low_sun := clampf(inverse_lerp(25.0, 0.0, elev_deg), 0.0, 1.0)
+	var base_aniso: float = _blend.get("anisotropy", 0.2)
+	var base_scatter: float = _blend.get("sun_scatter", 0.25)
+	if weather != WorldState.Weather.FOG and weather != WorldState.Weather.BLIZZARD:
+		_env.volumetric_fog_anisotropy = clampf(maxf(base_aniso, 0.45) + low_sun * 0.35, 0.0, 0.9)
+		_env.fog_sun_scatter = clampf(maxf(base_scatter, 0.35) + low_sun * 0.45, 0.0, 1.0)
+		# A touch of sky influence so distant air is part of the sky, not a decal
+		# over it — kept small for CLEAR so the 30 km visibility target holds.
+		var sky_add := 0.04 if weather == WorldState.Weather.CLEAR else 0.10
+		_env.volumetric_fog_sky_affect = clampf(_blend.get("vol_sky_affect", 0.0) + sky_add, 0.0, 1.0)

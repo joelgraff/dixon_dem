@@ -85,3 +85,38 @@ Declared in `project.godot` `[shader_globals]`, all owned by this workstream:
 - **Moon is a simplified anti-sun**, not a real ephemeris (documented above) — fine for gameplay-readable night lighting, not astronomically accurate.
 - **No real terrain/buildings yet** — captures use the stand-in diorama described above; re-validate fog/exposure tuning once real geometry (with real materials responding to `snow_cover`/`wetness`) lands, since albedo values and scene depth will differ from the placeholder StandardMaterial3Ds used here.
 - **`world/world.tscn` does not yet instance `atmosphere.tscn`** — out of this workstream's ownership (shared file); whoever owns world composition should add `res://atmosphere/atmosphere.tscn` as a child.
+
+## Airborne depth pass (2026-09-20) — orchestrator, then DEFERRED
+User review: weather / seasons / time-of-day read "flat". Root cause in the presets: every weather
+except FOG ran `height_density = 0.0`, `anisotropy = 0.2`, `sun_scatter = 0.25`, `vol_sky_affect = 0.0`
+— a uniform fog slab with almost no forward scattering, so distance was a flat wash and time of day
+barely changed the air.
+
+`_apply_airborne_depth()` (end of atmosphere.gd) now layers three modulations ON TOP of the weather
+presets, so the per-weather visibility ladders measured in iter3 still hold:
+1. **Valley fog deck** — Dixon sits in the Rock River valley (river local Y ~4-8, downtown rim ~27,
+   bluffs ~41). A shallow deck pools in the valley and lets rooftops/canopy stand clear.
+   CLEAR 0.005 / OVERCAST 0.022 / RAIN 0.040 / SNOW 0.030; FOG and BLIZZARD keep their own tuned decks.
+2. **Forward scattering** — anisotropy and `fog_sun_scatter` rise as the sun drops (`low_sun` ramp from
+   25° to 0°), so haze glows toward a low sun and stays neutral at noon.
+3. **Season/time character** — dawn valley mist scaled by season humidity (spring 1.35, autumn 1.30,
+   summer 1.10, winter 0.55), burning off by ~09:30; mild summer-afternoon haze; crisp winter air.
+   Mist multiplies only the *deck*, never whole-scene fog, so dawn never films over the far bluffs.
+
+Tuning history: first pass was too strong (clear noon washed out at ~600 m); deck densities cut ~4x and
+the summer haze multiplier pulled 1.45 → 1.18.
+
+Measured after tuning (same camera, far band = town across the valley, near band = foreground):
+| preset | far sat | far contrast | near sat | near contrast |
+|---|---|---|---|---|
+| clear noon    | 0.133 | 0.085 | 0.220 | 0.059 |
+| autumn dawn   | 0.265 | 0.082 | 0.240 | 0.041 |
+| summer dusk   | 0.110 | 0.127 | 0.125 | 0.063 |
+| overcast      | 0.065 | 0.079 | 0.047 | 0.023 |
+| winter snow   | 0.093 | 0.011 | 0.070 | 0.036 |
+
+**Status: DEFERRED at user request** after this pass. Known remaining weaknesses if it is picked up again:
+autumn dawn mist is still on the thick side (buildings drown in it at 120 m altitude); winter snow's far
+contrast (0.011) is very low — arguably correct for a snow squall, but unverified against reference;
+no cloud shadows on terrain (the biggest remaining airborne depth cue, and a genuine gap — Godot has no
+DirectionalLight3D projector, so it needs a global cloud-shadow texture sampled by ground shaders).
