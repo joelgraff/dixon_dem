@@ -284,14 +284,24 @@ func _update_crouch(delta: float) -> void:
 func _try_step_up(delta: float, horizontal_velocity: Vector3) -> void:
 	if not is_on_floor() or horizontal_velocity.length() < 0.05:
 		return
-	var motion := horizontal_velocity * delta
-	if not test_move(global_transform, motion):
+	# Probe a SHORT fixed distance ahead, not the full per-frame motion.
+	# Bug this fixes (user report: "crossing edges are elevated, I have to jump
+	# over them"): the probe used to be velocity * delta. At the user's tuned
+	# inspection speeds (walk 10.4, run 30.5 m/s) that is 0.17-0.51 m per tick,
+	# so the "still blocked once lifted?" sweep reached geometry *past* the curb
+	# and concluded "real wall, not a step" — every 15 cm curb and crossing edge
+	# became unclimbable, while at the original 1.4 m/s (0.023 m probe) it worked.
+	# A fixed probe makes curb stepping behave identically at any speed.
+	var dir := horizontal_velocity.normalized()
+	var probe_len: float = clampf(horizontal_velocity.length() * delta, 0.12, CAPSULE_RADIUS + 0.15)
+	var probe := dir * probe_len
+	if not test_move(global_transform, probe):
 		return # nothing in the way; ordinary move handles it
 	var lifted := global_transform
 	lifted.origin.y += STEP_HEIGHT
 	if test_move(lifted, Vector3.ZERO):
 		return # can't even lift straight up (low ceiling) -- not a step
-	if test_move(lifted, motion):
+	if test_move(lifted, probe):
 		return # still blocked once lifted -- a real wall, not a step
 	global_position.y += STEP_HEIGHT
 
