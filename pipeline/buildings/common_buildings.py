@@ -52,9 +52,26 @@ class MeshBuild:
         g["indices"].extend([a, b, c])
 
     def add_quad(self, material, p0, p1, p2, p3, normal=None, uvs=None, color=(1.0, 1.0, 1.0, 1.0)):
-        """p0..p3 CCW as seen from the face's front (normal points toward viewer)."""
+        """p0..p3 CCW as seen from the face's front (normal points toward viewer).
+
+        NOTE on winding: callers pass points ordered CCW per the 2D (x,z)
+        shoelace convention used throughout this module (common_buildings.
+        polygon_area_2d/ensure_ccw). Embedding a 2D (x,z) polygon flat into
+        Godot's actual right-handed 3D space (X,Y,Z with Y up) as (x,0,z) is
+        an ODD axis permutation relative to the standard (x,y,*) -> +Z-normal
+        convention the cross-product formula assumes -- it flips handedness.
+        A "CCW-in-(x,z)" triangle therefore has a real (B-A)x(C-A) normal
+        pointing the OPPOSITE way from what the 2D convention suggests (e.g.
+        a flat roof cap ends up facing down, a wall's outward face ends up
+        facing into the building) -- with default cull_back materials this
+        silently back-face-culls the ENTIRE building system from outside.
+        Root-caused 2026-09-19 ("most buildings are not rendering at all").
+        Fix: submit the two triangles in the mirrored order (0,2,1)/(0,3,2)
+        instead of (0,1,2)/(0,2,3) -- flips winding, keeps every vertex/UV/
+        normal/color exactly as the caller specified.
+        """
         if normal is None:
-            normal = tri_normal(p0, p1, p2)
+            normal = tri_normal(p0, p2, p1)
         if uvs is None:
             uvs = ((0, 0), (1, 0), (1, 1), (0, 1))
         colors = color if isinstance(color, (list, tuple)) and isinstance(color[0], (list, tuple)) else (color,) * 4
@@ -62,19 +79,21 @@ class MeshBuild:
         base = len(g["verts"])
         for p, uv, c in zip((p0, p1, p2, p3), uvs, colors):
             self.add_vertex(material, p, normal, uv, c)
-        self.add_tri(material, base, base + 1, base + 2)
-        self.add_tri(material, base, base + 2, base + 3)
+        self.add_tri(material, base, base + 2, base + 1)
+        self.add_tri(material, base, base + 3, base + 2)
 
     def add_tri_face(self, material, p0, p1, p2, normal=None, uvs=None, color=(1.0, 1.0, 1.0, 1.0)):
+        """p0,p1,p2 CCW per the (x,z) shoelace convention -- see add_quad's
+        winding note; submitted mirrored (0,2,1) to render front-facing."""
         if normal is None:
-            normal = tri_normal(p0, p1, p2)
+            normal = tri_normal(p0, p2, p1)
         if uvs is None:
             uvs = ((0, 0), (1, 0), (0.5, 1))
         colors = color if isinstance(color, (list, tuple)) and isinstance(color[0], (list, tuple)) else (color,) * 3
         base = len(self._grp(material)["verts"])
         for p, uv, c in zip((p0, p1, p2), uvs, colors):
             self.add_vertex(material, p, normal, uv, c)
-        self.add_tri(material, base, base + 1, base + 2)
+        self.add_tri(material, base, base + 2, base + 1)
 
     def add_box(self, material, cx, cz, y0, y1, sx, sz, color=(1.0, 1.0, 1.0, 1.0), yaw=0.0, uv_scale=1.0):
         """Axis-ish aligned box (optionally yawed around Y), sx/sz = full extents."""

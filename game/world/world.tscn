@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://roads/roads.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://vegetation/vegetation.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://landmarks/landmarks.tscn" id="8"]
 
 [node name="World" type="Node3D" unique_id=1886891328]
 script = ExtResource("1")
@@ -16,11 +17,11 @@ script = ExtResource("1")
 [node name="Terrain" parent="." unique_id=747575826 instance=ExtResource("3")]
 
 [node name="Buildings" parent="." unique_id=1572677954 instance=ExtResource("4")]
-transform = Transform3D(0.8881689, 0.10992938, -0.44617438, -0.011283718, 0.97588813, 0.2179796, 0.45937866, -0.18856819, 0.86799383, -1149.8868, -77.292175, 795.5365)
 
 [node name="Roads" parent="." unique_id=118584807 instance=ExtResource("5")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1149.8868, -77.292175, 795.5365)
 
 [node name="Vegetation" parent="." unique_id=1675257052 instance=ExtResource("7")]
+
+[node name="Landmarks" parent="." instance=ExtResource("8")]
 
 [node name="Player" parent="." unique_id=284278643 instance=ExtResource("6")]

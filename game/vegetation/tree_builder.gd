@@ -319,24 +319,27 @@ static func build_grass_blades(seed: int, n: int, tallness: float) -> ArrayMesh:
 
 
 ## Simple cross-card billboard impostor for far LOD (2 crossed quads spanning
-## the whole tree envelope). Reuses foliage.gdshader.
+## the whole tree envelope, bottom at y=0 matching the near-mesh's trunk-base
+## origin so a MultiMeshInstance3D's uniform height_m scale lands the far
+## silhouette at the same world height/position as the near mesh it replaces
+## across the LOD crossfade). Reuses foliage.gdshader.
 static func build_billboard(summer: Color, autumn: Color, height_frac: float = 1.0) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_custom_format(0, SurfaceTool.CUSTOM_RGBA_FLOAT)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1
-	var center := Vector3(0, 0.55 * height_frac, 0)
+	var half_w := 0.5 * height_frac
 	var col := Color(summer.r, summer.g, summer.b, 0.75)
 	var cus := Color(autumn.r, autumn.g, autumn.b, 0.5)
 	for pass_i in range(2):
 		var right := Vector3(1, 0, 0) if pass_i == 0 else Vector3(0, 0, 1)
+		var base := Vector3(0, 0, 0)
+		var p00 := base - right * half_w
+		var p10 := base + right * half_w
+		var p11 := base + right * half_w + Vector3(0, height_frac, 0)
+		var p01 := base - right * half_w + Vector3(0, height_frac, 0)
 		var up := Vector3.UP
-		var sz := 0.5
-		var p00 := center - right * sz
-		var p10 := center + right * sz
-		var p11 := center + right * sz + up * sz * 2.0
-		var p01 := center - right * sz + up * sz * 2.0
 		var n := up.cross(right).normalized()
 		st.set_color(col); st.set_custom(0, cus)
 		st.set_normal(n); st.set_uv(Vector2(0, 0)); st.add_vertex(p00)

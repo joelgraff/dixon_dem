@@ -67,6 +67,17 @@ func _init() -> void:
 		var cx: int = chunk_info["cx"]
 		var cz: int = chunk_info["cz"]
 		var chunk_name := "chunk_%d_%d" % [cx, cz]
+		# Vertices/hulls in the chunk JSON are already relative to this chunk
+		# center (pipeline/buildings/build_building_plan.py) -- give each
+		# chunk node a REAL transform here instead of leaving it at identity.
+		# A node sitting at the scene origin with world-space vertices baked
+		# thousands of meters away breaks Godot's visibility_range (measured
+		# from the node's transform origin, not the mesh AABB) and is fragile
+		# for any origin-keyed broad-phase culling. Root-caused 2026-09-19
+		# (buildings invisible from most camera positions) -- see
+		# docs/buildings_notes.md.
+		var origin: float = 0.0
+		var chunk_origin := Vector3(float(chunk_info.get("origin_x", origin)), 0.0, float(chunk_info.get("origin_z", origin)))
 
 		var near_groups: Dictionary = data.get("near", {})
 		if near_groups.size() > 0:
@@ -74,6 +85,7 @@ func _init() -> void:
 			var mi := MeshInstance3D.new()
 			mi.name = chunk_name + "_near"
 			mi.mesh = mesh
+			mi.position = chunk_origin
 			mi.visibility_range_end = NEAR_END
 			mi.visibility_range_end_margin = NEAR_FADE_MARGIN
 			mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
@@ -87,6 +99,7 @@ func _init() -> void:
 			var fi := MeshInstance3D.new()
 			fi.name = chunk_name + "_far"
 			fi.mesh = far_mesh
+			fi.position = chunk_origin
 			fi.visibility_range_begin = FAR_BEGIN
 			fi.visibility_range_begin_margin = FAR_FADE_MARGIN
 			fi.visibility_range_end = FAR_END
@@ -98,6 +111,7 @@ func _init() -> void:
 		if collisions.size() > 0:
 			var body := StaticBody3D.new()
 			body.name = chunk_name + "_collision"
+			body.position = chunk_origin
 			for col in collisions:
 				var hull: Array = col["hull"]
 				if hull.size() < 3:

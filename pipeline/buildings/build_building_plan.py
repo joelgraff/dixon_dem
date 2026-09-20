@@ -199,14 +199,33 @@ def main():
         far_json = c["far"].to_json()
         if not near_json and not far_json and not c["collisions"]:
             continue
+        # Re-express every vertex/hull position relative to the chunk's own
+        # world-space center, so the baked MeshInstance3D/StaticBody3D gets a
+        # REAL transform (position = chunk center) instead of sitting at the
+        # scene origin with raw world-space vertices baked in. A node at
+        # identity transform with geometry thousands of meters away breaks
+        # Godot's visibility_range (measured from the node's transform
+        # origin, not the mesh AABB) and risks broad-phase culling structures
+        # that key off the instance's registered position -- see
+        # docs/buildings_notes.md "Chunk-local origin fix" (2026-09-19 bug).
+        origin_x = (cx + 0.5) * CHUNK_SIZE
+        origin_z = (cz + 0.5) * CHUNK_SIZE
         for g in near_json.values():
+            g["verts"] = [(v[0] - origin_x, v[1], v[2] - origin_z, v[3], v[4], v[5], v[6], v[7], v[8], v[9], v[10], v[11])
+                          for v in g["verts"]]
             total_tris_near += len(g["indices"]) // 3
         for g in far_json.values():
+            g["verts"] = [(v[0] - origin_x, v[1], v[2] - origin_z, v[3], v[4], v[5], v[6], v[7], v[8], v[9], v[10], v[11])
+                          for v in g["verts"]]
             total_tris_far += len(g["indices"]) // 3
+        for col in c["collisions"]:
+            col["hull"] = [[round(p[0] - origin_x, 2), round(p[1] - origin_z, 2)] for p in col["hull"]]
+
         fname = f"chunk_{cx}_{cz}.json"
         with open(os.path.join(OUT_DIR, fname), "w") as f:
             json.dump({"near": near_json, "far": far_json, "collisions": c["collisions"]}, f)
         manifest["chunks"].append({"cx": cx, "cz": cz, "file": fname,
+                                    "origin_x": origin_x, "origin_z": origin_z,
                                     "x0": cx * CHUNK_SIZE, "z0": cz * CHUNK_SIZE,
                                     "x1": (cx + 1) * CHUNK_SIZE, "z1": (cz + 1) * CHUNK_SIZE})
 

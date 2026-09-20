@@ -48,6 +48,20 @@ func _run() -> void:
 				print("capture: hid node ", n)
 			else:
 				push_warning("capture: --hide node not found: " + n)
+	# --no-lod : clear visibility_range on every GeometryInstance3D. Diagnostic for "geometry
+	# exists but doesn't render" bugs: chunk meshes are baked with world-space vertices and NO
+	# node transform, so if LOD distance is evaluated from the node origin rather than the mesh
+	# bounds, whole chunks cull by their distance from (0,0,0) instead of from the camera.
+	if _args.has("no-lod"):
+		var cleared := 0
+		for n in _all_nodes(root):
+			if n is GeometryInstance3D:
+				var g := n as GeometryInstance3D
+				if g.visibility_range_end > 0.0 or g.visibility_range_begin > 0.0:
+					g.visibility_range_begin = 0.0
+					g.visibility_range_end = 0.0
+					cleared += 1
+		print("capture: cleared visibility_range on ", cleared, " instances")
 	var cam := Camera3D.new()
 	add_child(cam)
 	for s in shots:
@@ -72,3 +86,9 @@ func _run() -> void:
 		print("capture: saved %s (%.1f s)" % [path, (Time.get_ticks_msec() - t_shot) / 1000.0])
 	print("capture: total %.1f s for %d shot(s)" % [(Time.get_ticks_msec() - t_start) / 1000.0, shots.size()])
 	get_tree().quit(0)
+
+func _all_nodes(n: Node, acc: Array = []) -> Array:
+	acc.append(n)
+	for c in n.get_children():
+		_all_nodes(c, acc)
+	return acc

@@ -16,13 +16,19 @@ global uniform float wetness;
 global uniform float season_foliage;
 global uniform float wind_strength;
 
-// Linear albedo matched to terrain's measured lawn target (sRGB 91,123,63,
+// Linear albedo target is terrain's measured lawn value (sRGB 91,123,63,
 // sat ~0.49 -> linear ~0.105,0.197,0.050) per the 2026-09-19 composed-frame
-// review, so near-field grass agrees with terrain's baked lawn splat instead
-// of reading as a seam.
-uniform vec3 color_summer_mown : source_color = vec3(0.105, 0.197, 0.050);
-uniform vec3 color_summer_tall : source_color = vec3(0.085, 0.165, 0.045);
-uniform vec3 color_dormant : source_color = vec3(0.26, 0.21, 0.12);
+// review. Setting the uniform to that value directly still measured ~1.5-2x
+// too bright in a sunlit composed capture (residential_street_summer.png
+// sunlit patch: sRGB ~111,148,91, linear ~0.158,0.295,0.106) -- this
+// pipeline's AgX+SDFGI amplifies further than the raw number suggests, the
+// same lesson roads/terrain each independently hit for their own materials.
+// Corrected per-channel by the measured ratio (target/measured) rather than
+// one flat multiplier, since blue was off by more (~2.1x) than red/green
+// (~1.5x).
+uniform vec3 color_summer_mown : source_color = vec3(0.070, 0.132, 0.024);
+uniform vec3 color_summer_tall : source_color = vec3(0.057, 0.111, 0.021);
+uniform vec3 color_dormant : source_color = vec3(0.17, 0.14, 0.07);
 
 varying float v_tall;
 varying float v_tip;
@@ -50,7 +56,7 @@ void fragment() {
 	float dormancy = smoothstep(0.3, 0.85, t);
 	vec3 base = mix(green, color_dormant, dormancy);
 	// slight per-blade hue jitter so a lawn isn't a flat color
-	float jitter = value_noise(FRAGCOORD.xy * 0.3) * 0.05 - 0.025;
+	float jitter = value_noise(FRAGCOORD.xy * 0.3) * 0.03 - 0.015;
 	base += jitter;
 
 	// blade tip taper is geometric (tree_builder.gd narrows the tip verts),
@@ -65,5 +71,5 @@ void fragment() {
 	ALBEDO = albedo;
 	ROUGHNESS = 0.85;
 	METALLIC = 0.0;
-	BACKLIGHT = base * 0.12;
+	BACKLIGHT = base * 0.05;
 }

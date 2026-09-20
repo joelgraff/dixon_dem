@@ -5,6 +5,82 @@ generates every non-landmark building in `game/data/buildings.json` (707
 footprints minus 17 landmark-tagged ones) plus ~900 infill houses/garages on
 residential blocks OSM left empty, bakes them into one chunked scene.
 
+## 2026-09-19 "buildings invisible" bug -- root cause + fix
+
+User report via the Godot editor: "buildings and roads do not align, and the
+riverfront area is entirely unpopulated" -- investigation found it was worse:
+**no buildings rendered from almost any camera position.** Two real, separate
+bugs were involved, found by instrumenting rather than guessing:
+
+1. **Stray transform on the `Buildings` node in `world/world.tscn`** (the
+   actual root cause of total invisibility). Someone/something had saved a
+   rotated + translated `transform = Transform3D(0.888, 0.110, -0.446, ...,
+   -1149.9, -77.3, 795.5)` on the shared composition root's `Buildings`
+   instance -- almost certainly an accidental editor-gizmo drag, since every
+   other child (Atmosphere/Terrain/Vegetation/Player) has none. That shoved
+   the entire building system ~1400m away and tilted it, so every diagnostic
+   camera (even ones aimed straight at known chunk coordinates) saw nothing.
+   A standalone load of `buildings.tscn` (bypassing `world.tscn`) looked
+   completely correct in CPU-side inspection (right positions, AABBs,
+   surface counts, `visible=true`) -- which is what made this easy to miss at
+   first: the bug wasn't in the baked scene at all, it was in how the shared
+   scene *instanced* it. **Fix: deleted that `transform` line** so `Buildings`
+   sits at identity like its siblings. `Roads` still has an identical
+   `-1149.8868, -77.292175, 795.5365` translation (no rotation) in the same
+   file as of this writing -- not this workstream's node to edit, but very
+   likely related to the reported "roads and buildings don't align" and
+   worth the roads owner double-checking.
+2. **A real triangle-winding bug in `common_buildings.MeshBuild`**, found
+   while investigating: this module builds 3D geometry from 2D `(x, z)`
+   footprint polygons using the standard shoelace formula to define "CCW".
+   Embedding a flat `(x, z)` polygon into Godot's actual right-handed 3D
+   space as `(x, 0, z)` is an *odd* axis permutation relative to the
+   standard `(x, y, *)` -> `+Z`-normal convention the cross-product-based
+   face normal assumes -- it flips handedness. A "CCW-in-(x,z)" triangle
+   therefore has a real `(B-A)x(C-A)` normal pointing the *opposite* way
+   from the 2D convention's intent (a flat roof cap facing down, a wall's
+   outward face pointing into the building) -- with every building material
+   on default `cull_back`, this would have back-face-culled the whole
+   system from outside regardless of the transform bug above. Fixed by
+   mirroring the submitted index order in `MeshBuild.add_quad`/
+   `add_tri_face` (`(0,2,1)`/`(0,3,2)` instead of `(0,1,2)`/`(0,2,3)`) --
+   same vertices/UVs/normals/colors, flipped winding. This bug was masked by
+   bug #1 during the initial fix attempt (fixing only the winding produced
+   no visible change, since the transform bug was still hiding everything);
+   both had to be fixed together.
+
+Also gave every chunk node a **real transform at its chunk's world-space
+center** (`origin_x`/`origin_z` in the manifest, subtracted from every
+vertex/hull position in `build_building_plan.py`, applied as
+`mi.position`/`fi.position`/`body.position` in `build_buildings.gd`) instead
+of leaving chunk nodes at identity with raw world-space vertices baked in --
+better floating-point precision at this play area's scale (up to ~3000m from
+origin) and just correct practice, even though it turned out not to be the
+proximate cause here.
+
+**Verification**: re-ran both of the exact repro cameras from the bug report
+(`--hide=Vegetation` top-down from 160m, `--hide=Terrain,Vegetation` at eye
+level) -- both now show a populated downtown block with correct facade
+rhythm; also re-shot the full `captures/buildings/iter1` set into
+`captures/buildings/iter2/` and confirmed the riverfront blocks are populated
+(`07_riverfront_galena_bridge_area.png`). `perf_probe.tscn` from a dense
+downtown vantage: **78.3 fps avg / 12.77 ms/frame** (winter/snow/dusk,
+1600x900, RX 580) -- comfortably over the 60fps budget.
+
+**Known follow-up (not yet root-caused)**: a subset of walls closest to the
+camera in some shots (`captures/buildings/iter2/01_...`, `08_...`) render
+much darker than neighboring buildings at the same distance/material --
+plausibly dense tree-canopy shadow + low ambient at a grazing angle rather
+than a lighting bug, but not confirmed; worth a follow-up pass with
+`--hide=Vegetation` at the same camera to isolate tree shadow from a real
+material/normal issue.
+
+## Regenerating after either fix above
+
+Both fixes above are already applied in the committed source; if you need to
+rebuild from scratch after further changes, use the two-step pipeline below,
+then re-check `world/world.tscn`'s `Buildings` node has no stray `transform`.
+
 ## Pipeline (regenerate with these two steps, in order)
 
 1. **Python build-plan** (geometry + collision, no Godot needed):

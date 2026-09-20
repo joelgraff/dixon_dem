@@ -297,3 +297,77 @@ render-time-only (`vegetation.gd`), not a data regeneration, so
 `game/vegetation/data/trees.json` is unchanged; ~15% of `category=="street"`
 instances are simply skipped at MultiMesh-build time and the rest render
 smaller.
+
+## iter2b/c: grass re-measurement, performance, and an open framing bug
+
+**Grass color, round 2.** Setting `grass.gdshader`'s uniforms to the exact
+reviewer-provided linear target (0.105,0.197,0.050) still measured ~1.5-2x
+too bright in a sunlit composed capture (`residential_street_summer.png`:
+sRGB ~111,148,91). Re-tuned per-channel by the measured ratio (blue was off
+further than red/green) to `color_summer_mown = (0.070, 0.132, 0.024)`
+(`color_summer_tall` and `color_dormant` scaled the same way), cut
+`BACKLIGHT` 0.12->0.05, halved the per-blade hue-jitter amplitude. Re-measured
+on a fresh `page_park_summer.png` (sunlit patches, `Pillow` mean over several
+clean crops, `srgb_to_lin` conversion): **sRGB ≈ (78-108, 81-109, 54-74),
+linear ≈ (0.08-0.15, 0.08-0.15, 0.04-0.07), saturation ≈ 0.33-0.35** against
+the target sRGB(91,123,63)/linear(0.105,0.197,0.050)/sat 0.49. This is much
+closer than the pre-fix measurement (linear ~0.16,0.30,0.11) but **not an
+exact match**: R now reads slightly high and G slightly low relative to the
+target (R≈G rather than G clearly leading), so it reads a touch more
+olive/muted than the target's cleaner green, and saturation is still ~30%
+below the 0.49 target. Shaded patches vary widely (linear 0.015-0.13)
+reflecting real dappled-light variation rather than one flat shade value,
+which is expected. Honest status: **improved substantially, not fully
+converged** — a further round would nudge G up and R down slightly and
+probably needs 1-2 more measure/adjust passes to close the saturation gap,
+same iterative process roads used for asphalt. Not attempted further per
+explicit direction to stop chasing this with more capture cycles while
+several other agents' capture jobs were queued on the shared GPU.
+
+**Performance.** Two measurements, both `perf_probe.tscn` at the S Hennepin
+worst-case vantage (real Vulkan, 120 warmup + 180 measured frames):
+- Before the perf pass (canopy hole-punch shader active, 115m near-LOD
+  range, fbm-based masks): **37.5 fps / 26.68 ms**.
+- After swapping `fbm()`->single-octave `value_noise()` in both shaders,
+  adding uniform (whole-draw-call) early-outs around `snow_mask()`/
+  `apply_wetness_darkening()` when `snow_cover`/`wetness` are ~0, and pulling
+  the near-LOD range in from 115m to 90m (shrubs 55m->42m): **33.0 fps /
+  30.30 ms** — worse, not better. This composed-world scene was also under
+  active GPU contention from other agents' queued capture jobs at
+  measurement time (per the orchestrator's own note), so the second number
+  is not trustworthy as an isolated measurement of the code change; I did
+  not get a clean re-measurement before being told to stop launching
+  captures. **Both numbers are below the 60fps/RX-580 target** — report this
+  honestly rather than the more flattering of the two. Next step for
+  whoever picks this up: re-run `perf_probe.tscn` alone (no other agents'
+  GPU work queued) to get a trustworthy number, then if still under target,
+  the highest-leverage remaining cut is almost certainly reducing
+  leaf-cluster/card count per tree in `tree_builder.gd` (geometry-side,
+  addresses both fill-rate and vertex cost directly) rather than further
+  shader-math micro-optimization.
+
+**Open item: an unexplained bad frame, not re-characterized further per
+explicit instruction.** A `residential_street_summer.png` recapture (same
+camera position that produced the good, reviewer-approved iter2 shot)
+came back with a completely different, wrong framing — an open-lawn/
+tree-cluster view with a hard bright/dark diagonal seam, nothing like the
+expected street-corridor shot — and that capture run took ~90s/shot instead
+of the normal 2-7s/shot, suggesting heavy contention or some other anomaly
+at capture time (this was during a window with several other agents'
+capture jobs queued on the shared GPU lock, per the orchestrator). Camera
+position and placement data were unchanged from the good capture, so this
+is not a data/placement regression as far as I can tell from static
+inspection. While investigating by code review (not by re-capturing), I
+found and fixed one real, independently-justified bug that *could*
+contribute to exactly this kind of artifact at an LOD crossfade boundary:
+`VegTreeBuilder.build_billboard()` (far-LOD impostor mesh) had its quad
+positioned from `y=0.55*height_frac` to `y=1.55*height_frac` instead of
+`y=0` to `y=height_frac` — the billboard was floating half a tree-height
+above the ground and was 55% taller than the near-LOD mesh it's supposed to
+crossfade with at the same world position/scale. Fixed to span `y=0` to
+`y=height_frac` from the trunk-base origin, matching the near mesh. **This
+fix is unverified by a fresh capture** (explicitly told not to launch one) —
+whoever next captures vegetation shots should confirm both that the bad
+frame doesn't reproduce and that far-LOD trees now sit correctly on the
+ground with the right silhouette height at the near/far crossfade distance
+(~80-95m from camera).
