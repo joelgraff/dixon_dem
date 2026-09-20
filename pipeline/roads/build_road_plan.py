@@ -400,7 +400,7 @@ def build_way_surfaces(plans, hm, mb_by_mat):
                 ribbon_between_loops(mb_by_mat, edge_ring, edge_ring, hm, ROAD_Y_BIAS, CURB_HEIGHT,
                                       "curb_concrete", flip=flip, close_loop=False)
                 ribbon_between_loops(mb_by_mat, edge_ring, curb_out_ring, hm, CURB_HEIGHT, CURB_HEIGHT,
-                                      "curb_concrete", flip=flip, close_loop=False)
+                                      "curb_concrete", flip=flip, double_sided=True, close_loop=False)
                 ribbon_between_loops(mb_by_mat, curb_out_ring, curb_out_ring, hm, CURB_HEIGHT, -0.05,
                                       "curb_concrete", flip=flip, close_loop=False)
 
@@ -409,12 +409,22 @@ def build_way_surfaces(plans, hm, mb_by_mat):
                 flip = side == "L"
                 sw_in = plan.rings[f"sw_in_{side}"]
                 sw_out = plan.rings[f"sw_out_{side}"]
+                # Walking surface: double-sided like the junction loops, which always
+                # rendered correctly. The single-sided winding derivation here was wrong
+                # (same class of bug as the asphalt ribbon), so straight-run sidewalks were
+                # backface-culled and only their edge skirts remained visible -- the
+                # "sidewalks are only outlined" report.
                 ribbon_between_loops(mb_by_mat, sw_in, sw_out, hm, 0.05, 0.05, "sidewalk_concrete",
-                                      flip=flip, close_loop=False)
-                ribbon_between_loops(mb_by_mat, sw_in, sw_in, hm, 0.05, -0.05, "sidewalk_concrete",
-                                      flip=flip, close_loop=False)
-                ribbon_between_loops(mb_by_mat, sw_out, sw_out, hm, 0.05, -0.05, "sidewalk_concrete",
-                                      flip=flip, close_loop=False)
+                                      flip=flip, double_sided=True, close_loop=False)
+                # Edge skirts: cosmetic only. They are tagged "sidewalk_edge" so the Godot
+                # baker keeps them out of collision -- as collidable geometry they were thin
+                # ledges standing proud of the road that the player had to jump over
+                # (user report: "outline ribbons projecting upward out of the road surface").
+                # Also shortened to stop at terrain level instead of -0.05.
+                ribbon_between_loops(mb_by_mat, sw_in, sw_in, hm, 0.05, 0.0, "sidewalk_edge",
+                                      flip=flip, double_sided=True, close_loop=False)
+                ribbon_between_loops(mb_by_mat, sw_out, sw_out, hm, 0.05, 0.0, "sidewalk_edge",
+                                      flip=flip, double_sided=True, close_loop=False)
 
 
 def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat):
@@ -469,10 +479,10 @@ def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat):
             if sw_in_loop and sw_out_loop:
                 ribbon_between_loops(mb_by_mat, sw_in_loop, sw_out_loop, hm, 0.05, 0.05,
                                       "sidewalk_concrete", double_sided=True, close_loop=True)
-                ribbon_between_loops(mb_by_mat, sw_in_loop, sw_in_loop, hm, 0.05, -0.05,
-                                      "sidewalk_concrete", double_sided=True, close_loop=True)
-                ribbon_between_loops(mb_by_mat, sw_out_loop, sw_out_loop, hm, 0.05, -0.05,
-                                      "sidewalk_concrete", double_sided=True, close_loop=True)
+                ribbon_between_loops(mb_by_mat, sw_in_loop, sw_in_loop, hm, 0.05, 0.0,
+                                      "sidewalk_edge", double_sided=True, close_loop=True)
+                ribbon_between_loops(mb_by_mat, sw_out_loop, sw_out_loop, hm, 0.05, 0.0,
+                                      "sidewalk_edge", double_sided=True, close_loop=True)
 
 
 # ---------------------------------------------------------------------------

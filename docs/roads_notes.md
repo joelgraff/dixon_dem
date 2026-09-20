@@ -359,3 +359,25 @@ one; (b) `visibility_range_fade_mode = 1` (FADE_SELF) interacting badly with the
 (c) an in-editor frame-debugger session, which no agent had access to.
 **Status: parked deliberately** — visible impact is one mid-ground patch of wrong-coloured ground, not a
 broken street, and it has already consumed two agents plus an orchestrator investigation.
+
+## Sidewalk fix (2026-09-20) — item 5 + the "crossing edges you must jump"
+Two symptoms, one cause chain, both confirmed by the user:
+- *Visual:* sidewalks rendered as outlines only.
+- *Physical:* thin ribbons standing proud of the road that the player had to jump.
+
+Cause: straight-run sidewalk slabs used the same wrong single-sided winding derivation already found
+on the asphalt ribbon, so the **walking surface** was backface-culled, leaving only its edge skirts
+(`sw_in -> sw_in` and `sw_out -> sw_out`, +0.05 down to -0.05) visible. Those skirts are tagged
+`sidewalk_concrete`, which is in the baker's `WALKABLE` list, so they were also **collidable ledges**.
+
+Fix: (a) sidewalk slabs and the curb top are now `double_sided=True`, matching the junction loops that
+always rendered correctly; (b) edge skirts are emitted under a new `sidewalk_edge` material tag — same
+appearance (mapped to sidewalk_concrete.tres in build_roads.gd) but deliberately **excluded from
+WALKABLE**, so they can never be ledges again; (c) skirts now stop at terrain level (0.0) instead of
+-0.05. Triangles 902k -> 1.26M (+40%), the cost of double-siding the walkways.
+
+Verified with `game/tools/probe_ground.gd` across the arch crossing (1618,-1214)->(1652,-1214):
+**max real step 0.180 m** (an ordinary curb, inside the player's 0.30 m step-up); the only >0.3 m hits
+in the log are the player capsule itself standing on the probe line. Visually confirmed in
+`world.tscn` at eye height: continuous sidewalk slabs both sides with the grass parkway between curb
+and walk.

@@ -24,6 +24,9 @@ const MATERIAL_PATHS := {
 	"asphalt_patched_plowed": "res://roads/materials/asphalt_patched_plowed.tres",
 	"curb_concrete": "res://materials/lib/curb_concrete.tres",
 	"sidewalk_concrete": "res://materials/lib/sidewalk_concrete.tres",
+	# Cosmetic sidewalk edge skirts: same look, deliberately NOT in WALKABLE so they
+	# never become collidable ledges standing proud of the road (see build_road_plan.py).
+	"sidewalk_edge": "res://materials/lib/sidewalk_concrete.tres",
 	"gravel_ballast": "res://materials/lib/gravel_ballast.tres",
 	"steel_rusted": "res://materials/lib/steel_rusted.tres",
 	"marking_yellow": "res://roads/materials/marking_yellow.tres",
