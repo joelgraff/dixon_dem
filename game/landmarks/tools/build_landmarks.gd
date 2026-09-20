@@ -289,6 +289,7 @@ func _build_dixon_arch() -> Node3D:
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
 	mi.mesh = mesh
 	wrap.add_child(mi)
 	wrap.add_child(mb.build_collision_body("Collision"))
@@ -390,6 +391,7 @@ func _build_galena_bridge_dressing() -> Node3D:
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
 	mi.mesh = mesh
 	wrap.add_child(mi)
 	return wrap
@@ -457,6 +459,7 @@ func _build_dixon_dam() -> Node3D:
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
 	mi.mesh = mesh
 	wrap.add_child(mi)
 	return wrap
@@ -506,6 +509,7 @@ func _build_lincoln_statue() -> Node3D:
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
 	mi.mesh = mesh
 	root.add_child(mi)
 	root.add_child(mb.build_collision_body("Collision"))
@@ -565,6 +569,7 @@ func _build_dixon_theatre() -> Node3D:
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
 	mi.mesh = mesh
 	root.add_child(mi)
 	root.add_child(mb.build_collision_body("Collision"))
@@ -638,6 +643,7 @@ func _build_reagan_home() -> Node3D:
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
 	mi.mesh = mesh
 	root.add_child(mi)
 	root.add_child(mb.build_collision_body("Collision"))
@@ -699,6 +705,7 @@ func _build_nachusa_house() -> Node3D:
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
 	mi.mesh = mesh
 	root.add_child(mi)
 	root.add_child(mb.build_collision_body("Collision"))

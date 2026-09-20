@@ -318,8 +318,14 @@ func finalize() -> ArrayMesh:
 func build_collision_body(name: String) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = name
+	# Nodes must be named explicitly. An unnamed node gets Godot's reserved
+	# auto-name ("@CollisionShape3D@3"), which is then written into landmarks.tscn
+	# and renamed on every editor load -- the "node renaming" load errors.
+	var idx := 0
 	for c in _colliders:
 		var cs := CollisionShape3D.new()
+		cs.name = "Shape%d" % idx
+		idx += 1
 		cs.shape = c["shape"]
 		cs.transform = c["xform"]
 		body.add_child(cs)
