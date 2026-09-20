@@ -334,7 +334,7 @@ func _build_rig() -> void:
 	env.sdfgi_min_cell_size = 0.3
 	env.sdfgi_max_distance = 220.0
 	env.sdfgi_use_occlusion = true
-	env.sdfgi_energy = 1.0
+	env.sdfgi_energy = 1.25 # lifts bounce into shaded facades (see ambient fill note)
 	env.sdfgi_bounce_feedback = 0.4
 	env.sdfgi_read_sky_light = true
 	env.ssao_enabled = true
@@ -342,7 +342,7 @@ func _build_rig() -> void:
 	env.ssao_power = 1.4
 	env.ssao_radius = 1.5
 	env.ssil_enabled = true
-	env.ssil_intensity = 0.8 # was 1.4 — critique #9, was lifting shadows too much
+	env.ssil_intensity = 1.0 # 0.8 left shaded facades black; 1.4 had over-lifted
 	env.ssil_radius = 4.0
 	env.ssr_enabled = true # wet-road specular per critique #12
 	env.ssr_max_steps = 32
@@ -744,6 +744,13 @@ func _update_environment() -> void:
 	# "dark but readable" per ART_DIRECTION, not pitch black.
 	ambient_energy *= lerp(1.0, 0.6, night_factor)
 	ambient_energy *= lerp(1.0, 1.9, twilight_strength)
+	# Sunny-day skylight fill. On a clear day a SHADED facade is still lit by blue
+	# skylight plus bounce -- roughly 10-20% of the sunlit side. With ambient at 1.0
+	# every shadowed wall crushed to near-black, which is what made downtown read as
+	# black slabs (user screenshots 2026-09-20): the geometry and materials were fine,
+	# the shaded side simply had no fill. Strongest under clear sun (where the
+	# sun/shade ratio is widest); overcast already lifts shade via overcast_day_boost.
+	ambient_energy *= lerp(1.0, 1.25, direct_scale * (1.0 - night_factor))
 	_env.ambient_light_energy = ambient_energy
 
 	# --- glow (windows/streetlights at night, sun/moon glints) --------------

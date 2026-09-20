@@ -702,7 +702,38 @@ PATH_MATERIAL = {
 }
 
 
-def build_pathy(ways, hm, mb_by_mat):
+def _carriageway_index(drivable_plans):
+    """Road centreline segments + their half-widths, for testing whether a point
+    lies inside a carriageway."""
+    segs = []
+    for plan in drivable_plans:
+        pts = plan.centerline
+        hw = plan.half_w
+        for i in range(len(pts) - 1):
+            segs.append((pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], hw))
+    return segs
+
+
+def _in_carriageway(px, pz, segs, margin=0.35):
+    for x1, z1, x2, z2, hw in segs:
+        dx, dz = x2 - x1, z2 - z1
+        L = dx * dx + dz * dz
+        t = 0.0 if L == 0.0 else max(0.0, min(1.0, ((px - x1) * dx + (pz - z1) * dz) / L))
+        if math.hypot(px - (x1 + dx * t), pz - (z1 + dz * t)) <= hw + margin:
+            return True
+    return False
+
+
+def build_pathy(ways, hm, mb_by_mat, carriageway_segs=None):
+    """Footways/cycleways/paths.
+
+    Segments that fall INSIDE a road carriageway are dropped: OSM maps pedestrian
+    crossings as footway ways straight across the street, and building them as
+    concrete slabs put raised ribbons across the asphalt that the player had to
+    step over (user screenshot at the Dixon arch, 2026-09-20). Real sidewalks stop
+    at the curb; a crossing is paint, not a slab. Paint is drawn separately by the
+    markings pass, and only where a crossing actually exists.
+    """
     for w in ways:
         cls = w["tags"].get("highway")
         if cls not in PATHY or w["tags"].get("bridge"):
@@ -711,11 +742,34 @@ def build_pathy(ways, hm, mb_by_mat):
         if len(vs) < 2 or polyline_length(vs) < 1.0:
             continue
         resampled = resample_polyline(vs, spacing=2.5, smooth_iters=1)
+        if carriageway_segs:
+            kept = []
+            runs = []
+            for pt in resampled:
+                if _in_carriageway(pt[0], pt[1], carriageway_segs):
+                    if len(kept) >= 2:
+                        runs.append(kept)
+                    kept = []
+                else:
+                    kept.append(pt)
+            if len(kept) >= 2:
+                runs.append(kept)
+            if not runs:
+                continue
+            # rebuild this way from the surviving runs
+            for run in runs:
+                _emit_path_ribbon(run, w, hm, mb_by_mat)
+            continue
+        _emit_path_ribbon(resampled, w, hm, mb_by_mat)
+
+
+def _emit_path_ribbon(resampled, w, hm, mb_by_mat):
+        cls = w["tags"].get("highway")
         width = max(w["tags"].get("width_m") or 1.8, 1.0)
         left = offset_polyline(resampled, width * 0.5)
         right = offset_polyline(resampled, -width * 0.5)
         sub = MeshBuild()
-        add_ribbon(sub, left, right, hm, y_bias=0.03)
+        add_ribbon(sub, left, right, hm, y_bias=0.03, double_sided=True)
         mat = PATH_MATERIAL.get(cls, "sidewalk_concrete")
         if not sub.is_empty():
             mb_by_mat.setdefault(mat, MeshBuild()).extend(sub)
@@ -1036,7 +1090,9 @@ def main():
     build_stop_signs(nodes, plan_by_way_id, downtown_node_ids, hm, furniture)
 
     print("Building paths (footway/cycleway/etc)...")
-    build_pathy(split_ways, hm, mb_by_mat)
+    # Pass the carriageway extents so footway slabs are clipped out of the street
+    # (OSM maps crossings as footways straight across the road).
+    build_pathy(split_ways, hm, mb_by_mat, _carriageway_index(plans))
 
     print("Building bridges...")
     build_bridges(bridges, hm, mb_by_mat, furniture)

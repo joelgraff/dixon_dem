@@ -143,3 +143,28 @@ Two shots came out well-framed and are informative:
   this session found a real OSM footprint (`buildings.json`) whose centroid
   matches the given coordinate almost exactly — treat the position as
   sanity-checked/confirmed, not still-uncertain.
+
+## 2026-09-20 — ROOT CAUSE of "buildings have missing sides / black voids"
+User screenshots showed downtown structures as hollow boxes: the street-facing wall absent, the unlit
+interior and the underside of the roof visible. Diagnosis chain (each step ruled one thing out):
+1. Ray probe hit the facade plane -> geometry is present (but landmark collision is a simple box, so
+   this alone was not conclusive).
+2. `--override=Landmarks:double` (new capture-harness flag: plain white, cull_disabled) still rendered
+   black -> not a material/texture problem.
+3. Sun sweep (09/13/18/19:30) showed the "facade" lit at 09:00 and black at 13:00 -> at 09:00 the low
+   east sun was lighting the INTERIOR through the missing wall, i.e. we were always seeing inside.
+4. Raising ambient 4x moved the region only 3 sRGB -> the surface was receiving no direct or ambient
+   light at all, because we were looking at back faces.
+
+**Cause:** `landmarks/tools/mesh_builder.gd::add_tri` submitted vertices in the caller's order. Callers
+order corners **CCW as seen from outside** (add_quad's documented contract), but Godot treats a
+**clockwise-from-the-front** triangle as front-facing. Every landmark wall was therefore a back face:
+culled from the street, leaving a view straight into an unlit interior.
+
+**Fix:** submit reversed (a, c, b); the shading normal stays the geometric outward normal. The theatre
+now renders solid with buff brick, two window rows, storefront glazing, marquee and cornice.
+Measured at the same camera: facade region 92.5 -> 127.6 sRGB at 13:00.
+
+**Note for the generic-buildings pipeline:** `pipeline/buildings/common_buildings.py` already carries an
+equivalent mirror (found independently on 2026-09-19), which is why generic buildings render solid.
+Same failure class, three separate code paths — roads ribbons, building meshes, landmark meshes.

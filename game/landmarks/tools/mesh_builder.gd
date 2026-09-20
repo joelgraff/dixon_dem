@@ -30,10 +30,17 @@ func _st(mat: Material) -> SurfaceTool:
 
 func add_tri(mat: Material, a: Vector3, b: Vector3, c: Vector3, uv_a := Vector2.ZERO, uv_b := Vector2.ZERO, uv_c := Vector2.ZERO) -> void:
 	var st := _st(mat)
+	# Callers order corners CCW as seen from OUTSIDE (see add_quad's contract), but
+	# Godot treats a clockwise-from-the-front triangle as front-facing. Submitting the
+	# caller's order verbatim therefore made every wall a back face: from the street
+	# you looked straight through the near wall into an unlit interior, which read as
+	# a black void ("buildings have missing sides", user screenshots 2026-09-20).
+	# Submit reversed (a, c, b) so the outward side is the FRONT face; the shading
+	# normal stays the geometric outward normal.
 	var n := (b - a).cross(c - a).normalized()
 	st.set_normal(n); st.set_uv(uv_a); st.add_vertex(a)
-	st.set_normal(n); st.set_uv(uv_b); st.add_vertex(b)
 	st.set_normal(n); st.set_uv(uv_c); st.add_vertex(c)
+	st.set_normal(n); st.set_uv(uv_b); st.add_vertex(b)
 
 ## Quad a,b,c,d in CCW winding as seen from the visible (outward) side.
 func add_quad(mat: Material, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> void:

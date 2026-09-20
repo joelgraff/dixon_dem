@@ -62,6 +62,27 @@ func _run() -> void:
 					g.visibility_range_end = 0.0
 					cleared += 1
 		print("capture: cleared visibility_range on ", cleared, " instances")
+	# --override=<Node>[:double] : replace every material under <Node> with a plain
+	# white StandardMaterial3D (optionally cull_disabled). Diagnostic for
+	# "is this geometry missing, or present but not rendering?" -- if a facade
+	# appears under a double-sided override, the wall exists and the problem is
+	# culling/material, not generation.
+	if _args.has("override"):
+		var spec: PackedStringArray = str(_args["override"]).split(":")
+		var target := root.find_child(spec[0], true, false)
+		var dbl := spec.size() > 1 and spec[1] == "double"
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.8, 0.8, 0.82)
+		m.roughness = 0.9
+		if dbl:
+			m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var n_over := 0
+		if target:
+			for nd in _all_nodes(target):
+				if nd is MeshInstance3D:
+					(nd as MeshInstance3D).material_override = m
+					n_over += 1
+		print("capture: material_override on %d MeshInstance3D under %s (double=%s)" % [n_over, spec[0], dbl])
 	var cam := Camera3D.new()
 	add_child(cam)
 	for s in shots:
