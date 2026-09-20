@@ -36,6 +36,13 @@ SEED = 20260917  # deterministic master seed
 # our parkway strip lines up with the sidewalk/curb that team builds; we
 # duplicate the numbers rather than importing their module to keep the two
 # workstreams' pipelines decoupled). ---
+# --- Global canopy thinning (user review 2026-09-20) -------------------------
+# Canopy was judged ~3-5x too dense everywhere (Old Courthouse lawn the clearest case).
+# One knob so the whole map thins consistently: 0.28 ~= 3.6x fewer trees.
+# Spacing scales as 1/sqrt(scale) to keep the survivors evenly distributed.
+TREE_DENSITY_SCALE = 0.28
+TREE_SPACING_SCALE = 1.0 / (TREE_DENSITY_SCALE ** 0.5)   # ~1.89x
+
 CURB_WIDTH = 0.12
 GUTTER_WIDTH = 0.35
 PARKWAY_GAP = 2.0
@@ -467,14 +474,14 @@ for line, tags, hw in road_lines:
     way_seed = seeded_rng("street", tags.get("name"), round(pts[0][0]), round(pts[0][1]))
     if downtown:
         offset = hw + CURB_WIDTH + 0.9
-        spacing = 22.0
-        keep_prob = 0.30
+        spacing = 22.0 * TREE_SPACING_SCALE
+        keep_prob = 0.30 * TREE_DENSITY_SCALE / 0.28 * 0.55
         mix = MIX_DOWNTOWN
         size_scale = 0.55
     else:
         offset = hw + CURB_WIDTH + PARKWAY_GAP * 0.5
-        spacing = 12.5
-        keep_prob = 0.85
+        spacing = 12.5 * TREE_SPACING_SCALE
+        keep_prob = 0.85 * 0.65
         mix = MIX_STREET
         size_scale = 1.0
     for x, z, tx, tz, d in walk_polyline(pts, spacing, 0.25, way_seed):
@@ -573,6 +580,11 @@ print("placing park + cemetery trees ...")
 
 def scatter_polygon(poly, density_per_m2, min_spacing, mix, category, rng, conifer_specimen_prob=0.0,
                      riparian_check=False, understory_mix=None, understory_prob=0.0, max_pts=4000):
+    # Global thinning: user review (2026-09-20) found canopy roughly 3-5x too dense everywhere,
+    # the Old Courthouse lawn being the clearest example. Density scales the count; min spacing
+    # scales as 1/sqrt(density) so thinned trees stay evenly spread instead of clumping.
+    density_per_m2 *= TREE_DENSITY_SCALE
+    min_spacing *= TREE_SPACING_SCALE
     target = min(int(poly.area * density_per_m2), max_pts)
     if target <= 0:
         return 0

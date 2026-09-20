@@ -28,7 +28,19 @@ derivation still culls sidewalk, path and painted-ribbon surfaces at eye height.
 `_paint_ribbon` call site. **Verify:** eye-level frame in world.tscn showing a continuous sidewalk slab
 with control joints, plus `--hide=Terrain` control.
 
-## 6. Road crossings elevated  → ROOT CAUSE FOUND (rail grade crossings)
+## 6. Pedestrian crosswalks are elevated — you have to jump them  → CLARIFIED BY USER
+User clarification: this is **pedestrian crosswalk paint** (e.g. at the arch), not rail crossings. Paint
+markings should be flush pavement markings with no collision at all. Current build makes crosswalk
+markings as real ribbon geometry at a Y offset above the road (`_paint_ribbon`, default `y_bias=0.045`,
+and junction stacking up to ~0.085-0.15), and roads' collision generation includes marking surfaces, so
+their edges are walkable ledges the player must jump.
+**Fix:** (a) exclude ALL marking materials from collision entirely; (b) render paint as a decal or a
+coplanar surface with depth-bias rather than a raised slab, so there is no geometric lip; (c) if a small
+offset is kept for z-fighting, make it far smaller than a step (~5 mm) and never build side walls on the
+ribbon edges. **Verify:** player walks a crosswalk at the arch without a step; low-angle frame shows paint
+flush with asphalt.
+
+## 6b. Rail grade crossings also stand proud (found while diagnosing, lower priority)
 `build_road_plan.py` lines 776-781: rails are built as a continuous prism the whole length of the line —
 `BALLAST_TOP 0.20`, `TIE_TOP 0.35`, `RAIL_TOP 0.50` — with no special case where a rail crosses a road.
 So at every grade crossing the track stands ~0.5 m proud of the pavement. Real crossings are flush:
@@ -53,6 +65,13 @@ carriageway. Keep markings running across the deck.
 across with no step.
 
 ## 1. Buildings look awful  → PART DIAGNOSED, PART DESIGN WORK
+(a0) **Missing sides / awnings with nothing underneath** (user observation — strongest clue yet):
+whole wall faces absent, with storefront awnings left floating where the facade should be. This is the
+same failure class as the asphalt and sidewalk bugs: **inverted/inconsistent triangle winding** means
+some wall quads are backface-culled depending on which way the footprint edge runs (CW vs CCW footprints,
+or the flat-(x,z)-into-3D handedness flip already found once in `common_buildings.MeshBuild`). The awning
+survives because it is built by a different code path with its own winding. Fix the winding derivation
+once, centrally, and assert per-face outward orientation against the footprint centroid at build time.
 (a) **Near-black walls** (blocking): whole facades render near-black with a sharp horizontal boundary
 partway up. Two candidates, both testable by outputting the term as albedo: (i) the shared
 `surface.gdshader` ground-proximity **grime** term — `ground_level` defaults to **0** while downtown sits
@@ -91,18 +110,18 @@ heightmap** so terrain, roads, buildings and landmarks all shift together.
 **Verify:** north bluff vista and a riverbank-to-bluff frame, before/after, same camera.
 
 ## 7. User reference photos  → INTEGRATED
-16 photos now in `references/` (courthouse from several angles, Reagan home, arch, theatre, downtown
+17 photos now in `references/` (including the Dixon arch) (courthouse from several angles, Reagan home, arch, theatre, downtown
 aerial). Committed. Landmarks work must be re-based on these (they supersede the agent-gathered
 Wikimedia set where they conflict), especially the courthouse and Reagan home.
 
-## 8. Location awareness — street names / minimap  → NEW FEATURE
+## 8. Location awareness — street names / minimap  → NEW FEATURE (must be TOGGLEABLE)
 Data is already there: `game/data/roads.json` carries street names per way, and `pois.json` has landmarks.
 **Plan:** (a) a location readout — nearest street name, and "X & Y" when near an intersection, using the
 junction-node data; (b) an optional minimap — render the road/water/building vectors to a top-down
 texture at build time, with a player marker and north indicator; toggleable, off by default so it never
 pollutes captures. Must respect `capture_mode` (hidden during screenshots).
 
-## 9. Automatic screenshots  → NEW TOOLING
+## 9. Automatic screenshots  → NEW TOOLING (must be TOGGLEABLE)
 **Plan:** (a) a manual key (F12) in the player controller that saves a timestamped PNG to
 `captures/manual/` with position/heading/season/weather in the filename; (b) a "tour" mode that walks a
 named spawn list and captures each automatically, reusing the existing harness; (c) optional interval
@@ -124,3 +143,23 @@ capture while exploring. All must honour `capture_mode` and never capture debug 
 - Winding/orientation is now a known failure class: any new mesh generator must include a "does it render
   from eye height on both approaches" check before reporting done.
 - No agent edits `world/world.tscn` transforms; the orchestrator owns that file's node transforms.
+
+
+---
+
+## Update 2026-09-20 (after user review round 2)
+- **Environment work is stopped** by user direction: terrain/atmosphere/water are "more than sufficient
+  for the current model state". Item 3 (flatness) is therefore **deferred indefinitely** — do not spend
+  time on it.
+- Tools (8, 9) must be **toggleable**, off by default.
+- **Tree density (done, one iteration):** global `TREE_DENSITY_SCALE = 0.28` with spacing scaled
+  1/sqrt(scale) in `pipeline/vegetation/place_vegetation.py`; street-tree spacing and keep-probability
+  thinned to match. Trees **16,987 → 5,914 (2.9x fewer)**. Measured on-screen canopy coverage at identical
+  cameras: courthouse lawn 79.5% → 60.3% (-24% relative), residential street 18.8% → 12.9% (-31%),
+  canopy vista 23.6% → 21.7% (-8%).
+  **Honest read: count is down ~3x but the courthouse is still screened.** Canopy overlap means removing
+  trees from a saturated canopy has sub-linear effect on what the camera sees. The next lever is **crown
+  size**, not count: current park/yard species carry 6-11 m crown radii, so a handful of trees still close
+  the canopy. Recommended next step: cut crown radius ~25-30% for park/lawn/yard categories and thin the
+  park/cemetery scatter specifically (it sits at 0.006/m2 before scaling), then re-measure at the same
+  three cameras.
