@@ -143,7 +143,7 @@ static func build_deciduous(shape_family: String, seed: int, summer: Color, autu
 
 	for i in range(n_primary):
 		var yaw := (float(i) / float(n_primary)) * TAU_F + rng.randf_range(-0.3, 0.3)
-		var pitch := lerp(0.55, 1.15, rng.randf()) - droop * 0.3
+		var pitch: float = lerp(0.55, 1.15, rng.randf()) - droop * 0.3
 		var dir := Vector3(cos(yaw) * spread, pitch, sin(yaw) * spread).normalized()
 		var len1 := rng.randf_range(0.32, 0.46)
 		var r0 := 0.030
@@ -153,7 +153,7 @@ static func build_deciduous(shape_family: String, seed: int, summer: Color, autu
 		var n_sec := rng.randi_range(2, 3)
 		for j in range(n_sec):
 			var yaw2 := yaw + rng.randf_range(-0.9, 0.9)
-			var pitch2 := pitch * 0.6 + rng.randf_range(-0.25, 0.45) + droop * 0.5
+			var pitch2: float = pitch * 0.6 + rng.randf_range(-0.25, 0.45) + droop * 0.5
 			var dir2 := Vector3(cos(yaw2) * (spread + 0.2), pitch2, sin(yaw2) * (spread + 0.2)).normalized()
 			var len2 := rng.randf_range(0.16, 0.26)
 			var tip := mid + dir2 * len2
@@ -198,8 +198,8 @@ static func build_conifer(shape_family: String, seed: int, color: Color) -> Arra
 	for i in range(whorls):
 		var y0 := float(i) * seg_h
 		var y1 := y0 + seg_h
-		var r0 := lerp(0.05, 0.008, float(i) / float(whorls))
-		var r1 := lerp(0.05, 0.008, float(i + 1) / float(whorls))
+		var r0: float = lerp(0.05, 0.008, float(i) / float(whorls))
+		var r1: float = lerp(0.05, 0.008, float(i + 1) / float(whorls))
 		var top := Vector3(0, y1, 0)
 		_add_cyl(st_bark, Vector3(0, y0, 0), top, r0, r1, 6, y0, y1)
 		var level_t := float(i) / float(whorls) # 0 at base, 1 at tip
@@ -236,8 +236,8 @@ static func build_shrub(seed: int, summer: Color, autumn: Color, columnar: bool)
 		var levels := 5
 		for i in range(levels):
 			var t := float(i) / float(levels - 1)
-			var y := lerp(0.15, 0.95, t)
-			var r := lerp(0.30, 0.12, t)
+			var y: float = lerp(0.15, 0.95, t)
+			var r: float = lerp(0.30, 0.12, t)
 			var n := 5
 			for k in range(n):
 				var a := (float(k) / float(n)) * TAU_F + rng.randf_range(-0.3, 0.3)
@@ -281,6 +281,39 @@ static func build_cattail_clump(seed: int) -> ArrayMesh:
 		st.set_uv(Vector2(0, 0)); st.add_vertex(base - right)
 		st.set_uv(Vector2(1, 1)); st.add_vertex(base + lean + right * 0.15)
 		st.set_uv(Vector2(0, 1)); st.add_vertex(base + lean - right * 0.15)
+	var mesh := ArrayMesh.new()
+	return st.commit(mesh)
+
+
+## A small stamp of grass blades (grass.gdshader-compatible: COLOR.a =
+## tallness, UV.y = 0 base..1 tip) used by grass_spawner.gd — one shared mesh
+## repeated at many jittered positions per near-camera cell via MultiMesh.
+static func build_grass_blades(seed: int, n: int, tallness: float) -> ArrayMesh:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var patch_r := 0.5 + tallness * 0.3
+	var h_base := 0.12 + tallness * 0.22
+	for i in range(n):
+		var bx := rng.randf_range(-patch_r, patch_r)
+		var bz := rng.randf_range(-patch_r, patch_r)
+		var base := Vector3(bx, 0, bz)
+		var h := h_base * rng.randf_range(0.75, 1.25)
+		var a := rng.randf() * TAU_F
+		var lean := Vector3(cos(a) * h * 0.25, h, sin(a) * h * 0.25)
+		var right := Vector3(-sin(a), 0, cos(a)) * 0.028
+		var col := Color(1, 1, 1, tallness)
+		st.set_color(col)
+		st.set_normal(Vector3(sin(a), 0.2, -cos(a)).normalized())
+		st.set_uv(Vector2(0, 0)); st.add_vertex(base - right)
+		st.set_uv(Vector2(1, 0)); st.add_vertex(base + right)
+		st.set_uv(Vector2(1, 1)); st.add_vertex(base + lean + right * 0.1)
+		st.set_color(col)
+		st.set_normal(Vector3(sin(a), 0.2, -cos(a)).normalized())
+		st.set_uv(Vector2(0, 0)); st.add_vertex(base - right)
+		st.set_uv(Vector2(1, 1)); st.add_vertex(base + lean + right * 0.1)
+		st.set_uv(Vector2(0, 1)); st.add_vertex(base + lean - right * 0.1)
 	var mesh := ArrayMesh.new()
 	return st.commit(mesh)
 

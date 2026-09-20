@@ -238,20 +238,65 @@ for poly, tags in landuse_polys:
 commercial_union = unary_union([p for p, _ in commercial_polys]) if commercial_polys else Polygon()
 commercial_prep = prep(commercial_union) if not commercial_union.is_empty else None
 
-# Buildings
-building_recs = []  # dict: poly, tags, area, is_house
-for b in buildings:
-    poly = poly_from_ring(b["footprint"])
-    if not poly or not poly.intersects(PLAY_BOX):
-        continue
-    is_house = (
-        b.get("tags", {}).get("landmark_id") is None
-        and poly.area <= 550.0
-        and (commercial_prep is None or not commercial_prep.intersects(poly.centroid))
-    )
-    building_recs.append(dict(poly=poly, tags=b.get("tags", {}), area=poly.area, is_house=is_house))
+# Buildings. Prefer the buildings workstream's own BAKED collision hulls
+# (game/buildings/_build/chunk_*.json -- read-only cross-workstream read,
+# see docs/buildings_notes.md) over game/data/buildings.json's raw OSM
+# footprints: the bake includes ~900 procedurally-infilled houses/garages on
+# blocks OSM never mapped (game/data/buildings.json only has the original
+# 707), and the hull is already the exact as-built rectangle (houses are
+# simplified to their min-rotated-rect there). Falls back to
+# game/data/buildings.json alone if the bake hasn't been run yet.
+building_recs = []  # dict: poly, area, is_house
+_build_dir = os.path.join(pc.ROOT, "game", "buildings", "_build")
+_hull_count = 0
+if os.path.isdir(_build_dir):
+    import glob
+    for chunk_path in glob.glob(os.path.join(_build_dir, "chunk_*.json")):
+        try:
+            chunk = json.load(open(chunk_path))
+        except Exception:
+            continue
+        for c in chunk.get("collisions", []):
+            hull = c.get("hull")
+            if not hull or len(hull) < 3:
+                continue
+            poly = poly_from_ring([{"x": p[0], "z": p[1]} for p in hull])
+            if not poly or not poly.intersects(PLAY_BOX):
+                continue
+            _hull_count += 1
+            is_house = (
+                poly.area <= 550.0
+                and (commercial_prep is None or not commercial_prep.intersects(poly.centroid))
+            )
+            building_recs.append(dict(poly=poly, area=poly.area, is_house=is_house))
+print(f"  loaded {_hull_count} baked building hulls from game/buildings/_build/ (includes procedural infill)"
+      if _hull_count else "  no buildings bake found, falling back to buildings.json")
 
-buildings_tight = unary_union([r["poly"].buffer(0.8) for r in building_recs])
+if not building_recs:
+    for b in buildings:
+        poly = poly_from_ring(b["footprint"])
+        if not poly or not poly.intersects(PLAY_BOX):
+            continue
+        is_house = (
+            b.get("tags", {}).get("landmark_id") is None
+            and poly.area <= 550.0
+            and (commercial_prep is None or not commercial_prep.intersects(poly.centroid))
+        )
+        building_recs.append(dict(poly=poly, area=poly.area, is_house=is_house))
+
+# Landmark footprints (buildings.json entries the buildings team explicitly
+# skipped, left for the landmarks team) still get a placement-exclusion
+# buffer even if nothing is built there yet, so trees don't pre-empt that
+# ground.
+landmark_polys = []
+for b in buildings:
+    if b.get("tags", {}).get("landmark_id"):
+        poly = poly_from_ring(b["footprint"])
+        if poly and poly.intersects(PLAY_BOX):
+            landmark_polys.append(poly)
+
+buildings_tight = unary_union([r["poly"].buffer(0.8) for r in building_recs] +
+                               [p.buffer(1.0) for p in landmark_polys])
 buildings_tight_prep = prep(buildings_tight)
 
 # Water
@@ -469,7 +514,7 @@ for rec in building_recs:
         age_bias, tree_count_choices = 1.0, (1, 2, 2)
     else:
         age_bias, tree_count_choices = 0.8, (0, 1, 2)
-    rng = seeded_rng("yard", rec["tags"].get("name"), round(cx, 1), round(cz, 1))
+    rng = seeded_rng("yard", round(cx, 1), round(cz, 1))
     n_trees = rng.choice(tree_count_choices)
     bbox = poly.bounds
     reach = max(bbox[2] - bbox[0], bbox[3] - bbox[1]) * 0.5 + rng.uniform(4.0, 9.0)
