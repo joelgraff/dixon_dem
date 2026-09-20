@@ -168,14 +168,30 @@ confirming the capture_mode contract holds end-to-end through
 - Footstep audio is a single generic click (no per-surface waveforms yet),
   by design per the brief ("no audio assets required now").
 
-## Exploration HUD + screenshot tool (2026-09-20) — all toggleable, all off during captures
-`game/player/hud.gd`, instanced as a `HUD` CanvasLayer in `world/world.tscn`.
-- **F7** location readout — nearest named street, or "A & B" when within 35 m of a second named street,
-  plus "near <POI>" within 60 m; also shows season/weather. Built from `game/data/roads.json` +
-  `pois.json`, i.e. the same vectors the world is generated from, so names always match the geometry.
-- **F8** minimap — top-down vector map (arterials thicker/yellow), player marker with heading, scale
-  readout. **F9** cycles zoom 120 / 250 / 600 m.
-- **F12** screenshot → `captures/manual/`, filename carries timestamp, x_y_z, season, weather and hour,
-  so a screenshot is self-describing when it comes back as a bug report.
-  **Shift+F12** hides the HUD first (clean shot).
-- Everything checks `capture_mode` and hides itself, so the offline capture harness is unaffected.
+## Exploration HUD (game/player/hud.gd) — toggleable, hidden during captures
+Instanced as the `HUD` CanvasLayer in `world/world.tscn`.
+
+| Key | Does |
+|---|---|
+| **F7** | location + structure readout on/off |
+| **F8** | minimap on/off |
+| **F9** | minimap zoom: 120 / 250 / 600 m |
+| **F10** | coordinates + look vector on/off |
+| **F12** | screenshot to `<project>/screenshots/` |
+| **Shift+F12** | screenshot with the HUD hidden |
+
+Readout (bottom-left, deliberately clear of atmosphere's top-left line at (12,8) and player.gd's
+debug readout at (12,40) — they used to overlap):
+- nearest named street, or "A & B" within 35 m of a second named street;
+- **what you are looking at**: a ray from the camera is matched against named OSM building footprints
+  and the landmark list, so structures identify themselves (◆ = landmark, • = named building, with a
+  distance when it is not the thing directly under the crosshair);
+- season / weather / clock;
+- `x y z` and `look <compass> <deg> pitch <deg> (fwd vector)` for correlating a position with the model.
+
+Minimap: north-up vector map, arterials thicker/yellow, landmark markers, player position + heading,
+scale label. Segments are Liang-Barsky clipped to the map rect — without that, long streets whose
+endpoints both fell outside the box vanished and short ones drew outside it.
+
+Screenshot filenames carry timestamp, x_y_z, compass + heading, season, weather and hour, so a shot is
+self-describing when sent back as a bug report. `screenshots/` is gitignored.
