@@ -157,7 +157,16 @@ void fragment() {
 	// which FLIPS discontinuously right where two weights cross over (e.g. a box
 	// corner) — that jump is exactly the vertical seam the iter3 critique measured
 	// down the middle of every siding pier. World position has no such discontinuity.
-	vec2 module_phase = v_world_pos.xz * uv_scale * module_uv_scale;
+	// On vertical faces the phase must run ALONG the wall and UP it. The old world-xz-only phase is
+	// constant with height, so every brick/board column got one colour top to bottom = the vertical
+	// "barcode" stripes visible on every facade (user screenshots, 2026-09-20).
+	vec2 module_phase;
+	if (abs(wn.y) < 0.7) {
+		vec2 wall_dir = normalize(vec2(-wn.z, wn.x) + vec2(1e-5, 0.0));
+		module_phase = vec2(dot(v_world_pos.xz, wall_dir), v_world_pos.y) * uv_scale * module_uv_scale;
+	} else {
+		module_phase = v_world_pos.xz * uv_scale * module_uv_scale;
+	}
 
 	if (use_triplanar) {
 		// Sharper falloff (was 4.0): narrows the blend zone around edges/corners.

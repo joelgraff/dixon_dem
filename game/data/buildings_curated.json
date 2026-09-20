@@ -1,0 +1,32 @@
+{
+ "buildings": [
+  {
+   "id": 990000001,
+   "name": "south_of_theatre_tower",
+   "height_m": 8.5,
+   "tags": {
+    "building": "yes"
+   },
+   "footprint": [
+    {
+     "x": 1632.34,
+     "z": -1367.77
+    },
+    {
+     "x": 1624.72,
+     "z": -1394.37
+    },
+    {
+     "x": 1647.79,
+     "z": -1400.98
+    },
+    {
+     "x": 1655.41,
+     "z": -1374.39
+    }
+   ],
+   "source": "aerial_trace",
+   "replaces": []
+  }
+ ]
+}

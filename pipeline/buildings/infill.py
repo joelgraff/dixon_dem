@@ -14,7 +14,7 @@ import math
 from common_buildings import (
     rng_for, dist_point_to_segment, nearest_point_on_segment, rect_from_center,
 )
-from classify import in_downtown
+from classify import in_downtown, in_aerial
 
 RESIDENTIAL_HIGHWAYS = {"residential", "unclassified", "tertiary"}
 LOT_SPACING_M = 17.0
@@ -93,7 +93,11 @@ def generate_infill(roads_data, exclude_index, height_sampler, max_houses=MAX_IN
                 break
             t = (i + 0.5) / n_steps * length
             rx, rz = ax + dx * t, az + dz * t
-            if in_downtown(rx, rz):
+            if in_downtown(rx, rz) or in_aerial(rx, rz):
+                # Inside the aerial reference area (screenshots/dixon_downtown_aerial.png) the buildings
+                # come from OSM, which matches the aerial to ~1-2 m, plus buildings_curated.json.
+                # Random infill there put houses on Galena Ave, in parking lots, etc. (tried and
+                # rejected 2026-09-20), so it is off inside the aerial.
                 continue
             rng = rng_for("infill", round(rx * 4), round(rz * 4))
             for side in (1, -1):
@@ -102,7 +106,7 @@ def generate_infill(roads_data, exclude_index, height_sampler, max_houses=MAX_IN
                 setback = width / 2.0 + rng.uniform(SETBACK_MIN, SETBACK_MAX)
                 cx = rx + nx * side * setback
                 cz = rz + nz * side * setback
-                if in_downtown(cx, cz):
+                if in_downtown(cx, cz) or in_aerial(cx, cz):
                     continue
                 if exclude_index.contains_or_near(cx, cz, margin=MIN_BUILDING_CLEARANCE):
                     continue

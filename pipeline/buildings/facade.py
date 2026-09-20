@@ -301,3 +301,48 @@ def build_hip_roof(mb, c0, c1, c2, c3, eave_y, pitch_rad, overhang, roof_mat, ro
         mb.add_tri_face(roof_mat, pt3(o0f, eave_y), pt3(o1f, eave_y), pt3(ridge1, ridge_y), color=roof_color)
         mb.add_tri_face(roof_mat, pt3(o3b, eave_y), pt3(o2b, eave_y), pt3(ridge2, ridge_y), color=roof_color)
     return ridge_y
+
+
+# ---------------------------------------------------------------------------
+# Foundations on sloping ground
+# ---------------------------------------------------------------------------
+def terrain_skirt(mb, coords, ground_y, sampler, mat="stone_foundation", step=3.0, bury=0.25):
+    """Foundation/retaining skirt that closes the gap between a level building base at
+    `ground_y` and terrain that falls away below it (downtown Dixon drops several metres
+    toward the river; without this the low side of every building floats in the air).
+
+    Adds nothing where the terrain is at/above the base. Returns the lowest skirt bottom Y so
+    the caller can extend the building's collision hull down to it.
+    """
+    from common_buildings import ensure_ccw, dedupe_ring
+    ring = ensure_ccw(dedupe_ring(list(coords)))
+    n = len(ring)
+    lowest = ground_y
+    for i in range(n):
+        p0, p1 = ring[i], ring[(i + 1) % n]
+        length = math.hypot(p1[0] - p0[0], p1[1] - p0[1])
+        if length < 0.5:
+            continue
+        k = max(1, int(math.ceil(length / step)))
+        for j in range(k):
+            a = lerp2(p0, p1, j / k)
+            b = lerp2(p0, p1, (j + 1) / k)
+            ha = min(sampler.sample(a[0], a[1]), ground_y)
+            hb = min(sampler.sample(b[0], b[1]), ground_y)
+            if ha >= ground_y - 0.02 and hb >= ground_y - 0.02:
+                continue
+            ya, yb = ha - bury, hb - bury
+            lowest = min(lowest, ya, yb)
+            seg = math.hypot(b[0] - a[0], b[1] - a[1])
+            top = ground_y + 0.05
+            mb.add_quad(mat, pt3(a, ya), pt3(b, yb), pt3(b, top), pt3(a, top),
+                        uvs=((0, 0), (seg, 0), (seg, top - yb), (0, top - ya)))
+    return lowest
+
+
+def pick_ground(coords, sampler, centroid, pct=0.7):
+    """Building base height: a high-ish percentile of the terrain under the footprint (its
+    corners + centroid) so the UPHILL side is not buried and the downhill side gets a skirt."""
+    hs = sorted(sampler.sample(p[0], p[1]) for p in list(coords) + [centroid])
+    idx = min(len(hs) - 1, int(round(pct * (len(hs) - 1))))
+    return hs[idx]

@@ -52,87 +52,76 @@ class MeshBuild:
         g["indices"].extend([a, b, c])
 
     # --- outward orientation ------------------------------------------------
-    # The blanket index mirror below is correct for HORIZONTAL caps (roofs, floors,
-    # awning tops -- those render fine today) but not for VERTICAL walls, whose
-    # submitted order depends on which way the footprint ring runs. That is why
-    # buildings showed missing sides with awnings floating over nothing
-    # (user report 2026-09-20). For near-vertical faces we therefore ignore the
-    # convention entirely and orient each face by geometry: its normal must point
-    # away from the building's own centroid.
+    # RULE (verified against Godot screenshots + a software re-render of the baked chunks,
+    # 2026-09-20): Godot treats a triangle as FRONT-facing when it is CLOCKWISE as seen from
+    # the front. In a right-handed frame that means the right-hand-rule normal
+    # cross(b-a, c-a) of a front-facing triangle points AWAY from the viewer, i.e. INTO the
+    # solid. So for every face we (1) decide which way is OUTWARD (N), then (2) emit the
+    # index order whose cross normal is OPPOSITE to N.
+    #
+    # History: the earlier code emitted a blanket mirror for caps and a "geometric" choice
+    # for walls that had the sign inverted, so every wall/roof rendered from the INSIDE
+    # (hollow boxes, roof cap visible only from below = the giant "pyramid roofs", black
+    # interiors). See docs/STATUS.md / docs/buildings_notes.md.
     def set_outward_ref(self, cx, cz):
         self._out_ref = (cx, cz)
 
-    def _outward_normal(self, pts, normal):
-        """Flip a caller-supplied shading normal if it points INTO the building.
-
-        Walls pass an explicit normal derived from the footprint edge direction
-        (facade.wall_backdrop), whose sign depends on which way the ring runs.
-        When it pointed inward the facade was shaded as if facing away from the
-        sun -- the near-black walls reported 2026-09-20. Triangle winding alone
-        cannot fix this, because the stored normal is what lighting uses.
-        """
-        ref = getattr(self, "_out_ref", None)
-        if ref is None or normal is None:
-            return normal
-        if abs(normal[1]) >= 0.7:
-            return normal              # horizontal face: leave it alone
-        fx = sum(q[0] for q in pts) / len(pts)
-        fz = sum(q[2] for q in pts) / len(pts)
-        if normal[0] * (fx - ref[0]) + normal[2] * (fz - ref[1]) < 0.0:
-            return (-normal[0], -normal[1], -normal[2])
-        return normal
-
-    def _orient(self, pts, idx_default, idx_mirror):
-        ref = getattr(self, "_out_ref", None)
-        a, b, c = pts[0], pts[1], pts[2]
+    @staticmethod
+    def _cross(a, b, c):
         ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
         vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
-        nx = uy * vz - uz * vy
-        ny = uz * vx - ux * vz
-        nz = ux * vy - uy * vx
+        nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
         ln = math.sqrt(nx * nx + ny * ny + nz * nz)
         if ln < 1e-9:
-            return idx_mirror
-        ny_norm = abs(ny / ln)
-        if ref is None or ny_norm >= 0.7:
-            return idx_mirror          # horizontal cap: keep the verified convention
-        # vertical-ish face: point the normal away from the centroid
+            return None
+        return (nx / ln, ny / ln, nz / ln)
+
+    def _resolve(self, pts, normal):
+        """Return (mode, outward_normal). mode is 'default' (emit 0,1,2) or 'mirror' (0,2,1)."""
+        n = self._cross(pts[0], pts[1], pts[2])
+        if n is None:
+            return "mirror", (normal if normal is not None else (0.0, 1.0, 0.0))
+        ref = getattr(self, "_out_ref", None)
         fx = sum(q[0] for q in pts) / len(pts)
         fz = sum(q[2] for q in pts) / len(pts)
-        if nx * (fx - ref[0]) + nz * (fz - ref[1]) >= 0.0:
-            return idx_default          # already outward as submitted
-        return idx_mirror
+
+        def away_from_ref(v):
+            # True if horizontal part of v points away from the building reference point.
+            return v[0] * (fx - ref[0]) + v[2] * (fz - ref[1]) >= 0.0
+
+        if normal is not None:
+            nl = math.sqrt(normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2) or 1.0
+            N = (normal[0] / nl, normal[1] / nl, normal[2] / nl)
+            if ref is not None and abs(N[1]) < 0.7 and not away_from_ref(N):
+                N = (-N[0], -N[1], -N[2])          # caller's shading normal pointed inward
+        else:
+            if abs(n[1]) < 0.35:                    # (near-)vertical face
+                if ref is None or away_from_ref(n):
+                    N = n
+                else:
+                    N = (-n[0], -n[1], -n[2])
+            else:                                   # roofs / caps: face upward
+                N = n if n[1] >= 0.0 else (-n[0], -n[1], -n[2])
+        dot = n[0] * N[0] + n[1] * N[1] + n[2] * N[2]
+        return ("mirror" if dot > 0.0 else "default"), N
 
     def add_quad(self, material, p0, p1, p2, p3, normal=None, uvs=None, color=(1.0, 1.0, 1.0, 1.0)):
-        """p0..p3 CCW as seen from the face's front (normal points toward viewer).
-
-        NOTE on winding: callers pass points ordered CCW per the 2D (x,z)
-        shoelace convention used throughout this module (common_buildings.
-        polygon_area_2d/ensure_ccw). Embedding a 2D (x,z) polygon flat into
-        Godot's actual right-handed 3D space (X,Y,Z with Y up) as (x,0,z) is
-        an ODD axis permutation relative to the standard (x,y,*) -> +Z-normal
-        convention the cross-product formula assumes -- it flips handedness.
-        A "CCW-in-(x,z)" triangle therefore has a real (B-A)x(C-A) normal
-        pointing the OPPOSITE way from what the 2D convention suggests (e.g.
-        a flat roof cap ends up facing down, a wall's outward face ends up
-        facing into the building) -- with default cull_back materials this
-        silently back-face-culls the ENTIRE building system from outside.
-        Root-caused 2026-09-19 ("most buildings are not rendering at all").
-        Fix: submit the two triangles in the mirrored order (0,2,1)/(0,3,2)
-        instead of (0,1,2)/(0,2,3) -- flips winding, keeps every vertex/UV/
-        normal/color exactly as the caller specified.
-        """
-        # Decide orientation FIRST, then derive the shading normal from the winding
-        # actually emitted. Getting this wrong is what made walls render near-black:
-        # the stored normal pointed into the building while the triangles faced out,
-        # so the facade was lit as if facing away from the sun.
-        _mode = self._orient((p0, p1, p2, p3), "default", "mirror")
-        if normal is None:
-            normal = tri_normal(p0, p1, p2) if _mode == "default" else tri_normal(p0, p2, p1)
-        normal = self._outward_normal((p0, p1, p2, p3), normal)
+        """Any vertex order is accepted; winding is derived from geometry (see RULE above).
+        `normal`, if given, is the intended OUTWARD/shading normal (flipped if it points into
+        the building for vertical faces)."""
         if uvs is None:
             uvs = ((0, 0), (1, 0), (1, 1), (0, 1))
         colors = color if isinstance(color, (list, tuple)) and isinstance(color[0], (list, tuple)) else (color,) * 4
+        # Repair "bow-tie" quads (vertex order p0,p1,p2,p3 that visits a corner out of sequence,
+        # e.g. the second slope of facade.build_gable_roof): the two triangles then face opposite
+        # ways and half of that roof plane was being culled. Swapping p2/p3 restores a proper loop.
+        _n1 = self._cross(p0, p1, p2)
+        _n2 = self._cross(p0, p2, p3)
+        if _n1 is not None and _n2 is not None and (_n1[0] * _n2[0] + _n1[1] * _n2[1] + _n1[2] * _n2[2]) < 0.0:
+            p2, p3 = p3, p2
+            uvs = (uvs[0], uvs[1], uvs[3], uvs[2])
+            colors = (colors[0], colors[1], colors[3], colors[2])
+        _mode, normal = self._resolve((p0, p1, p2, p3), normal)
         g = self._grp(material)
         base = len(g["verts"])
         for p, uv, c in zip((p0, p1, p2, p3), uvs, colors):
@@ -145,12 +134,7 @@ class MeshBuild:
             self.add_tri(material, base, base + 3, base + 2)
 
     def add_tri_face(self, material, p0, p1, p2, normal=None, uvs=None, color=(1.0, 1.0, 1.0, 1.0)):
-        """p0,p1,p2 CCW per the (x,z) shoelace convention -- see add_quad's
-        winding note; submitted mirrored (0,2,1) to render front-facing."""
-        _mode = self._orient((p0, p1, p2), "default", "mirror")
-        if normal is None:
-            normal = tri_normal(p0, p1, p2) if _mode == "default" else tri_normal(p0, p2, p1)
-        normal = self._outward_normal((p0, p1, p2), normal)
+        _mode, normal = self._resolve((p0, p1, p2), normal)
         if uvs is None:
             uvs = ((0, 0), (1, 0), (0.5, 1))
         colors = color if isinstance(color, (list, tuple)) and isinstance(color[0], (list, tuple)) else (color,) * 3
@@ -166,6 +150,8 @@ class MeshBuild:
         """Axis-ish aligned box (optionally yawed around Y), sx/sz = full extents."""
         hx, hz = sx / 2.0, sz / 2.0
         ca, sa = math.cos(yaw), math.sin(yaw)
+        _saved_ref = getattr(self, "_out_ref", None)
+        self._out_ref = (cx, cz)   # a chimney/HVAC box is "outward" relative to ITSELF
 
         def rot(x, z):
             return (cx + x * ca - z * sa, cz + x * sa + z * ca)
@@ -193,6 +179,9 @@ class MeshBuild:
         top_pts = [(p[0], y1, p[1]) for p in [corners[o] for o in order]]
         n_top = (0, 1, 0)
         self.add_quad(material, top_pts[0], top_pts[1], top_pts[2], top_pts[3], normal=n_top, color=color)
+        self._out_ref = _saved_ref
+        if _saved_ref is None:
+            del self._out_ref
 
     def merged_stats(self):
         return {m: (len(g["verts"]), len(g["indices"]) // 3) for m, g in self.groups.items()}

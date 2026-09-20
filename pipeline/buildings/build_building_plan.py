@@ -21,6 +21,7 @@ import classify
 import archetypes
 import infill
 import palette
+import facade
 
 from shapely.geometry import Polygon, LineString
 
@@ -52,9 +53,51 @@ def convex_hull(coords):
     return list(hull.exterior.coords)[:-1]
 
 
+# OSM building ids that game/landmarks/tools/build_landmarks.gd models itself. Keep in sync.
+LANDMARK_OWNED_IDS = {
+    897622746,    # Lee County Courthouse           -> lee_county_courthouse
+    738208757,    # The Dixon: Historic Theatre     -> dixon_theatre
+    554473285,    # Nachusa House                   -> nachusa_house
+    1010774113,   # Dixon Memorial Arch             -> dixon_arch_complex
+    554468528,    # Reagan Boyhood Home (visitor ctr footprint at the landmark position)
+    554469190,    # Ronald Reagan Boyhood Home
+}
+
+
+def load_curated(osm_buildings):
+    """Hand-traced footprints from the user's aerial (game/data/buildings_curated.json).
+    Each record: {"id", "footprint": [{"x","z"}...], "height_m", "tags": {...}, optional
+    "replaces": [osm ids]}. Records that list `replaces` remove those OSM footprints (merged or
+    wrongly shaped ones) from the generic set -- handled here by filtering the caller's list
+    in place is avoided; instead we return only the new records and mark replaced ids."""
+    path = os.path.join(GAME_DATA, "buildings_curated.json")
+    if not os.path.exists(path):
+        return []
+    with open(path) as f:
+        data = json.load(f)
+    recs = data.get("buildings", [])
+    replaced = set()
+    for r in recs:
+        replaced.update(r.get("replaces", []))
+    if replaced:
+        osm_buildings[:] = [b for b in osm_buildings if b.get("id") not in replaced]
+    out = []
+    for r in recs:
+        if "footprint" not in r:
+            continue
+        fp = r["footprint"]
+        pts = [{"x": p["x"], "z": p["z"]} if isinstance(p, dict) else {"x": p[0], "z": p[1]} for p in fp]
+        if pts[0] != pts[-1]:
+            pts.append(dict(pts[0]))
+        out.append({"id": r["id"], "footprint": pts, "height_m": r.get("height_m"),
+                    "tags": r.get("tags", {"building": "yes"}), "curated": True})
+    return out
+
+
 def main():
     t0 = time.time()
     buildings_data = load("buildings.json")["buildings"]
+    curated = load_curated(buildings_data)       # may drop OSM footprints listed in "replaces"
     roads_data = load("roads.json")
     water_data = load("water.json")
     landuse_data = load("landuse.json")
@@ -65,7 +108,7 @@ def main():
 
     # -- exclusion index for infill (existing footprints, water, rails, non-residential landuse)
     excl = PolyIndex(cell=80.0)
-    for b in buildings_data:
+    for b in buildings_data + curated:
         coords = footprint_coords(b)
         if len(coords) >= 3:
             excl.add(coords)
@@ -113,9 +156,16 @@ def main():
     infill_records = infill.generate_infill(roads_data, excl, sampler)
     print(f"infill: {len(infill_records)} records in {time.time()-t0:.1f}s")
 
-    all_records = [b for b in buildings_data if not b.get("landmark_id")] + infill_records
-    n_landmark_skipped = sum(1 for b in buildings_data if b.get("landmark_id"))
-    print(f"total to build: {len(all_records)} (skipped {n_landmark_skipped} landmark footprints)")
+    # Only footprints that a landmark scene actually models are skipped. buildings.json tags
+    # EVERY footprint near a landmark with landmark_id (e.g. First Baptist Church and an
+    # unnamed 439 m2 building were tagged "dixon_theatre"), but landmarks/build_landmarks.gd
+    # builds just one building per landmark -- so the rest were silently dropped and left
+    # empty lots (user report 2026-09-20: empty lot north of the theatre).
+    owned = [b for b in buildings_data if b.get("id") in LANDMARK_OWNED_IDS]
+    generic = [b for b in buildings_data if b.get("id") not in LANDMARK_OWNED_IDS]
+    all_records = generic + curated + infill_records
+    print(f"total to build: {len(all_records)} (landmark-owned skipped: {len(owned)}; "
+          f"curated added/replaced: {len(curated)})")
 
     chunks = {}  # (cx,cz) -> {"near": MeshBuild, "far": MeshBuild, "collisions": []}
     counts = {}
@@ -143,7 +193,7 @@ def main():
         # renders from (rather than trusting buildings.json's own ground_y_min,
         # which may have been sampled from a slightly different pass) so
         # buildings sit flush with the now-live terrain mesh.
-        ground_y = sampler.sample(cx, cz)
+        ground_y = facade.pick_ground(coords, sampler, (cx, cz))
         height_m = b.get("height_m")
         bid = b.get("id")
         rng = rng_for("bld", bid)
@@ -177,10 +227,12 @@ def main():
             res = None
 
         if res:
+            # Close the gap under the building where terrain falls away (see facade.terrain_skirt).
+            low = facade.terrain_skirt(c["near"], res["hull"], res["y0"], sampler)
             hull = convex_hull(res["hull"])
             c["collisions"].append({
                 "hull": [[round(p[0], 2), round(p[1], 2)] for p in hull],
-                "y0": round(res["y0"], 2),
+                "y0": round(min(res["y0"], low) - 0.05, 2),
                 "y1": round(res["y1"], 2),
             })
 
