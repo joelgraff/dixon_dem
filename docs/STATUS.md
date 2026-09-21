@@ -148,3 +148,25 @@ Run order: `ms_footprints.py` -> `build_building_plan.py` -> the Godot bake.
 
 **Still worth capturing aerials for:** parking/driveway/sidewalk surfaces (footprint data is
 buildings only), and splitting merged downtown storefront rows into individual buildings.
+
+## Pavement from Illinois imagery (2026-09-20 late)
+`pipeline/aerial/extract_paved_il.py` replaces the Google-aerial version. **468,679 m2** of
+off-street pavement (lots, aprons, service yards, driveways) in 9,281 grid-aligned quads,
+laid by `build_road_plan.build_aerial_paved`. Roads total 1.35M tris.
+
+Two findings worth keeping:
+- **Colour cannot separate pavement from roofs on this imagery.** Measured on tile_03_02:
+  Galena Ave asphalt val 0.52, courthouse roof 0.26, theatre roof 0.99 -- roofs sit on both
+  sides of asphalt. It is also leaf-off, so dormant lawn is brown and the "green = vegetation"
+  test fails. Roofs are therefore removed GEOMETRICALLY with the 5,794-footprint set; colour
+  only has to separate pavement (0.52/0.21) from dormant grass (0.24/0.37). This only became
+  possible once the footprint set was near-complete.
+- **The bug was in the export, not the classifier.** Quads were drawn over the river and
+  missed the lots because `ndimage.rotate(reshape=True)`'s centring offset was un-rotated
+  wrongly. The mask underneath was correct all along -- confirmed by overlaying the MASK on
+  the imagery, which is the check that separates "bad classifier" from "bad export".
+  Now uses an explicit affine: `affine_transform` maps output->input as `i = M@o + offset`,
+  so the same M/offset convert a rectangle corner back with no inversion.
+
+Also: an earlier version rescanned the whole 7600x7600 rotated mask per emitted rectangle
+(24 min, no result). Decomposition now runs per blob on a cropped bounding box.
