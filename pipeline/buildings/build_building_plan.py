@@ -94,10 +94,24 @@ def load_curated(osm_buildings):
     return out
 
 
+
+def load_ms_footprints():
+    """Microsoft ML building footprints, already clipped and de-duplicated against
+    OSM/curated by pipeline/buildings/ms_footprints.py. OSM covers 707 footprints in the
+    play area; this adds ~4,200 more, which is every residential block OSM never mapped."""
+    path = os.path.join(ROOT, "game", "data", "buildings_ms.json")
+    if not os.path.exists(path):
+        return []
+    recs = json.load(open(path)).get("buildings", [])
+    print(f"microsoft footprints: {len(recs)}")
+    return recs
+
+
 def main():
     t0 = time.time()
     buildings_data = load("buildings.json")["buildings"]
     curated = load_curated(buildings_data)       # may drop OSM footprints listed in "replaces"
+    ms_records = load_ms_footprints()            # ML footprints for everything OSM never mapped
     roads_data = load("roads.json")
     water_data = load("water.json")
     landuse_data = load("landuse.json")
@@ -108,7 +122,7 @@ def main():
 
     # -- exclusion index for infill (existing footprints, water, rails, non-residential landuse)
     excl = PolyIndex(cell=80.0)
-    for b in buildings_data + curated:
+    for b in buildings_data + curated + ms_records:
         coords = footprint_coords(b)
         if len(coords) >= 3:
             excl.add(coords)
@@ -163,9 +177,9 @@ def main():
     # empty lots (user report 2026-09-20: empty lot north of the theatre).
     owned = [b for b in buildings_data if b.get("id") in LANDMARK_OWNED_IDS]
     generic = [b for b in buildings_data if b.get("id") not in LANDMARK_OWNED_IDS]
-    all_records = generic + curated + infill_records
+    all_records = generic + curated + ms_records + infill_records
     print(f"total to build: {len(all_records)} (landmark-owned skipped: {len(owned)}; "
-          f"curated added/replaced: {len(curated)})")
+          f"curated {len(curated)}; microsoft {len(ms_records)}; infill {len(infill_records)})")
 
     chunks = {}  # (cx,cz) -> {"near": MeshBuild, "far": MeshBuild, "collisions": []}
     counts = {}

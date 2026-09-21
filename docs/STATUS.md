@@ -124,3 +124,27 @@ boyhood home, Nachusa House. Known open items:
 
 If this was a Claude Code session, run `claude --resume` from `~/Projects/dixon_dem` and pick it from the list. Session logs
 live under `~/.claude/projects/`, which cannot be read from a cloud session because that location is protected.
+
+## Buildings: completeness solved with open footprint data (2026-09-20 late)
+The six aerial tiles asked of the user turned out to be unnecessary for BUILDINGS. Microsoft's
+open ML building footprints (ODbL) cover Dixon at quadkey 030222220, 6 MB:
+`https://minedbuildings.z5.web.core.windows.net/global-buildings/dataset-links.csv` ->
+`data/raw/msbuildings/dixon_030222220.csv.gz`.
+
+- `pipeline/buildings/ms_footprints.py` clips to the play area, reprojects to world coords,
+  simplifies, orders CCW and **de-duplicates against OSM/curated/landmark footprints** (those
+  win, because they carry names, tags and surveyed geometry). 68,915 features scanned ->
+  **4,192 new buildings**, 506 dropped as duplicates of OSM, 25 bad size.
+- Per-building **heights** come with the data (3,754 of them), so storey counts no longer have
+  to be inferred from shadows.
+- `build_building_plan.py` loads them after curated, adds them to the exclusion index so
+  procedural infill only fills what is still empty (infill fell to 900 records), and builds them.
+- **Total buildings 1,602 -> 5,794.** 1.0M near tris, 62k far tris, 237 chunks.
+- **Perf: 85.0 fps / 11.77 ms** at the dense downtown vantage (RX 580, 1600x900) -- *faster* than
+  the 78.3 fps measured with 1,602 buildings, because that bake had far more per-building surfaces.
+- Scene load is now ~48 s (was ~31 s); buildings.tscn is 105 MB.
+
+Run order: `ms_footprints.py` -> `build_building_plan.py` -> the Godot bake.
+
+**Still worth capturing aerials for:** parking/driveway/sidewalk surfaces (footprint data is
+buildings only), and splitting merged downtown storefront rows into individual buildings.
