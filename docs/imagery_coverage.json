@@ -1,0 +1,27 @@
+{
+ "play_area_m": 2700.0,
+ "sources": [
+  {
+   "name": "Illinois 2025 orthoimagery",
+   "native_mpp": 0.1524,
+   "fetched_mpp": 0.25,
+   "tiles": 36,
+   "georeference": "exact (bbox request, north-up)",
+   "covers_m2": 7290000,
+   "path": "data/raw/il2025/"
+  },
+  {
+   "name": "Google Earth downtown aerial (user)",
+   "native_mpp": 0.333,
+   "georeference": "fitted to OSM, +-1-2 m, rotated ~344 deg",
+   "path": "screenshots/dixon_downtown_aerial.png"
+  },
+  {
+   "name": "1_crawford_2nd.jpg",
+   "native_mpp": 0.4,
+   "georeference": "from Earth URL, heading 342.37249749 deg",
+   "path": "references/aerial/1_crawford_2nd.jpg"
+  }
+ ],
+ "generated_by": "pipeline/aerial/coverage_map.py"
+}
