@@ -1,0 +1,32 @@
+{
+ "image": "references/aerial/1_crawford_2nd.jpg",
+ "source": "google_earth_url",
+ "centre_latlon": [
+  41.84410006,
+  -89.4811184
+ ],
+ "centre_world": [
+  1711.69,
+  -1443.37
+ ],
+ "heading_deg": 342.37249749,
+ "tilt_deg": 0.0,
+ "px_per_m": 2.5002,
+ "size_px": [
+  415,
+  732
+ ],
+ "covers_m": [
+  166.0,
+  292.8
+ ],
+ "right_vec": [
+  0.9530454176113365,
+  -0.30282739633334554
+ ],
+ "down_vec": [
+  0.3028273963333455,
+  0.9530454176113365
+ ],
+ "note": "world = centre_world + right_vec*((px-w/2)/px_per_m) + down_vec*((py-h/2)/px_per_m)"
+}
