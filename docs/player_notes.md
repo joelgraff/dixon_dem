@@ -195,3 +195,23 @@ endpoints both fell outside the box vanished and short ones drew outside it.
 
 Screenshot filenames carry timestamp, x_y_z, compass + heading, season, weather and hour, so a shot is
 self-describing when sent back as a bug report. `screenshots/` is gitignored.
+
+## Bug tickets from inside the game (game/player/ticket_tool.gd)
+**F11** freezes the frame, frees the mouse and pauses the world. Click anything that is wrong,
+type a note, **Enter** saves; right-click removes the last tag, **Esc** cancels.
+
+Each ticket lands in `tickets/<timestamp>/`:
+- `shot.png` - the frame with numbered markers burned in, readable on its own
+- `ticket.md` - a table of the tags plus a ready-to-run capture shot list
+
+A tag is not just a screen position. The tool raycasts and records **what was actually hit**:
+the owning system (Buildings / Roads / Terrain / Vegetation / Landmarks), the node path, the
+world coordinates, the distance, and the nearest named street and structure. That is what makes
+a ticket actionable - "the wall is black" is a guess, "Buildings/chunk_12_-9 at (1629,-1337),
+S Galena Ave, The Dixon: Historic Theatre" is a lead.
+
+The `ticket.md` ends with a shots JSON so the exact view can be re-rendered offline:
+`game/tools/capture.sh res://world/world.tscn <that json> <outdir> 80`
+
+Verified end-to-end by `game/tools/ticket_selftest.tscn`, which drives the whole path
+(enter -> tag by raycast -> note -> save) with no human input. The tool is inert in capture_mode.

@@ -71,7 +71,7 @@ func _mk_label(size: int, alpha: float) -> Label:
 func _build_ui() -> void:
 	_panel = _mk_label(17, 0.94)
 	_hint = _mk_label(13, 0.6)
-	_hint.text = "F7 location   F8 minimap   F9 map zoom   F10 coords   F12 screenshot (Shift+F12 hides HUD)"
+	_hint.text = "F7 location   F8 minimap   F9 map zoom   F10 coords   F11 BUG TICKET   F12 screenshot"
 	_map = Control.new()
 	_map.size = Vector2(240, 240)
 	_map.draw.connect(_draw_map)
@@ -350,3 +350,18 @@ func _screenshot(hide_hud: bool) -> void:
 		_panel.visible = was_panel
 		_map.visible = was_map
 		_hint.visible = was_hint
+
+## --- queried by ticket_tool.gd so a bug report can name the place -------------
+func nearest_street_name(p: Vector2) -> String:
+	var ns := _nearest_street(p)
+	return str(ns["best"]["name"])
+
+func nearest_structure_name(p: Vector2) -> String:
+	var best := ""
+	var best_d := 1e20
+	for n in _named:
+		var d: float = p.distance_to(n["pos"]) - float(n["radius"])
+		if d < best_d:
+			best_d = d
+			best = n["name"]
+	return best if best_d <= 40.0 else ""
