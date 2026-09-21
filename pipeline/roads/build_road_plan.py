@@ -427,7 +427,35 @@ def build_way_surfaces(plans, hm, mb_by_mat):
                                       flip=flip, double_sided=True, close_loop=False)
 
 
-def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat):
+
+def split_loop_outside_carriageway(loop_in, loop_out, segs, margin=0.2):
+    """Break a junction ring into the runs that lie OUTSIDE the carriageway.
+
+    A junction's sidewalk rings are closed loops around the intersection, so they span the
+    mouth of every leg -- laying a raised concrete slab straight across the roadway. The
+    player walks into it as a 15-70 cm ledge (user ticket 20260920_232703 at the Dixon arch,
+    tagged Roads/Chunk_8_-7 where sidewalk sat at y 22.95-23.77 over asphalt at 22.94-23.09).
+    Pavement belongs on the corners; the street mouth is for paint, not kerbstone.
+    """
+    if loop_in is None or loop_out is None or len(loop_in) != len(loop_out):
+        return []
+    runs = []
+    cur_in, cur_out = [], []
+    for a, b in zip(loop_in, loop_out):
+        mx, mz = (a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5
+        if segs and _in_carriageway(mx, mz, segs, margin=margin):
+            if len(cur_in) >= 2:
+                runs.append((cur_in, cur_out))
+            cur_in, cur_out = [], []
+        else:
+            cur_in.append(a)
+            cur_out.append(b)
+    if len(cur_in) >= 2:
+        runs.append((cur_in, cur_out))
+    return runs
+
+
+def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat, carriageway_segs=None):
     for node in nodes.values():
         legs = []
         for leg in node.legs:
@@ -460,12 +488,15 @@ def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat):
             except Exception:
                 curb_out_loop = gutter_loop = None
             if asphalt_loop and curb_out_loop:
-                ribbon_between_loops(mb_by_mat, asphalt_loop, asphalt_loop, hm, ROAD_Y_BIAS, CURB_HEIGHT,
-                                      "curb_concrete", double_sided=True, close_loop=True)
-                ribbon_between_loops(mb_by_mat, asphalt_loop, curb_out_loop, hm, CURB_HEIGHT, CURB_HEIGHT,
-                                      "curb_concrete", double_sided=True, close_loop=True)
-                ribbon_between_loops(mb_by_mat, curb_out_loop, curb_out_loop, hm, CURB_HEIGHT, -0.05,
-                                      "curb_concrete", double_sided=True, close_loop=True)
+                # Same treatment for the kerb ring: a kerb across the street mouth is a wall.
+                for run_a, run_c in split_loop_outside_carriageway(
+                        asphalt_loop, curb_out_loop, carriageway_segs):
+                    ribbon_between_loops(mb_by_mat, run_a, run_a, hm, ROAD_Y_BIAS, CURB_HEIGHT,
+                                          "curb_concrete", double_sided=True, close_loop=False)
+                    ribbon_between_loops(mb_by_mat, run_a, run_c, hm, CURB_HEIGHT, CURB_HEIGHT,
+                                          "curb_concrete", double_sided=True, close_loop=False)
+                    ribbon_between_loops(mb_by_mat, run_c, run_c, hm, CURB_HEIGHT, -0.05,
+                                          "curb_concrete", double_sided=True, close_loop=False)
             if asphalt_loop and gutter_loop:
                 ribbon_between_loops(mb_by_mat, gutter_loop, asphalt_loop, hm, ROAD_Y_BIAS + 0.005,
                                       ROAD_Y_BIAS + 0.01, "sidewalk_concrete", double_sided=True, close_loop=True)
@@ -477,12 +508,16 @@ def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat):
             except Exception:
                 sw_in_loop = sw_out_loop = None
             if sw_in_loop and sw_out_loop:
-                ribbon_between_loops(mb_by_mat, sw_in_loop, sw_out_loop, hm, 0.05, 0.05,
-                                      "sidewalk_concrete", double_sided=True, close_loop=True)
-                ribbon_between_loops(mb_by_mat, sw_in_loop, sw_in_loop, hm, 0.05, 0.0,
-                                      "sidewalk_edge", double_sided=True, close_loop=True)
-                ribbon_between_loops(mb_by_mat, sw_out_loop, sw_out_loop, hm, 0.05, 0.0,
-                                      "sidewalk_edge", double_sided=True, close_loop=True)
+                # Only the corner runs; never across a leg's carriageway (see
+                # split_loop_outside_carriageway).
+                for run_in, run_out in split_loop_outside_carriageway(
+                        sw_in_loop, sw_out_loop, carriageway_segs):
+                    ribbon_between_loops(mb_by_mat, run_in, run_out, hm, 0.05, 0.05,
+                                          "sidewalk_concrete", double_sided=True, close_loop=False)
+                    ribbon_between_loops(mb_by_mat, run_in, run_in, hm, 0.05, 0.0,
+                                          "sidewalk_edge", double_sided=True, close_loop=False)
+                    ribbon_between_loops(mb_by_mat, run_out, run_out, hm, 0.05, 0.0,
+                                          "sidewalk_edge", double_sided=True, close_loop=False)
 
 
 # ---------------------------------------------------------------------------
@@ -1105,7 +1140,7 @@ def main():
     build_way_surfaces(plans, hm, mb_by_mat)
 
     print("Building junction geometry...")
-    build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat)
+    build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat, _carriageway_index(plans))
 
     print("Building markings...")
     build_markings(plans, hm, mb_by_mat)

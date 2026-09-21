@@ -14,3 +14,4 @@ game/terrain/cache/
 screenshots/
 data/raw/il2025/
 tickets/
+game/*/*.scn

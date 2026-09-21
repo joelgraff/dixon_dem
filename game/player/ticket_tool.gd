@@ -196,13 +196,10 @@ func _process(delta: float) -> void:
 			_panel.position = Vector2(16, 60)
 		return
 	var vp := get_viewport().get_visible_rect().size
-	var lines := ["BUG TICKET  -  click to tag, right-click undo, Enter save, Esc cancel"]
-	for i in _tags.size():
-		var t: Dictionary = _tags[i]
-		lines.append("  [%d] %s  %s  (%.0f, %.0f, %.0f)" % [
-			i + 1, t["system"], str(t.get("structure", "")).left(28),
-			t["world"].x, t["world"].y, t["world"].z])
-	_panel.text = "\n".join(lines)
+	# Only the instructions live in the corner now; each tag's detail is drawn next to its
+	# own marker (user feedback: the stacked list overlapped the HUD labels and you could
+	# not tell which line went with which point).
+	_panel.text = "BUG TICKET  -  click to tag, right-click undo, Enter save, Esc cancel"
 	_panel.position = Vector2(16, 16)
 	_panel.visible = true
 	_note_label.text = "note: " + _note + "_"
@@ -286,5 +283,25 @@ func _draw_markers() -> void:
 		var p: Vector2 = t["screen"]
 		_markers.draw_circle(p, 15.0, Color(1.0, 0.25, 0.1, 0.30))
 		_markers.draw_arc(p, 15.0, 0.0, TAU, 32, Color(1.0, 0.3, 0.12), 2.5)
-		_markers.draw_string(ThemeDB.fallback_font, p + Vector2(20, -8), str(i + 1),
-			HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.45, 0.2))
+		var label := "[%d] %s" % [i + 1, t["system"]]
+		var detail := str(t.get("structure", ""))
+		if detail == "":
+			detail = str(t.get("street", ""))
+		var vp2 := _markers.size
+		var font := ThemeDB.fallback_font
+		var w := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x
+		var w2 := font.get_string_size(detail, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+		var box_w: float = max(w, w2) + 14.0
+		# flip the callout to whichever side keeps it on screen
+		var left: float = p.x + 22.0
+		if left + box_w > vp2.x - 8.0:
+			left = p.x - 22.0 - box_w
+		var top: float = clampf(p.y - 26.0, 8.0, vp2.y - 52.0)
+		_markers.draw_rect(Rect2(Vector2(left, top), Vector2(box_w, 44.0)),
+			Color(0.05, 0.05, 0.06, 0.78))
+		_markers.draw_line(p + Vector2(15, 0).rotated(0.0), Vector2(left, top + 22.0),
+			Color(1.0, 0.35, 0.15, 0.8), 1.5)
+		_markers.draw_string(font, Vector2(left + 7, top + 18), label,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color(1.0, 0.55, 0.3))
+		_markers.draw_string(font, Vector2(left + 7, top + 36), detail,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.9, 0.9, 0.9))

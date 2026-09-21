@@ -3,14 +3,13 @@
 [ext_resource type="Script" uid="uid://dfx1ekp5cx8vd" path="res://world/world.gd" id="1"]
 [ext_resource type="PackedScene" path="res://atmosphere/atmosphere.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://terrain/terrain.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://buildings/buildings.tscn" id="4"]
-[ext_resource type="PackedScene" path="res://roads/roads.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://buildings/buildings.scn" id="4"]
+[ext_resource type="PackedScene" path="res://roads/roads.scn" id="5"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="6"]
-[ext_resource type="PackedScene" path="res://vegetation/vegetation.tscn" id="7"]
-[ext_resource type="PackedScene" path="res://landmarks/landmarks.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://vegetation/vegetation.scn" id="7"]
+[ext_resource type="PackedScene" path="res://landmarks/landmarks.scn" id="8"]
 [ext_resource type="Script" uid="uid://c8ov55uxlc4m" path="res://player/hud.gd" id="9_hud"]
-
-[ext_resource type="Script" path="res://player/ticket_tool.gd" id="10_ticket"]
+[ext_resource type="Script" uid="uid://0q32na0ox87c" path="res://player/ticket_tool.gd" id="10_ticket"]
 
 [node name="World" type="Node3D" unique_id=1886891328]
 script = ExtResource("1")
@@ -33,5 +32,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1631.3, 24.2, -1214.2)
 [node name="HUD" type="CanvasLayer" parent="." unique_id=464949933]
 script = ExtResource("9_hud")
 
-[node name="TicketTool" type="CanvasLayer" parent="."]
+[node name="TicketTool" type="CanvasLayer" parent="." unique_id=409450202]
 script = ExtResource("10_ticket")

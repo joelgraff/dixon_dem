@@ -90,10 +90,17 @@ class MeshBuild:
             return v[0] * (fx - ref[0]) + v[2] * (fz - ref[1]) >= 0.0
 
         if normal is not None:
+            # A supplied normal is AUTHORITATIVE. It comes from the footprint edge
+            # (facade.edge_dir_normal on a CCW ring), which knows which side is outside
+            # even where the building centroid does not -- L-plans, U-plans, courtyards,
+            # and any offset sub-mass (tower, wing, steeple, dormer) whose faces can point
+            # back toward the building centroid while still facing outdoors.
+            # Overriding it with the centroid test flipped 18% of wall faces inward
+            # (audit_normals.py, user ticket 20260920_235929: "lots of buildings have
+            # walls with flipped normals" -- the Christian Science church sits in one of
+            # the worst chunks, and it is exactly this shape of building).
             nl = math.sqrt(normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2) or 1.0
             N = (normal[0] / nl, normal[1] / nl, normal[2] / nl)
-            if ref is not None and abs(N[1]) < 0.7 and not away_from_ref(N):
-                N = (-N[0], -N[1], -N[2])          # caller's shading normal pointed inward
         else:
             if abs(n[1]) < 0.35:                    # (near-)vertical face
                 if ref is None or away_from_ref(n):
