@@ -305,6 +305,7 @@ def main(only_chunk=None):
             if f.startswith("chunk_") and f.endswith(".json"):
                 os.remove(os.path.join(OUT_DIR, f))
 
+    palette.write_manifest()  # Building Composer's copy of the palette
     manifest = {
         "chunk_size": CHUNK_SIZE,
         "materials": palette.MATERIALS,

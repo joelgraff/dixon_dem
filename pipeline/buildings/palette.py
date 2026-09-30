@@ -2,7 +2,15 @@
 tint and awning/sign colors) for the buildings workstream. Resource paths are
 embedded in the build-plan manifest so game/buildings/tools/build_buildings.gd
 never needs its own hardcoded material list. See docs/buildings_notes.md.
+
+`manifest()` publishes this palette for Building Composer, which offers only
+these names and checks every triangle it sends back against them
+(game/data/materials_manifest.json, served by game/tools/composer_server.py).
+Run this file to rewrite it; build_building_plan.py rewrites it too.
 """
+import hashlib
+import json
+import os
 
 MATERIALS = {
     "brick_red": "res://materials/lib/brick_red.tres",
@@ -69,3 +77,98 @@ AWNING_COLORS = [
     (0.15, 0.20, 0.42),  # navy
     (0.35, 0.35, 0.35),  # charcoal
 ]
+
+# What each material is for. Building Composer offers a material only where one
+# of its categories fits the surface (a wall, a roof, trim, ...).
+CATEGORIES = {
+    "brick_red": ["wall"],
+    "brick_buff": ["wall"],
+    "brick_rose": ["wall"],
+    "brick_dark": ["wall"],
+    "brick_cream": ["wall"],
+    "siding_white": ["wall"],
+    "siding_sage": ["wall"],
+    "siding_blue": ["wall"],
+    "siding_butter": ["wall"],
+    "siding_gray": ["wall"],
+    "limestone": ["wall"],
+    "stone_foundation": ["foundation"],
+    "roof_metal": ["roof", "wall"],
+    "roof_membrane": ["roof"],
+    "shingles_dark": ["roof"],
+    "shingles_brown": ["roof"],
+    "steel_rusted": ["accent"],
+    "trim_dark": ["trim", "door"],
+    "window_lit": ["glass"],
+    "awning": ["accent"],
+}
+
+LABELS = {
+    "brick_red": "Red brick",
+    "brick_buff": "Buff brick",
+    "brick_rose": "Rose brick",
+    "brick_dark": "Dark brick",
+    "brick_cream": "Cream brick",
+    "siding_white": "White siding",
+    "siding_sage": "Sage siding",
+    "siding_blue": "Blue siding",
+    "siding_butter": "Butter siding",
+    "siding_gray": "Gray siding",
+    "limestone": "Limestone",
+    "stone_foundation": "Stone foundation",
+    "roof_metal": "Metal roofing",
+    "roof_membrane": "Membrane roofing",
+    "shingles_dark": "Dark shingles",
+    "shingles_brown": "Brown shingles",
+    "steel_rusted": "Rusted steel",
+    "trim_dark": "Dark trim",
+    "window_lit": "Window glass (lit at night)",
+    "awning": "Awning",
+}
+
+# Preview colors for the manifest where APPROX_COLOR has none: these two are
+# tinted per building, so they have no single far-mesh color.
+PREVIEW_COLOR = {
+    "window_lit": (0.36, 0.44, 0.50),
+    "awning": AWNING_COLORS[0],
+}
+
+MANIFEST_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..",
+                                             "game", "data", "materials_manifest.json"))
+
+
+def _hex(rgb):
+    return "#%02x%02x%02x" % tuple(max(0, min(255, round(c * 255))) for c in rgb)
+
+
+def manifest():
+    """The palette as Building Composer reads it: each material's name, label,
+    categories, preview color (sRGB hex), and resource, in MATERIALS order, and
+    a `hash` of the names and categories, so a composed file can say which
+    vocabulary it was made against."""
+    materials = [{
+        "name": name,
+        "label": LABELS[name],
+        "categories": CATEGORIES[name],
+        "color": _hex(APPROX_COLOR.get(name) or PREVIEW_COLOR[name]),
+        "resource": resource,
+    } for name, resource in MATERIALS.items()]
+    vocabulary = json.dumps([[m["name"], m["categories"]] for m in materials])
+    return {
+        "format": "dixon-materials",
+        "version": 1,
+        "hash": hashlib.sha1(vocabulary.encode()).hexdigest()[:12],
+        "materials": materials,
+    }
+
+
+def write_manifest(path=MANIFEST_PATH):
+    """Writes manifest() to `path` (game/data/materials_manifest.json)."""
+    with open(path, "w") as out:
+        json.dump(manifest(), out, indent=1)
+        out.write("\n")
+    return path
+
+
+if __name__ == "__main__":
+    print("wrote", write_manifest())

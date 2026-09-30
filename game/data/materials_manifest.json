@@ -1,0 +1,189 @@
+{
+ "format": "dixon-materials",
+ "version": 1,
+ "hash": "a2c7656f75cf",
+ "materials": [
+  {
+   "name": "brick_red",
+   "label": "Red brick",
+   "categories": [
+    "wall"
+   ],
+   "color": "#995c45",
+   "resource": "res://materials/lib/brick_red.tres"
+  },
+  {
+   "name": "brick_buff",
+   "label": "Buff brick",
+   "categories": [
+    "wall"
+   ],
+   "color": "#c4a878",
+   "resource": "res://materials/lib/brick_buff.tres"
+  },
+  {
+   "name": "brick_rose",
+   "label": "Rose brick",
+   "categories": [
+    "wall"
+   ],
+   "color": "#a16652",
+   "resource": "res://buildings/materials/brick_rose.tres"
+  },
+  {
+   "name": "brick_dark",
+   "label": "Dark brick",
+   "categories": [
+    "wall"
+   ],
+   "color": "#785c4c",
+   "resource": "res://buildings/materials/brick_dark.tres"
+  },
+  {
+   "name": "brick_cream",
+   "label": "Cream brick",
+   "categories": [
+    "wall"
+   ],
+   "color": "#ccb58c",
+   "resource": "res://buildings/materials/brick_cream.tres"
+  },
+  {
+   "name": "siding_white",
+   "label": "White siding",
+   "categories": [
+    "wall"
+   ],
+   "color": "#e6e0d4",
+   "resource": "res://materials/lib/siding_white.tres"
+  },
+  {
+   "name": "siding_sage",
+   "label": "Sage siding",
+   "categories": [
+    "wall"
+   ],
+   "color": "#99a68f",
+   "resource": "res://materials/lib/siding_sage.tres"
+  },
+  {
+   "name": "siding_blue",
+   "label": "Blue siding",
+   "categories": [
+    "wall"
+   ],
+   "color": "#bfccd1",
+   "resource": "res://buildings/materials/siding_blue.tres"
+  },
+  {
+   "name": "siding_butter",
+   "label": "Butter siding",
+   "categories": [
+    "wall"
+   ],
+   "color": "#d1c7b2",
+   "resource": "res://buildings/materials/siding_butter.tres"
+  },
+  {
+   "name": "siding_gray",
+   "label": "Gray siding",
+   "categories": [
+    "wall"
+   ],
+   "color": "#bfbfbf",
+   "resource": "res://buildings/materials/siding_gray.tres"
+  },
+  {
+   "name": "limestone",
+   "label": "Limestone",
+   "categories": [
+    "wall"
+   ],
+   "color": "#ccc7b2",
+   "resource": "res://materials/lib/limestone.tres"
+  },
+  {
+   "name": "stone_foundation",
+   "label": "Stone foundation",
+   "categories": [
+    "foundation"
+   ],
+   "color": "#8c877a",
+   "resource": "res://materials/lib/stone_foundation.tres"
+  },
+  {
+   "name": "roof_metal",
+   "label": "Metal roofing",
+   "categories": [
+    "roof",
+    "wall"
+   ],
+   "color": "#8c8c94",
+   "resource": "res://materials/lib/roof_metal.tres"
+  },
+  {
+   "name": "roof_membrane",
+   "label": "Membrane roofing",
+   "categories": [
+    "roof"
+   ],
+   "color": "#8c806b",
+   "resource": "res://materials/lib/roof_membrane.tres"
+  },
+  {
+   "name": "shingles_dark",
+   "label": "Dark shingles",
+   "categories": [
+    "roof"
+   ],
+   "color": "#66615c",
+   "resource": "res://materials/lib/shingles_dark.tres"
+  },
+  {
+   "name": "shingles_brown",
+   "label": "Brown shingles",
+   "categories": [
+    "roof"
+   ],
+   "color": "#806957",
+   "resource": "res://buildings/materials/shingles_brown.tres"
+  },
+  {
+   "name": "steel_rusted",
+   "label": "Rusted steel",
+   "categories": [
+    "accent"
+   ],
+   "color": "#735242",
+   "resource": "res://materials/lib/steel_rusted.tres"
+  },
+  {
+   "name": "trim_dark",
+   "label": "Dark trim",
+   "categories": [
+    "trim",
+    "door"
+   ],
+   "color": "#29241f",
+   "resource": "res://buildings/materials/trim_dark.tres"
+  },
+  {
+   "name": "window_lit",
+   "label": "Window glass (lit at night)",
+   "categories": [
+    "glass"
+   ],
+   "color": "#5c7080",
+   "resource": "res://buildings/materials/window_lit.tres"
+  },
+  {
+   "name": "awning",
+   "label": "Awning",
+   "categories": [
+    "accent"
+   ],
+   "color": "#295933",
+   "resource": "res://buildings/materials/awning.tres"
+  }
+ ]
+}

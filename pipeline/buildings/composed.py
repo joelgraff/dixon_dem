@@ -13,8 +13,8 @@ import palette
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 COMPOSED_DIR = os.path.join(ROOT, "game", "data", "composed")
 
-WALL_MATERIALS = ("brick_red", "brick_buff", "brick_rose", "brick_dark", "brick_cream", "siding_white",
-                  "siding_sage", "siding_blue", "siding_butter", "siding_gray", "limestone", "roof_metal")
+# The far box takes the tint of the largest group in one of these.
+WALL_MATERIALS = tuple(name for name, kinds in palette.CATEGORIES.items() if "wall" in kinds)
 
 
 def path_for(bid, directory=None):

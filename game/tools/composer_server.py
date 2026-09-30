@@ -9,6 +9,10 @@ server listens on 127.0.0.1 only, and a save must be same-origin (the page
 sends a custom header, which a foreign page cannot add without a preflight this
 server never answers), have a plain id, and be a composed building of
 reasonable size.
+
+GET /game-materials serves game/data/materials_manifest.json, the game's
+material names (pipeline/buildings/palette.py manifest()), so Composer offers
+only finishes the game has.
 """
 import argparse
 import json
@@ -19,6 +23,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 COMPOSED_DIR = os.path.join(ROOT, "game", "data", "composed")
+MATERIALS_MANIFEST = os.path.join(ROOT, "game", "data", "materials_manifest.json")
 ID = re.compile(r"^[0-9A-Za-z_-]{1,40}$")
 MAX_BYTES = 32 * 1024 * 1024
 
@@ -48,7 +53,7 @@ def save(bid, body, directory=COMPOSED_DIR):
     os.replace(temp, os.path.join(directory, f"{bid}.json"))
 
 
-def make_handler(directory, composed_dir):
+def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST):
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=directory, **kwargs)
@@ -58,6 +63,21 @@ def make_handler(directory, composed_dir):
             self.send_response(code)
             self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self):
+            if self.path.split("?", 1)[0] != "/game-materials":
+                return super().do_GET()
+            try:
+                with open(materials_manifest, "rb") as handle:
+                    body = handle.read()
+            except OSError:
+                return self._reply(404, "no materials manifest")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-cache")
             self.end_headers()
             self.wfile.write(body)
 
