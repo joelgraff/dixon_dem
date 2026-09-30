@@ -15,3 +15,8 @@ screenshots/
 data/raw/il2025/
 tickets/
 game/*/*.scn
+
+# baked scenes, rebuilt by the pipeline (game/roads/tools/build_roads.gd,
+# game/buildings/tools/build_buildings.gd); too large for GitHub
+game/roads/roads.tscn
+game/buildings/buildings.tscn
