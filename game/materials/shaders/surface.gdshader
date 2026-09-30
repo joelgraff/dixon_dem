@@ -85,6 +85,8 @@ group_uniforms WetResponse;
 uniform float porosity : hint_range(0.0, 1.0) = 0.4;
 uniform bool allow_puddles = false;
 uniform float puddle_scale : hint_range(0.01, 1.0) = 0.06;
+// Indoors (a walk-in building's walls, floors, ceilings): never snowed on or wet.
+uniform bool sheltered = false;
 
 varying vec3 v_world_pos;
 varying vec3 v_world_normal;
@@ -254,7 +256,7 @@ void fragment() {
 	}
 
 	// --- Weather: snow ---
-	float smask = snow_mask(wn, v_world_pos, snow_cover, snow_slope_bias, snow_noise_scale);
+	float smask = sheltered ? 0.0 : snow_mask(wn, v_world_pos, snow_cover, snow_slope_bias, snow_noise_scale);
 	if (smask > 0.0) {
 		// Same 2-grid blend as sample_material() — a single hard-offset tap here was
 		// the source of the visible snow tile seam the iter2 critique measured (this
@@ -273,7 +275,7 @@ void fragment() {
 	}
 
 	// --- Weather: wetness (suppressed under snow) ---
-	float wet_eff = wetness * (1.0 - smask * 0.9);
+	float wet_eff = sheltered ? 0.0 : wetness * (1.0 - smask * 0.9);
 	float spec = 0.5;
 	if (wet_eff > 0.0) {
 		apply_wetness_darkening(albedo, rough, wet_eff, porosity);

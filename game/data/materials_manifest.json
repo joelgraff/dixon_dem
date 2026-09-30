@@ -1,7 +1,7 @@
 {
  "format": "dixon-materials",
  "version": 1,
- "hash": "a2c7656f75cf",
+ "hash": "9fc682b86e5f",
  "materials": [
   {
    "name": "brick_red",
@@ -106,7 +106,8 @@
    "name": "stone_foundation",
    "label": "Stone foundation",
    "categories": [
-    "foundation"
+    "foundation",
+    "porch-floor"
    ],
    "color": "#8c877a",
    "resource": "res://materials/lib/stone_foundation.tres"
@@ -162,7 +163,8 @@
    "label": "Dark trim",
    "categories": [
     "trim",
-    "door"
+    "door",
+    "porch-floor"
    ],
    "color": "#29241f",
    "resource": "res://buildings/materials/trim_dark.tres"
@@ -184,6 +186,51 @@
    ],
    "color": "#295933",
    "resource": "res://buildings/materials/awning.tres"
+  },
+  {
+   "name": "trim_white",
+   "label": "White trim",
+   "categories": [
+    "trim"
+   ],
+   "color": "#edebe0",
+   "resource": "res://buildings/materials/trim_white.tres"
+  },
+  {
+   "name": "door_wood",
+   "label": "Wood door",
+   "categories": [
+    "door"
+   ],
+   "color": "#6b4226",
+   "resource": "res://buildings/materials/door_wood.tres"
+  },
+  {
+   "name": "plaster_white",
+   "label": "White plaster",
+   "categories": [
+    "interior-wall"
+   ],
+   "color": "#ebe6d9",
+   "resource": "res://buildings/materials/plaster_white.tres"
+  },
+  {
+   "name": "plaster_ceiling",
+   "label": "Plaster ceiling",
+   "categories": [
+    "interior-ceiling"
+   ],
+   "color": "#f2f0e8",
+   "resource": "res://buildings/materials/plaster_ceiling.tres"
+  },
+  {
+   "name": "floor_wood",
+   "label": "Wood floor",
+   "categories": [
+    "interior-floor"
+   ],
+   "color": "#9e6e42",
+   "resource": "res://buildings/materials/floor_wood.tres"
   }
  ]
 }

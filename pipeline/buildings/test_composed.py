@@ -49,8 +49,16 @@ def test_build_lifts_heights_to_the_ground_and_reports_the_hull():
     assert far.groups
 
 
+def test_composer_surfaces_have_game_materials():
+    names = ["door_wood", "plaster_white", "plaster_ceiling", "floor_wood", "trim_white", "window_lit"]
+    data = dict(FILE, near={name: FILE["near"]["siding_white"] for name in names + ["glass_clear"]})
+    assert composed.unknown_materials(data) == ["glass_clear"]
+    assert composed.unknown_materials(FILE) == []
+
+
 if __name__ == "__main__":
     test_load_reads_only_a_composed_file()
     test_revert_is_an_override()
     test_build_lifts_heights_to_the_ground_and_reports_the_hull()
+    test_composer_surfaces_have_game_materials()
     print("composed ok")

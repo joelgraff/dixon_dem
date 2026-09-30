@@ -81,7 +81,7 @@ func _init() -> void:
 
 		var near_groups: Dictionary = data.get("near", {})
 		if near_groups.size() > 0:
-			var mesh := _build_array_mesh(near_groups, materials)
+			var mesh := _build_array_mesh(near_groups, materials, chunk_name)
 			var mi := MeshInstance3D.new()
 			mi.name = chunk_name + "_near"
 			mi.mesh = mesh
@@ -95,7 +95,7 @@ func _init() -> void:
 		var far_groups: Dictionary = data.get("far", {})
 		if far_groups.size() > 0:
 			var far_mat_map := {"building_far": far_material}
-			var far_mesh := _build_array_mesh(far_groups, far_mat_map)
+			var far_mesh := _build_array_mesh(far_groups, far_mat_map, chunk_name)
 			var fi := MeshInstance3D.new()
 			fi.name = chunk_name + "_far"
 			fi.mesh = far_mesh
@@ -169,7 +169,7 @@ func _read_json(path: String):
 	return result
 
 
-func _build_array_mesh(groups: Dictionary, materials: Dictionary) -> ArrayMesh:
+func _build_array_mesh(groups: Dictionary, materials: Dictionary, chunk_name: String) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	for mat_key in groups.keys():
 		var g: Dictionary = groups[mat_key]
@@ -192,6 +192,10 @@ func _build_array_mesh(groups: Dictionary, materials: Dictionary) -> ArrayMesh:
 		var mat = materials.get(mat_key)
 		if mat != null:
 			mesh.surface_set_material(mesh.get_surface_count() - 1, mat)
+		else:
+			# A name not in the manifest (e.g. from a composed building made
+			# against another palette) would otherwise draw untextured, silently.
+			push_warning("buildings: %s has no material \"%s\" (%d triangles use Godot's default)" % [chunk_name, mat_key, indices.size() / 3])
 	return mesh
 
 

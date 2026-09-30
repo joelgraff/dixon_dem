@@ -33,6 +33,13 @@ MATERIALS = {
     "trim_dark": "res://buildings/materials/trim_dark.tres",
     "window_lit": "res://buildings/materials/window_lit.tres",
     "awning": "res://buildings/materials/awning.tres",
+    # Building Composer's surfaces the generator doesn't make (the last three
+    # are a walk-in building's inside, and never weather: `sheltered`).
+    "trim_white": "res://buildings/materials/trim_white.tres",
+    "door_wood": "res://buildings/materials/door_wood.tres",
+    "plaster_white": "res://buildings/materials/plaster_white.tres",
+    "plaster_ceiling": "res://buildings/materials/plaster_ceiling.tres",
+    "floor_wood": "res://buildings/materials/floor_wood.tres",
 }
 
 # HLOD far-mesh / prop tint approximations (linear-ish 0-1 RGB), also used to
@@ -56,6 +63,11 @@ APPROX_COLOR = {
     "shingles_brown": (0.50, 0.41, 0.34),
     "steel_rusted": (0.45, 0.32, 0.26),
     "trim_dark": (0.16, 0.14, 0.12),
+    "trim_white": (0.93, 0.92, 0.88),
+    "door_wood": (0.42, 0.26, 0.15),
+    "plaster_white": (0.92, 0.90, 0.85),
+    "plaster_ceiling": (0.95, 0.94, 0.91),
+    "floor_wood": (0.62, 0.43, 0.26),
 }
 
 # Weighted toward the real Midwest vernacular (docs/references/dixon_vernacular.md):
@@ -92,15 +104,20 @@ CATEGORIES = {
     "siding_butter": ["wall"],
     "siding_gray": ["wall"],
     "limestone": ["wall"],
-    "stone_foundation": ["foundation"],
+    "stone_foundation": ["foundation", "porch-floor"],
     "roof_metal": ["roof", "wall"],
     "roof_membrane": ["roof"],
     "shingles_dark": ["roof"],
     "shingles_brown": ["roof"],
     "steel_rusted": ["accent"],
-    "trim_dark": ["trim", "door"],
+    "trim_dark": ["trim", "door", "porch-floor"],
     "window_lit": ["glass"],
     "awning": ["accent"],
+    "trim_white": ["trim"],
+    "door_wood": ["door"],
+    "plaster_white": ["interior-wall"],
+    "plaster_ceiling": ["interior-ceiling"],
+    "floor_wood": ["interior-floor"],
 }
 
 LABELS = {
@@ -124,6 +141,11 @@ LABELS = {
     "trim_dark": "Dark trim",
     "window_lit": "Window glass (lit at night)",
     "awning": "Awning",
+    "trim_white": "White trim",
+    "door_wood": "Wood door",
+    "plaster_white": "White plaster",
+    "plaster_ceiling": "Plaster ceiling",
+    "floor_wood": "Wood floor",
 }
 
 # Preview colors for the manifest where APPROX_COLOR has none: these two are

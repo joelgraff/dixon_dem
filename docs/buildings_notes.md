@@ -333,3 +333,9 @@ walls. This is a facade-composition bug, not a winding, normal, lighting or mate
 ## Composer buildings (`composed.py`)
 
 `game/data/composed/<id>.json` (written by Building Composer's Send to game through `game/tools/composer_server.py`) replaces the generated mesh for that id in `_build_one`, unless the building's override has `composed: false`. The file's `near` groups are copied into the chunk with the ground height added; the far LOD is a `far_box` over the design's hull tinted by its largest wall material; collision uses the hull and y range. Composer orients every triangle for Godot itself, so `MeshBuild`'s outward logic (and `flip_normals`) is not applied. Tests: `pipeline/buildings/test_composed.py`. See `docs/player_notes.md` for the I / R keys.
+
+### Materials Composer may use
+
+The palette is published for Building Composer as `game/data/materials_manifest.json` (`palette.manifest()`: name, label, categories, preview color, resource, and a `hash` of the names and categories). `build_building_plan.py` rewrites it, and so does running `pipeline/buildings/palette.py`; `test_palette.py` fails when the committed file is stale. `composer_server.py` serves it at `GET /game-materials`. Categories say where Composer may offer a material: `wall`, `roof`, `trim`, `door`, `foundation`, `porch-floor`, `glass`, `accent`, `interior-wall`, `interior-floor`, `interior-ceiling`.
+
+Composer-only materials (`game/buildings/materials/`): `trim_white` and `door_wood` (clapboard texture, weather like `trim_dark`), and `plaster_white`, `plaster_ceiling`, `floor_wood` for walk-in interiors. The interior three set the surface shader's `sheltered` flag, which skips snow and wetness. A composed file that names a material not in the palette is reported by `composed.build` (with the building id) and by `build_buildings.gd` (`push_warning`, with the chunk), and those surfaces draw with Godot's default material.

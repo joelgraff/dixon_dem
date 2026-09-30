@@ -41,8 +41,17 @@ def wanted(template):
     return (template or {}).get("composed") is not False
 
 
+def unknown_materials(data):
+    """The material names a composed file uses that the game doesn't have."""
+    return sorted(name for name in data["near"] if name not in palette.MATERIALS)
+
+
 def build(mb, mb_far, coords, ground_y, data):
     """Adds the composed mesh to `mb` (heights relative to `ground_y`) and a far box to `mb_far`."""
+    unknown = unknown_materials(data)
+    if unknown:
+        print(f"composed building {data.get('id')}: no game material {', '.join(unknown)}; "
+              "those surfaces will be untextured (resend it from Building Composer)")
     shown = None
     for material, group in data["near"].items():
         base = len(mb._grp(material)["verts"])
