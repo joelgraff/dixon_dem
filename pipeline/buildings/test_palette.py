@@ -58,7 +58,10 @@ def test_server_serves_the_manifest():
         url = f"http://127.0.0.1:{server.server_address[1]}/game-materials"
         with urllib.request.urlopen(url) as reply:
             assert reply.headers["Content-Type"] == "application/json"
+            assert reply.headers["Cache-Control"] == "no-cache"
             assert json.load(reply) == palette.manifest()
+        with urllib.request.urlopen(url.replace("/game-materials", "/test_palette.py")) as reply:
+            assert reply.headers["Cache-Control"] == "no-cache", "Composer's own files are revalidated too"
     finally:
         server.shutdown()
         server.server_close()

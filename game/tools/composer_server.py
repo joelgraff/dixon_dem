@@ -58,6 +58,11 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST)
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=directory, **kwargs)
 
+        def end_headers(self):
+            # revalidate every file, so an updated Composer is never run from a stale cache
+            self.send_header("Cache-Control", "no-cache")
+            super().end_headers()
+
         def _reply(self, code, text):
             body = text.encode()
             self.send_response(code)
@@ -77,7 +82,6 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-cache")
             self.end_headers()
             self.wfile.write(body)
 

@@ -14,6 +14,7 @@ func _run() -> void:
 	_test_help(fails)
 	_test_editor(fails)
 	_test_front(fails)
+	_test_hints(fails)
 	_test_composed(fails)
 	if fails.is_empty():
 		print("SELFTEST OK")
@@ -119,6 +120,19 @@ func _test_front(fails: PackedStringArray) -> void:
 	if not edit.street_front([[9000000.0, 9000000.0], [9000010.0, 9000000.0], [9000010.0, 9000010.0]]).is_empty():
 		fails.append("a footprint far from any road should have no front")
 	edit.queue_free()
+
+func _test_hints(fails: PackedStringArray) -> void:
+	var script: GDScript = load("res://player/building_edit.gd")
+	var hints: Dictionary = script.composer_hints({
+		"id": "1", "form": "side_gable", "storeys": 1.5, "roof": "gable", "roof_axis": "side",
+		"material": "brick", "color": "brick_buff", "dressing": "italianate", "x": 3.0,
+	})
+	if hints.get("color") != "brick_buff" or hints.get("roof_axis") != "side" or hints.get("storeys") != 1.5:
+		fails.append("Composer hints lost fields: %s" % str(hints))
+	if hints.has("id") or hints.has("x"):
+		fails.append("Composer hints carry more than the editor's fields: %s" % str(hints))
+	if script.composer_hints({"color": "auto"}).has("color"):
+		fails.append("an automatic color is not a hint")
 
 func _test_composed(fails: PackedStringArray) -> void:
 	var edit: Node = load("res://player/building_edit.gd").new()

@@ -616,6 +616,7 @@ func _export_composer() -> void:
 	var front := street_front(points)
 	if not front.is_empty():
 		payload["front"] = front
+	payload["hints"] = composer_hints(_record)
 	var sent: Variant = _read_json(composed_dir.path_join("%s.json" % bid))
 	if sent is Dictionary and sent.get("project") is Dictionary:
 		payload["project"] = sent["project"]
@@ -633,6 +634,17 @@ func _export_composer() -> void:
 	_refresh()
 	_status = await _open_in_composer(JSON.stringify(payload))
 	_refresh()
+
+## The building editor's choices for this building, for Composer to start
+## from (its settingsFromHints): the resolved template with this session's
+## edits, so the form, storeys, roof and its axis, wall material and color,
+## dressing, porch, ground floor, and awnings. `color` "auto" is left out.
+static func composer_hints(record: Dictionary) -> Dictionary:
+	var hints := {}
+	for key in ["form", "storeys", "roof", "roof_axis", "material", "color", "dressing", "porch", "ground", "awnings"]:
+		if record.has(key) and record[key] != null and str(record[key]) != "auto":
+			hints[key] = record[key]
+	return hints
 
 ## Opens Composer in the browser with this footprint in the page address
 ## (`#import=`, base64url; the fragment never goes to the server), starting a
