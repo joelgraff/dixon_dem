@@ -15,6 +15,11 @@ metres, so the requested extent is divided by cos(lat) to get true ground metres
 Writes tiles + per-tile georef JSON into data/raw/il2025/, each recording the world-space
 (x, z) of its top-left corner so downstream extraction needs no registration step.
 
+The recorded world box is only where the tile was asked for: the game's UTM
+grid is turned ~1.7 degrees from Mercator's north, so the picture is up to
+~15 m off it at two corners. Each tile also gets `pixel_from_world`, the exact
+mapping (georef_affine.py), which is what to place it by.
+
 Run: cd pipeline/aerial && ../../.venv/bin/python fetch_illinois.py [--mpp 0.25] [--tile 512]
 """
 import argparse
@@ -25,6 +30,8 @@ import time
 import urllib.request
 
 from pyproj import Transformer
+
+from georef_affine import pixel_mapping, projector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -45,6 +52,7 @@ def main():
     utm_to_wgs = Transformer.from_crs("EPSG:26916", "EPSG:4326", always_xy=True)
     wgs_to_merc = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
 
+    merc = projector()
     os.makedirs(OUT_DIR, exist_ok=True)
     n = int(math.ceil(SIZE / args.tile))
     px = int(round(args.tile / args.mpp))
@@ -79,6 +87,8 @@ def main():
                         "x = world_x0 + px*mpp ; z = world_z0 + py*mpp",
                 "source": "Illinois IL_Blk1_West_2025 (0.1524 m/px native), EPSG:3857 request",
             }
+
+            meta["pixel_from_world"], meta["affine_residual_m"] = pixel_mapping(meta, merc)
 
             if os.path.exists(png) and os.path.getsize(png) > 10000:
                 skipped += 1
