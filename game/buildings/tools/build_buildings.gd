@@ -114,19 +114,30 @@ func _init() -> void:
 			body.position = chunk_origin
 			var ids: Array[int] = []
 			for col in collisions:
-				var hull: Array = col["hull"]
-				if hull.size() < 3:
-					continue
-				var y0: float = col["y0"]
-				var y1: float = col["y1"]
-				var pts := PackedVector3Array()
-				for p in hull:
-					pts.append(Vector3(p[0], y0, p[1]))
-					pts.append(Vector3(p[0], y1, p[1]))
-				var shape := ConvexPolygonShape3D.new()
-				shape.points = pts
 				var cs := CollisionShape3D.new()
-				cs.shape = shape
+				var faces: Array = col.get("faces", [])
+				if faces.size() >= 9 and faces.size() % 9 == 0:
+					# a walk-in composed building: its own surfaces, both sides, so its rooms can be entered
+					var tris := PackedVector3Array()
+					for i in range(0, faces.size(), 3):
+						tris.append(Vector3(faces[i], faces[i + 1], faces[i + 2]))
+					var concave := ConcavePolygonShape3D.new()
+					concave.set_faces(tris)
+					concave.backface_collision = true
+					cs.shape = concave
+				else:
+					var hull: Array = col["hull"]
+					if hull.size() < 3:
+						continue
+					var y0: float = col["y0"]
+					var y1: float = col["y1"]
+					var pts := PackedVector3Array()
+					for p in hull:
+						pts.append(Vector3(p[0], y0, p[1]))
+						pts.append(Vector3(p[0], y1, p[1]))
+					var shape := ConvexPolygonShape3D.new()
+					shape.points = pts
+					cs.shape = shape
 				var building_id := int(col.get("id", -1))
 				cs.set_meta("building_id", building_id)
 				body.add_child(cs)

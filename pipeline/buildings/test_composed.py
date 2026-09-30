@@ -56,9 +56,20 @@ def test_composer_surfaces_have_game_materials():
     assert composed.unknown_materials(FILE) == []
 
 
+def test_a_walk_in_building_collides_with_its_faces():
+    faces = [0, 0, 0, 10, 0, 0, 10, 3, 0]
+    walk_in = dict(FILE, version=2, interior=True, collision={"faces": faces})
+    res = composed.build(MeshBuild(), MeshBuild(), [(0, 0), (10, 0), (10, 8), (0, 8)], 17.0, walk_in)
+    assert res["faces"] == [0, 17, 0, 10, 17, 0, 10, 20, 0]
+    solid = composed.build(MeshBuild(), MeshBuild(), [(0, 0), (10, 0), (10, 8), (0, 8)], 17.0, FILE)
+    assert "faces" not in solid
+    assert composed.collision_faces(dict(walk_in, collision={"faces": [1, 2]}), 0.0) is None
+
+
 if __name__ == "__main__":
     test_load_reads_only_a_composed_file()
     test_revert_is_an_override()
     test_build_lifts_heights_to_the_ground_and_reports_the_hull()
     test_composer_surfaces_have_game_materials()
+    test_a_walk_in_building_collides_with_its_faces()
     print("composed ok")

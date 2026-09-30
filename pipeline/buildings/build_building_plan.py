@@ -289,12 +289,16 @@ def main(only_chunk=None):
             # Close the gap under the building where terrain falls away (see facade.terrain_skirt).
             low = facade.terrain_skirt(c["near"], res["hull"], res["y0"], sampler)
             hull = convex_hull(res["hull"])
-            c["collisions"].append({
+            collision = {
                 "id": bid,
                 "hull": [[round(p[0], 2), round(p[1], 2)] for p in hull],
                 "y0": round(min(res["y0"], low) - 0.05, 2),
                 "y1": round(res["y1"], 2),
-            })
+            }
+            if res.get("faces"):
+                # a walk-in composed building collides with its surfaces, not its hull
+                collision["faces"] = [round(v, 3) for v in res["faces"]]
+            c["collisions"].append(collision)
 
     print("archetype counts:", counts)
 
@@ -340,6 +344,9 @@ def main(only_chunk=None):
             total_tris_far += len(g["indices"]) // 3
         for col in c["collisions"]:
             col["hull"] = [[round(p[0] - origin_x, 2), round(p[1] - origin_z, 2)] for p in col["hull"]]
+            if "faces" in col:
+                shift = (origin_x, 0.0, origin_z)
+                col["faces"] = [round(v - shift[i % 3], 3) for i, v in enumerate(col["faces"])]
 
         fname = f"chunk_{cx}_{cz}.json"
         with open(os.path.join(OUT_DIR, fname), "w") as f:
