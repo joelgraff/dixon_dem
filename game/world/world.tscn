@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" path="res://landmarks/landmarks.scn" id="8"]
 [ext_resource type="Script" uid="uid://c8ov55uxlc4m" path="res://player/hud.gd" id="9_hud"]
 [ext_resource type="Script" uid="uid://0q32na0ox87c" path="res://player/ticket_tool.gd" id="10_ticket"]
+[ext_resource type="Script" uid="uid://bhw01dmss6t4b" path="res://player/building_edit.gd" id="11_bedit"]
+[ext_resource type="Script" uid="uid://cw75bs8blv3mu" path="res://player/help_overlay.gd" id="12_help"]
 
 [node name="World" type="Node3D" unique_id=1886891328]
 script = ExtResource("1")
@@ -34,3 +36,9 @@ script = ExtResource("9_hud")
 
 [node name="TicketTool" type="CanvasLayer" parent="." unique_id=409450202]
 script = ExtResource("10_ticket")
+
+[node name="BuildingEdit" type="CanvasLayer" parent="." unique_id=712421240]
+script = ExtResource("11_bedit")
+
+[node name="HelpOverlay" type="CanvasLayer" parent="." unique_id=694424881]
+script = ExtResource("12_help")

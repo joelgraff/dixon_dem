@@ -86,7 +86,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var key: int = event.keycode
-	if key == KEY_F1:
+	if key == KEY_F5 and not event.shift_pressed:
 		var next_season: int = (WorldState.season + 1) % 4
 		WorldState.apply(next_season, WorldState.weather, WorldState.hour)
 	elif key == KEY_F2:
@@ -280,11 +280,15 @@ func _build_profiles() -> void:
 	# shader-facing calc below — iter2's horizon_haze hugged 14 deg of sky
 	# above the horizon and washed it out (clear-sky band at 15 deg had
 	# saturation 0.02, should be >= 0.12).
+	# Saturation sits above 1.0 on purpose. AGX plus the daylight exposure pulls
+	# chroma out of an already-mild albedo, and a noon cap of 1.0 left summer
+	# streets around 30% saturation (measured on the Galena facade). Winter
+	# stays nearest to neutral so snow doesn't go cyan.
 	season_profiles = {
-		WorldState.Season.SPRING: {"saturation": 0.95, "haze": 0.15, "tint": Color(0.94, 0.98, 0.99)},
-		WorldState.Season.SUMMER: {"saturation": 1.0, "haze": 0.22, "tint": Color(1.0, 0.98, 0.9)},
-		WorldState.Season.AUTUMN: {"saturation": 0.92, "haze": 0.18, "tint": Color(0.98, 0.9, 0.78)},
-		WorldState.Season.WINTER: {"saturation": 0.82, "haze": 0.12, "tint": Color(0.86, 0.91, 1.0)},
+		WorldState.Season.SPRING: {"saturation": 1.18, "haze": 0.14, "tint": Color(0.94, 0.98, 0.99)},
+		WorldState.Season.SUMMER: {"saturation": 1.28, "haze": 0.16, "tint": Color(1.0, 0.99, 0.94)},
+		WorldState.Season.AUTUMN: {"saturation": 1.22, "haze": 0.16, "tint": Color(1.0, 0.92, 0.78)},
+		WorldState.Season.WINTER: {"saturation": 1.02, "haze": 0.12, "tint": Color(0.92, 0.95, 1.0)},
 	}
 
 # ---------------------------------------------------------------------------
@@ -591,10 +595,10 @@ func _update_environment() -> void:
 	# night-purple once the sun is well below it — iter1 blended a warm
 	# twilight tint into the zenith across a wide elevation band, which is
 	# what produced the "whole dome salmon" complaint.
-	var zenith_day := Color(0.08, 0.20, 0.52) # deep blue, not washed pastel
+	var zenith_day := Color(0.05, 0.22, 0.62) # deep blue, not washed pastel
 	var zenith_night := Color(0.015, 0.02, 0.045)
 	var zenith_dusk_accent := Color(0.16, 0.14, 0.28)
-	var horizon_day := Color(0.62, 0.74, 0.88)
+	var horizon_day := Color(0.46, 0.66, 0.92)
 	# horizon_twi is NOT blended into the azimuth-neutral `horizon` uniform
 	# below anymore — that was the bug behind "the whole dome (and the ground
 	# lit by its ambient) goes salmon at twilight, even facing away from the
@@ -704,16 +708,19 @@ func _update_environment() -> void:
 	# stacking with the ambient/moon boosts below into "night reads as dusk"
 	# (overcast night sky measured 138/255). Pulled back toward a sane night
 	# floor; overcast now genuinely darkens exposure instead of a token 4%.
-	_env.tonemap_exposure = lerp(2.0, 1.6, day_t) * lerp(1.0, 0.78, overcast_t)
-	_env.tonemap_agx_contrast = lerp(0.95, 1.3, direct_scale)
-	_env.tonemap_agx_white = lerp(9.0, 6.5, direct_scale)
+	# Daytime exposure was 1.6 on top of a 2.6 sun, which parked brick and sky
+	# on the AGX shoulder where chroma dies. Night stays at 2.0.
+	_env.tonemap_exposure = lerp(2.0, 1.35, day_t) * lerp(1.0, 0.82, overcast_t)
+	_env.tonemap_agx_contrast = lerp(1.08, 1.42, direct_scale)
+	_env.tonemap_agx_white = lerp(8.0, 6.2, direct_scale)
 	_env.adjustment_enabled = true
-	var sat: float = sp.saturation * lerp(1.0, 0.85, overcast_t * 0.4)
-	# Clamp saturation harder right around twilight — this is what was
-	# producing the over-saturated salmon golden-hour ground.
-	sat = minf(sat, lerp(1.0, 0.95, twilight_strength))
+	var sat: float = sp.saturation * lerp(1.0, 0.9, overcast_t)
+	# Ease the extra vibrance back to neutral at twilight. The old line capped
+	# noon at 1.0 as well, which is what kept clear days gray. Golden hour
+	# still must not run away into salmon.
+	sat = lerpf(sat, minf(sat, 0.98), twilight_strength)
 	_env.adjustment_saturation = sat
-	_env.adjustment_contrast = 1.02
+	_env.adjustment_contrast = lerpf(1.04, 1.1, direct_scale * (1.0 - night_factor))
 	_env.adjustment_brightness = 1.0
 
 	# --- ambient / GI --------------------------------------------------------
@@ -832,12 +839,12 @@ func _update_particles(_delta: float) -> void:
 func _update_debug_ui() -> void:
 	if not debug_label:
 		return
-	debug_label.visible = not _is_capture_mode()
+	debug_label.visible = not _is_capture_mode() and str(get_tree().root.get_meta("ui_cover", "")) == ""
 	if not debug_label.visible:
 		return
 	var season_name: String = WorldState.Season.keys()[WorldState.season]
 	var weather_name: String = WorldState.Weather.keys()[WorldState.weather]
-	debug_label.text = "%s / %s / %02d:%02d  (F1 season · F2 weather · F3/F4 hour)" % [
+	debug_label.text = "%s / %s / %02d:%02d  (F1 help · F5 season · F2 weather · F3/F4 hour)" % [
 		season_name, weather_name, int(WorldState.hour), int(fmod(WorldState.hour, 1.0) * 60.0)
 	]
 

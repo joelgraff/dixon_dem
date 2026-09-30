@@ -19,9 +19,12 @@ from common_buildings import (
 from common_buildings import MeshBuild
 import classify
 import archetypes
+import composed
+import composer
 import infill
 import palette
 import facade
+import templates as building_templates
 
 from shapely.geometry import Polygon, LineString
 
@@ -95,6 +98,52 @@ def load_curated(osm_buildings):
 
 
 
+HOUSE_FORMS = {
+    "side_gable", "front_gable", "gabled_ell", "foursquare",
+    "bungalow", "cross_gable", "ranch",
+}
+
+
+def _build_one(arche, form, area, mb, mb_far, coords, ground_y, height_m, tags, rng, bid, road_idx, tmpl):
+    """The template chooses the mesh. The old archetype is only a fallback."""
+    tmpl = tmpl or {}
+    from_composer = composed.load(bid) if composed.wanted(tmpl) else None
+    if from_composer:
+        return composed.build(mb, mb_far, coords, ground_y, from_composer)
+    in_game = tmpl.get("compose")
+    if isinstance(in_game, dict) and in_game.get("volumes"):
+        return composer.build(mb, mb_far, coords, ground_y, in_game)
+    form = form or tmpl.get("form")
+    storeys = float(tmpl.get("storeys") or 1)
+    measured_tall = bool(tmpl.get("height_reason")) and storeys >= 2
+    giant = area > 1400 and not measured_tall
+
+    if form in HOUSE_FORMS:
+        return archetypes.build_residential_house(
+            mb, mb_far, coords, ground_y, height_m, tags, rng, bid, road_idx, template=tmpl)
+    if form == "garage" or (not form and arche == "garage"):
+        return archetypes.build_garage(mb, mb_far, coords, ground_y, rng, bid)
+    if form == "church_nave" or (not form and arche == "church"):
+        return archetypes.build_church(mb, mb_far, coords, ground_y, rng, road_idx, template=tmpl)
+    if form == "industrial" or (not form and arche == "industrial"):
+        return archetypes.build_industrial(mb, mb_far, coords, ground_y, rng, road_idx, template=tmpl)
+    if form == "civic_block" or (not form and arche == "institutional"):
+        if giant:
+            return archetypes.build_boxy_building(
+                mb, mb_far, coords, ground_y, height_m, tags, rng, bid, is_bigbox=True)
+        return archetypes.build_civic(mb, mb_far, coords, ground_y, rng, road_idx, template=tmpl)
+    if form in ("party_wall_commercial", "one_story_store") or arche in (
+        "downtown_commercial", "strip_commercial", "bigbox_retail",
+    ):
+        if giant or arche == "bigbox_retail" and not measured_tall:
+            return archetypes.build_boxy_building(
+                mb, mb_far, coords, ground_y, height_m, tags, rng, bid, is_bigbox=True)
+        return archetypes.build_downtown_commercial(
+            mb, mb_far, coords, ground_y, height_m, tags, rng, bid, template=tmpl)
+    return archetypes.build_residential_house(
+        mb, mb_far, coords, ground_y, height_m, tags, rng, bid, road_idx, template=tmpl)
+
+
 def load_ms_footprints():
     """Microsoft ML building footprints, already clipped and de-duplicated against
     OSM/curated by pipeline/buildings/ms_footprints.py. OSM covers 707 footprints in the
@@ -107,7 +156,7 @@ def load_ms_footprints():
     return recs
 
 
-def main():
+def main(only_chunk=None):
     t0 = time.time()
     buildings_data = load("buildings.json")["buildings"]
     curated = load_curated(buildings_data)       # may drop OSM footprints listed in "replaces"
@@ -180,6 +229,9 @@ def main():
     all_records = generic + curated + ms_records + infill_records
     print(f"total to build: {len(all_records)} (landmark-owned skipped: {len(owned)}; "
           f"curated {len(curated)}; microsoft {len(ms_records)}; infill {len(infill_records)})")
+    overrides = building_templates.load_overrides(os.path.join(GAME_DATA, "building_overrides.json"))
+    template_of = building_templates.resolve_batch(all_records, road_idx, overrides)
+    print(f"templates resolved: {len(template_of)}")
 
     chunks = {}  # (cx,cz) -> {"near": MeshBuild, "far": MeshBuild, "collisions": []}
     counts = {}
@@ -200,6 +252,8 @@ def main():
         if area < 4.0:
             continue
         cx, cz = polygon_centroid_2d(coords)
+        if only_chunk and chunk_key(cx, cz, CHUNK_SIZE) != only_chunk:
+            continue
         tags = b.get("tags", {}) or {}
         arche = classify.classify(tags, cx, cz, area)
         counts[arche] = counts.get(arche, 0) + 1
@@ -217,25 +271,16 @@ def main():
         # caller's ring-winding convention (see common_buildings._orient).
         c["near"].set_outward_ref(cx, cz)
         c["far"].set_outward_ref(cx, cz)
+        flip = bool((template_of.get(bid) or {}).get("flip_normals"))
+        c["near"].set_flip_outward(flip)
+        c["far"].set_flip_outward(flip)
         mb, mb_far = c["near"], c["far"]
 
         try:
-            if arche == "downtown_commercial":
-                res = archetypes.build_downtown_commercial(mb, mb_far, coords, ground_y, height_m, tags, rng, bid)
-            elif arche == "church":
-                res = archetypes.build_boxy_building(mb, mb_far, coords, ground_y, height_m, tags, rng, bid, is_church=True)
-            elif arche == "institutional":
-                res = archetypes.build_boxy_building(mb, mb_far, coords, ground_y, height_m, tags, rng, bid)
-            elif arche == "industrial":
-                res = archetypes.build_boxy_building(mb, mb_far, coords, ground_y, height_m, tags, rng, bid, is_industrial=True)
-            elif arche == "bigbox_retail":
-                res = archetypes.build_boxy_building(mb, mb_far, coords, ground_y, height_m, tags, rng, bid, is_bigbox=True)
-            elif arche == "strip_commercial":
-                res = archetypes.build_downtown_commercial(mb, mb_far, coords, ground_y, height_m, tags, rng, bid)
-            elif arche == "garage":
-                res = archetypes.build_garage(mb, mb_far, coords, ground_y, rng, bid)
-            else:
-                res = archetypes.build_residential_house(mb, mb_far, coords, ground_y, height_m, tags, rng, bid, road_idx)
+            tmpl = template_of.get(bid) or {}
+            form = tmpl.get("form")
+            res = _build_one(arche, form, area, mb, mb_far, coords, ground_y, height_m,
+                             tags, rng, bid, road_idx, tmpl)
         except Exception as e:
             print(f"  ! building {bid} ({arche}) failed: {e}")
             res = None
@@ -245,6 +290,7 @@ def main():
             low = facade.terrain_skirt(c["near"], res["hull"], res["y0"], sampler)
             hull = convex_hull(res["hull"])
             c["collisions"].append({
+                "id": bid,
                 "hull": [[round(p[0], 2), round(p[1], 2)] for p in hull],
                 "y0": round(min(res["y0"], low) - 0.05, 2),
                 "y1": round(res["y1"], 2),
@@ -253,9 +299,11 @@ def main():
     print("archetype counts:", counts)
 
     os.makedirs(OUT_DIR, exist_ok=True)
-    for f in os.listdir(OUT_DIR):
-        if f.endswith(".json"):
-            os.remove(os.path.join(OUT_DIR, f))
+    _write_template_index(all_records, template_of)
+    if only_chunk is None:
+        for f in os.listdir(OUT_DIR):
+            if f.startswith("chunk_") and f.endswith(".json"):
+                os.remove(os.path.join(OUT_DIR, f))
 
     manifest = {
         "chunk_size": CHUNK_SIZE,
@@ -300,7 +348,13 @@ def main():
                                     "x0": cx * CHUNK_SIZE, "z0": cz * CHUNK_SIZE,
                                     "x1": (cx + 1) * CHUNK_SIZE, "z1": (cz + 1) * CHUNK_SIZE})
 
-    with open(os.path.join(OUT_DIR, "manifest.json"), "w") as f:
+    manifest_path = os.path.join(OUT_DIR, "manifest.json")
+    if only_chunk is not None and os.path.exists(manifest_path):
+        previous = json.load(open(manifest_path))
+        kept = [entry for entry in previous.get("chunks", [])
+                if (entry["cx"], entry["cz"]) != only_chunk]
+        manifest["chunks"] = kept + manifest["chunks"]
+    with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=1)
 
     print(f"wrote {len(manifest['chunks'])} chunks, {total_tris_near} near tris, {total_tris_far} far tris, "
@@ -308,5 +362,47 @@ def main():
     print(f"done in {time.time()-t0:.1f}s")
 
 
+def _write_template_index(records, template_of):
+    """Compact lookup the in-game editor reads. Not the mesh."""
+    out = {}
+    for record in records:
+        bid = record.get("id")
+        template = template_of.get(bid)
+        if not template:
+            continue
+        coords = footprint_coords(record)
+        if len(coords) < 3:
+            continue
+        center = polygon_centroid_2d(coords)
+        cx, cz = chunk_key(center[0], center[1], CHUNK_SIZE)
+        out[str(bid)] = {
+            "form": template["form"],
+            "storeys": template["storeys"],
+            "roof": template["roof"],
+            "roof_axis": template["roof_axis"],
+            "porch": template["porch"],
+            "material": template["material"],
+            "dressing": template["dressing"],
+            "ground": template.get("ground") or "normal",
+            "awnings": template.get("awnings") or "some",
+            "color": template.get("color") or "auto",
+            "flip_normals": bool(template.get("flip_normals")),
+            "x": round(center[0], 1),
+            "z": round(center[1], 1),
+            "cx": cx,
+            "cz": cz,
+        }
+    with open(os.path.join(OUT_DIR, "template_index.json"), "w") as handle:
+        json.dump(out, handle)
+
+
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--chunk", default="", help="cx,cz — rebuild only that 200 m chunk")
+    args = parser.parse_args()
+    only = None
+    if args.chunk:
+        cx_s, cz_s = args.chunk.split(",")
+        only = (int(cx_s), int(cz_s))
+    main(only)

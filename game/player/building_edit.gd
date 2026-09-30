@@ -8,6 +8,8 @@ extends CanvasLayer
 ##   C            compose this building, then rebuild just it as the knobs change
 ##   N            flip inside-out walls on this building
 ##   X            open this building's footprint in Building Composer (and save it to exports/composer)
+##   I            use the design Composer sent back for this building (Send to game)
+##   R            revert this building to the one the game generates (I brings the design back)
 ##   Enter        write the override and rebuild the chunk
 ##   Esc          close
 ##
@@ -23,11 +25,18 @@ const CHUNK_M := 200.0
 ## Where each building's footprint is (OSM, then Microsoft), and where X writes it for Building Composer.
 const FOOTPRINT_PATHS := ["res://data/buildings.json", "res://data/buildings_ms.json"]
 const COMPOSER_EXPORT_DIR := "res://../exports/composer"
+## Where Building Composer's "Send to game" leaves each building (pipeline/buildings/composed.py reads it).
+const COMPOSED_DIR := "res://data/composed"
+## Streets a building can face. Alleys, paths and the like only count when no street is near.
+const ROADS_PATH := "res://data/roads.json"
+const STREET_CLASSES := ["primary", "primary_link", "secondary", "tertiary", "tertiary_link", "residential", "unclassified", "pedestrian"]
+const FRONT_SEARCH_M := 250.0
 ## Building Composer: the page X opens (override with BUILDING_COMPOSER_URL), and
 ## the checkout it serves from when nothing answers there (BUILDING_COMPOSER_DIR;
 ## by default the building-composer folder beside this project).
 const COMPOSER_URL := "http://localhost:8000/index.html"
 const COMPOSER_DIR := "res://../../building-composer"
+const COMPOSER_SERVER := "res://tools/composer_server.py"
 
 const FIELDS := ["form", "storeys", "ground", "awnings", "roof", "roof_axis", "dressing", "color", "material"]
 const CHOICES := {
@@ -46,6 +55,7 @@ const CHOICES := {
 
 ## Overridable so the self-test can write a throwaway file instead of the real overrides.
 var override_path: String = OVERRIDE_PATH
+var composed_dir: String = COMPOSED_DIR
 var _open := false
 var _index: Dictionary = {}
 var _record: Dictionary = {}
@@ -61,6 +71,8 @@ var _plate: ColorRect
 var _panel: Label
 var _cam: Camera3D
 var _footprints: Dictionary = {}
+var _streets: Array = []
+var _lanes: Array = []
 
 func _ready() -> void:
 	layer = 21
@@ -124,6 +136,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_refresh()
 		KEY_X:
 			_export_composer()
+		KEY_I:
+			_use_composed(true)
+		KEY_R:
+			_use_composed(false)
 		KEY_ENTER, KEY_KP_ENTER:
 			_apply()
 
@@ -205,6 +221,8 @@ func _select_at(screen_pos: Vector2) -> void:
 			var prior: Variant = prior_buildings.get(bid, {})
 			if prior is Dictionary and prior.get("compose") is Dictionary:
 				_record["compose"] = prior["compose"]
+			if prior is Dictionary and prior.get("composed") == false:
+				_record["composed"] = false
 	if not _record.has("ground"):
 		_record["ground"] = "normal"
 	if not _record.has("awnings"):
@@ -248,8 +266,13 @@ func _refresh() -> void:
 			var mark := ">" if i == _field else " "
 			lines.append("%s %s: %s" % [mark, FIELDS[i], _record.get(FIELDS[i])])
 		lines.append("  flip normals: %s" % ("yes" if _record.get("flip_normals") else "no"))
+		match composed_state(str(_record["id"])):
+			"in_use":
+				lines.append("  Composer design in use (R reverts to the generated building)")
+			"reverted":
+				lines.append("  Composer design available, generated building in use (I brings it back)")
 		lines.append(_status)
-		lines.append("C composes. Tab field, arrows change, N flip walls, X opens in Composer, Enter saves, Esc closes")
+		lines.append("C composes. Tab field, arrows change, N flip walls, X opens in Composer, I / R use / revert its design, Enter saves, Esc closes")
 	_panel.text = "\n".join(lines)
 	_fit_plate()
 
@@ -289,6 +312,39 @@ func _apply() -> void:
 		_status = "Chunk %d,%d looks right now, but a restart will show the old scene." % [cx, cz]
 	_busy = false
 	_refresh()
+
+## What Composer has done for a building: "none" (nothing sent), "in_use" (its
+## design is what the pipeline builds), or "reverted" (sent, but the override
+## turns it off).
+func composed_state(bid: String) -> String:
+	var data: Variant = _read_json(composed_dir.path_join("%s.json" % bid))
+	if not (data is Dictionary) or data.get("format") != "dixon-composed":
+		return "none"
+	if _record.get("composed") == false:
+		return "reverted"
+	return "in_use"
+
+## I takes the design Composer sent, R goes back to the generated building; either
+## way the override is saved and the chunk rebuilt, so it also survives a restart.
+func _use_composed(wanted: bool) -> void:
+	if _record.is_empty():
+		_status = "Click a building first."
+		_refresh()
+		return
+	var state := composed_state(str(_record["id"]))
+	if state == "none":
+		_status = "Composer has not sent a design for this building (X opens it there; Send to game there)."
+		_refresh()
+		return
+	if wanted == (state == "in_use"):
+		_status = "Already %s." % ("using the Composer design" if wanted else "using the generated building")
+		_refresh()
+		return
+	if wanted:
+		_record.erase("composed")
+	else:
+		_record["composed"] = false
+	_apply()
 
 func _preset_name() -> String:
 	var form := str(_record.get("form", ""))
@@ -394,6 +450,8 @@ func _write_override() -> bool:
 	}
 	if _record.get("compose") is Dictionary:
 		buildings[str(_record["id"])]["compose"] = _record["compose"]
+	if _record.get("composed") == false:
+		buildings[str(_record["id"])]["composed"] = false
 	all["buildings"] = buildings
 	var file := FileAccess.open(override_path, FileAccess.WRITE)
 	if file == null:
@@ -524,10 +582,12 @@ func _build_array_mesh(groups: Dictionary, materials: Dictionary) -> ArrayMesh:
 
 ## Writes the selected building's footprint for Building Composer, to
 ## exports/composer/<id>.json beside the project: its outline in local space
-## (x east, z south, meters, as in data/buildings.json), its id and ground and
-## roof heights, and this editor's fields as hints (storeys, roof, material).
-## Composer squares the outline up and keeps where it came from, so the
-## composed building can be placed back here.
+## (x east, z south, meters, as in data/buildings.json), its id, ground and
+## roof heights, and the direction of its front (toward the street). The
+## structure the game generated on the footprint is not exported; only a
+## building made in Composer carries its own design. Composer squares the
+## outline up and keeps where it came from, so the composed building can be
+## placed back here.
 func _export_composer() -> void:
 	if _record.is_empty():
 		_status = "Click a building first."
@@ -542,10 +602,6 @@ func _export_composer() -> void:
 	var points: Array = []
 	for p in building.get("footprint", []):
 		points.append([float(p["x"]), float(p["z"])])
-	var hints := {}
-	for key in ["form", "storeys", "roof", "roof_axis", "material", "dressing", "porch"]:
-		if _record.has(key):
-			hints[key] = _record[key]
 	var payload := {
 		"format": "dixon-footprint",
 		"version": 1,
@@ -556,8 +612,13 @@ func _export_composer() -> void:
 		"ground_y_max": building.get("ground_y_max"),
 		"height_m": building.get("height_m"),
 		"tags": building.get("tags", {}),
-		"hints": hints,
 	}
+	var front := street_front(points)
+	if not front.is_empty():
+		payload["front"] = front
+	var sent: Variant = _read_json(composed_dir.path_join("%s.json" % bid))
+	if sent is Dictionary and sent.get("project") is Dictionary:
+		payload["project"] = sent["project"]
 	var dir := ProjectSettings.globalize_path(COMPOSER_EXPORT_DIR).simplify_path()
 	DirAccess.make_dir_recursive_absolute(dir)
 	var path := dir.path_join("%s.json" % bid)
@@ -589,7 +650,8 @@ func _open_in_composer(json_text: String) -> String:
 		var port := page.get_slice("://", 1).get_slice("/", 0).get_slice(":", 1)
 		if port.is_empty():
 			port = "80"
-		if OS.create_process("python3", ["-m", "http.server", port, "--bind", "127.0.0.1", "--directory", dir]) <= 0:
+		var server := ProjectSettings.globalize_path(COMPOSER_SERVER)
+		if OS.create_process("python3", [server, "--port", port, "--dir", dir]) <= 0:
 			return "Saved to exports/composer. Could not start a server for Composer (python3)."
 		var up := false
 		for i in 20:
@@ -614,6 +676,65 @@ func _answers(url: String) -> bool:
 	var result: Array = await request.request_completed
 	request.queue_free()
 	return result[0] == HTTPRequest.RESULT_SUCCESS and int(result[1]) == 200
+
+## The direction a building faces, as a unit vector [x, z] (x east, z south)
+## from its middle toward the nearest street, or [] when no road is near.
+## Streets win over alleys and paths, so a house on a corner of an alley still
+## faces the street. Not the same rule as the generator's (which takes any road):
+## this one is what a person would call the front.
+func street_front(points: Array) -> Array:
+	if points.size() < 3:
+		return []
+	_load_roads()
+	var center := Vector2.ZERO
+	var count := 0
+	for i in points.size():
+		if i == points.size() - 1 and points[i] == points[0]:
+			continue
+		center += Vector2(float(points[i][0]), float(points[i][1]))
+		count += 1
+	center /= float(count)
+	var toward := _toward_nearest(_streets, center)
+	if toward == Vector2.ZERO:
+		toward = _toward_nearest(_lanes, center)
+	if toward == Vector2.ZERO:
+		return []
+	toward = toward.normalized()
+	return [snappedf(toward.x, 0.0001), snappedf(toward.y, 0.0001)]
+
+func _toward_nearest(segments: Array, from: Vector2) -> Vector2:
+	var best := Vector2.ZERO
+	var best_distance := FRONT_SEARCH_M
+	for segment in segments:
+		var a: Vector2 = segment[0]
+		var b: Vector2 = segment[1]
+		var along := b - a
+		var length2 := along.length_squared()
+		var t := 0.0 if length2 < 1e-9 else clampf((from - a).dot(along) / length2, 0.0, 1.0)
+		var offset := a + along * t - from
+		var distance := offset.length()
+		if distance < best_distance and distance > 1e-6:
+			best_distance = distance
+			best = offset
+	return best
+
+func _load_roads() -> void:
+	if not _streets.is_empty() or not _lanes.is_empty():
+		return
+	var data: Variant = _read_json(ROADS_PATH)
+	if not (data is Dictionary):
+		return
+	for way in data.get("ways", []):
+		var vertices: Array = way.get("vertices", [])
+		var kind := str((way.get("tags", {}) as Dictionary).get("highway", ""))
+		if kind in ["footway", "cycleway", "path", "steps", "track"]:
+			continue
+		var into := _streets if kind in STREET_CLASSES else _lanes
+		for i in vertices.size() - 1:
+			into.append([
+				Vector2(float(vertices[i]["x"]), float(vertices[i]["z"])),
+				Vector2(float(vertices[i + 1]["x"]), float(vertices[i + 1]["z"])),
+			])
 
 ## A building's record from the footprint files, by id (loaded once).
 func _footprint(bid: String) -> Dictionary:

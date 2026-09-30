@@ -1,71 +1,75 @@
 [gd_scene format=4]
 
-[ext_resource type="PackedScene" path="res://landmarks/lee_county_courthouse.tscn" id="1_d3fno"]
-[ext_resource type="Shader" path="res://materials/shaders/surface.gdshader" id="2_dpoa1"]
-[ext_resource type="Texture2D" path="res://materials/textures/limestone/albedo.jpg" id="3_jpx3o"]
-[ext_resource type="Texture2D" path="res://materials/textures/limestone/ao.jpg" id="4_rkapu"]
-[ext_resource type="Texture2D" path="res://materials/textures/limestone/normal.png" id="5_7y7m5"]
-[ext_resource type="Texture2D" path="res://materials/textures/limestone/roughness.jpg" id="6_hpkmb"]
-[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/albedo.jpg" id="7_p2q8e"]
-[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/normal.png" id="8_m23ox"]
-[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/roughness.jpg" id="9_23ger"]
-[ext_resource type="Texture2D" path="res://landmarks/textures/courthouse_entablature.png" id="10_p7ibp"]
-[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/albedo.jpg" id="11_6c18d"]
-[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/ao.jpg" id="12_caak1"]
-[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/normal.png" id="13_ncpkh"]
-[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/roughness.jpg" id="14_6cd1u"]
-[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/albedo.jpg" id="15_w0c3x"]
-[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/ao.jpg" id="16_boa1b"]
-[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/normal.png" id="17_4ah2h"]
-[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/roughness.jpg" id="18_ivvsv"]
-[ext_resource type="Shader" path="res://materials/shaders/glass.gdshader" id="19_hkpin"]
-[ext_resource type="PackedScene" path="res://landmarks/dixon_arch_complex.tscn" id="20_8yboh"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/albedo.jpg" id="21_y8fxo"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/ao.jpg" id="22_5bea6"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/normal.png" id="23_klolc"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/roughness.jpg" id="24_0n0nw"]
-[ext_resource type="Texture2D" path="res://landmarks/textures/dixon_arch_sign.png" id="25_l1g55"]
-[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/albedo.jpg" id="26_f5ood"]
-[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/ao.jpg" id="27_rsy1r"]
-[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/normal.png" id="28_w48e8"]
-[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/roughness.jpg" id="29_8xt22"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/albedo.jpg" id="30_42n2r"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/ao.jpg" id="31_ugpar"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/normal.png" id="32_thnjo"]
-[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/roughness.jpg" id="33_bb3wc"]
-[ext_resource type="Texture2D" path="res://landmarks/textures/lincoln_highway_stamp.png" id="34_4c8ln"]
-[ext_resource type="Shader" path="res://landmarks/shaders/foam.gdshader" id="35_uw1kl"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_red/albedo.jpg" id="36_ir3xt"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_red/ao.jpg" id="37_5oex2"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_red/normal.png" id="38_iasv8"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_red/roughness.jpg" id="39_o4lm2"]
-[ext_resource type="PackedScene" path="res://landmarks/lincoln_statue.tscn" id="40_xcjkj"]
-[ext_resource type="Texture2D" path="res://landmarks/textures/lincoln_text.png" id="41_0kg6f"]
-[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/albedo.jpg" id="42_c6tq1"]
-[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/ao.jpg" id="43_r25fg"]
-[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/normal.png" id="44_c0i5c"]
-[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/roughness.jpg" id="45_5lxfq"]
-[ext_resource type="PackedScene" path="res://landmarks/dixon_theatre.tscn" id="46_1hlwp"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/albedo.jpg" id="47_ounx2"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/ao.jpg" id="48_lwl3g"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/normal.png" id="49_m1deo"]
-[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/roughness.jpg" id="50_jsbox"]
-[ext_resource type="Texture2D" path="res://landmarks/textures/theatre_marquee.png" id="51_ylxij"]
-[ext_resource type="PackedScene" path="res://landmarks/reagan_boyhood_home.tscn" id="52_44pef"]
-[ext_resource type="Shader" path="res://materials/shaders/shingles.gdshader" id="53_jtlhf"]
-[ext_resource type="PackedScene" path="res://landmarks/nachusa_house.tscn" id="54_ayhbl"]
+[ext_resource type="PackedScene" path="res://landmarks/lee_county_courthouse.tscn" id="1_7y7m5"]
+[ext_resource type="Shader" path="res://materials/shaders/surface.gdshader" id="2_hpkmb"]
+[ext_resource type="Texture2D" path="res://materials/textures/limestone/albedo.jpg" id="3_p2q8e"]
+[ext_resource type="Texture2D" path="res://materials/textures/limestone/ao.jpg" id="4_m23ox"]
+[ext_resource type="Texture2D" path="res://materials/textures/limestone/normal.png" id="5_23ger"]
+[ext_resource type="Texture2D" path="res://materials/textures/limestone/roughness.jpg" id="6_p7ibp"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/albedo.jpg" id="7_6c18d"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/normal.png" id="8_caak1"]
+[ext_resource type="Texture2D" path="res://materials/textures/snow_fresh/roughness.jpg" id="9_ncpkh"]
+[ext_resource type="Texture2D" path="res://landmarks/textures/courthouse_entablature.png" id="10_6cd1u"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/albedo.jpg" id="11_w0c3x"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/ao.jpg" id="12_boa1b"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/normal.png" id="13_4ah2h"]
+[ext_resource type="Texture2D" path="res://materials/textures/stone_rough/roughness.jpg" id="14_ivvsv"]
+[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/albedo.jpg" id="15_hkpin"]
+[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/ao.jpg" id="16_8yboh"]
+[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/normal.png" id="17_y8fxo"]
+[ext_resource type="Texture2D" path="res://materials/textures/roof_metal/roughness.jpg" id="18_5bea6"]
+[ext_resource type="Shader" path="res://materials/shaders/glass.gdshader" id="19_klolc"]
+[ext_resource type="PackedScene" path="res://landmarks/dixon_arch_complex.tscn" id="20_0n0nw"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/albedo.jpg" id="21_l1g55"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/ao.jpg" id="22_f5ood"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/normal.png" id="23_rsy1r"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_sidewalk/roughness.jpg" id="24_w48e8"]
+[ext_resource type="Texture2D" path="res://landmarks/textures/dixon_arch_sign.png" id="25_8xt22"]
+[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/albedo.jpg" id="26_42n2r"]
+[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/ao.jpg" id="27_ugpar"]
+[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/normal.png" id="28_thnjo"]
+[ext_resource type="Texture2D" path="res://materials/textures/steel_rusted/roughness.jpg" id="29_bb3wc"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/albedo.jpg" id="30_4c8ln"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/ao.jpg" id="31_uw1kl"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/normal.png" id="32_ir3xt"]
+[ext_resource type="Texture2D" path="res://materials/textures/concrete_curb/roughness.jpg" id="33_5oex2"]
+[ext_resource type="Texture2D" path="res://landmarks/textures/lincoln_highway_stamp.png" id="34_iasv8"]
+[ext_resource type="Shader" path="res://landmarks/shaders/foam.gdshader" id="35_o4lm2"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_red/albedo.jpg" id="36_xcjkj"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_red/ao.jpg" id="37_0kg6f"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_red/normal.png" id="38_c6tq1"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_red/roughness.jpg" id="39_r25fg"]
+[ext_resource type="PackedScene" path="res://landmarks/lincoln_statue.tscn" id="40_c0i5c"]
+[ext_resource type="Texture2D" path="res://landmarks/textures/lincoln_text.png" id="41_5lxfq"]
+[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/albedo.jpg" id="42_1hlwp"]
+[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/ao.jpg" id="43_ounx2"]
+[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/normal.png" id="44_lwl3g"]
+[ext_resource type="Texture2D" path="res://materials/textures/siding_clapboard/roughness.jpg" id="45_m1deo"]
+[ext_resource type="PackedScene" path="res://landmarks/dixon_theatre.tscn" id="46_jsbox"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/albedo.jpg" id="47_ylxij"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/ao.jpg" id="48_44pef"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/normal.png" id="49_jtlhf"]
+[ext_resource type="Texture2D" path="res://materials/textures/brick_buff/roughness.jpg" id="50_ayhbl"]
+[ext_resource type="Texture2D" path="res://landmarks/textures/theatre_marquee.png" id="51_0pnpc"]
+[ext_resource type="Texture2D" path="res://materials/textures/gravel_fine/albedo.jpg" id="52_pdi8s"]
+[ext_resource type="Texture2D" path="res://materials/textures/gravel_fine/ao.jpg" id="53_w1san"]
+[ext_resource type="Texture2D" path="res://materials/textures/gravel_fine/normal.png" id="54_iuiic"]
+[ext_resource type="Texture2D" path="res://materials/textures/gravel_fine/roughness.jpg" id="55_c7glw"]
+[ext_resource type="PackedScene" path="res://landmarks/reagan_boyhood_home.tscn" id="56_c5b7f"]
+[ext_resource type="Shader" path="res://materials/shaders/shingles.gdshader" id="57_xswie"]
+[ext_resource type="PackedScene" path="res://landmarks/nachusa_house.tscn" id="58_p8k86"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3qypx"]
 resource_name = "limestone"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("3_jpx3o")
-shader_parameter/normal_tex = ExtResource("5_7y7m5")
-shader_parameter/roughness_tex = ExtResource("6_hpkmb")
-shader_parameter/ao_tex = ExtResource("4_rkapu")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(1.06, 1, 0.86, 1)
 shader_parameter/albedo_multiplier = 0.92
@@ -98,14 +102,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3fuba"]
 resource_name = "limestone"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("3_jpx3o")
-shader_parameter/normal_tex = ExtResource("5_7y7m5")
-shader_parameter/roughness_tex = ExtResource("6_hpkmb")
-shader_parameter/ao_tex = ExtResource("4_rkapu")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(1.1, 1.04, 0.9, 1)
 shader_parameter/albedo_multiplier = 0.98
@@ -139,19 +143,19 @@ shader_parameter/puddle_scale = 0.05
 transparency = 1
 cull_mode = 2
 shading_mode = 0
-albedo_texture = ExtResource("10_p7ibp")
+albedo_texture = ExtResource("10_6cd1u")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7gi2b"]
 resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("11_6c18d")
-shader_parameter/normal_tex = ExtResource("13_ncpkh")
-shader_parameter/roughness_tex = ExtResource("14_6cd1u")
-shader_parameter/ao_tex = ExtResource("12_caak1")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.08, 0.08, 0.08, 1)
 shader_parameter/albedo_multiplier = 0.4
@@ -188,14 +192,14 @@ roughness = 0.3
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hv24v"]
 resource_name = "roof_metal"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("15_w0c3x")
-shader_parameter/normal_tex = ExtResource("17_4ah2h")
-shader_parameter/roughness_tex = ExtResource("18_ivvsv")
-shader_parameter/ao_tex = ExtResource("16_boa1b")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("15_hkpin")
+shader_parameter/normal_tex = ExtResource("17_y8fxo")
+shader_parameter/roughness_tex = ExtResource("18_5bea6")
+shader_parameter/ao_tex = ExtResource("16_8yboh")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.62, 0.86, 0.76, 1)
 shader_parameter/albedo_multiplier = 0.55
@@ -228,7 +232,7 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_6idhf"]
 resource_name = "window_glass"
 render_priority = 0
-shader = ExtResource("19_hkpin")
+shader = ExtResource("19_klolc")
 shader_parameter/interior_color = Color(0.035, 0.038, 0.042, 1)
 shader_parameter/frame_color = Color(0.85, 0.85, 0.82, 1)
 shader_parameter/frame_width = 0.06
@@ -325,14 +329,14 @@ size = Vector3(15, 18, 3.6)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_trpao"]
 resource_name = "limestone"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("3_jpx3o")
-shader_parameter/normal_tex = ExtResource("5_7y7m5")
-shader_parameter/roughness_tex = ExtResource("6_hpkmb")
-shader_parameter/ao_tex = ExtResource("4_rkapu")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(1.15, 1.1, 0.98, 1)
 shader_parameter/albedo_multiplier = 0.85
@@ -365,14 +369,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vui6l"]
 resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("11_6c18d")
-shader_parameter/normal_tex = ExtResource("13_ncpkh")
-shader_parameter/roughness_tex = ExtResource("14_6cd1u")
-shader_parameter/ao_tex = ExtResource("12_caak1")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.08, 0.08, 0.08, 1)
 shader_parameter/albedo_multiplier = 0.4
@@ -409,14 +413,14 @@ roughness = 0.3
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8kqcu"]
 resource_name = "sidewalk_concrete"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("21_y8fxo")
-shader_parameter/normal_tex = ExtResource("23_klolc")
-shader_parameter/roughness_tex = ExtResource("24_0n0nw")
-shader_parameter/ao_tex = ExtResource("22_5bea6")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("21_l1g55")
+shader_parameter/normal_tex = ExtResource("23_rsy1r")
+shader_parameter/roughness_tex = ExtResource("24_w48e8")
+shader_parameter/ao_tex = ExtResource("22_f5ood")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(1.35, 1.32, 1.22, 1)
 shader_parameter/albedo_multiplier = 1.05
@@ -450,7 +454,7 @@ shader_parameter/puddle_scale = 0.35
 transparency = 1
 cull_mode = 2
 shading_mode = 0
-albedo_texture = ExtResource("25_l1g55")
+albedo_texture = ExtResource("25_8xt22")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_nph81"]
 _surfaces = [{
@@ -519,14 +523,14 @@ size = Vector3(1.2, 2.3, 1.2)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_herpb"]
 resource_name = "steel_rusted"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("26_f5ood")
-shader_parameter/normal_tex = ExtResource("28_w48e8")
-shader_parameter/roughness_tex = ExtResource("29_8xt22")
-shader_parameter/ao_tex = ExtResource("27_rsy1r")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("26_42n2r")
+shader_parameter/normal_tex = ExtResource("28_thnjo")
+shader_parameter/roughness_tex = ExtResource("29_bb3wc")
+shader_parameter/ao_tex = ExtResource("27_ugpar")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.75, 0.76, 0.78, 1)
 shader_parameter/albedo_multiplier = 0.55
@@ -559,14 +563,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_pvdmn"]
 resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("11_6c18d")
-shader_parameter/normal_tex = ExtResource("13_ncpkh")
-shader_parameter/roughness_tex = ExtResource("14_6cd1u")
-shader_parameter/ao_tex = ExtResource("12_caak1")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.08, 0.08, 0.08, 1)
 shader_parameter/albedo_multiplier = 0.4
@@ -603,14 +607,14 @@ roughness = 0.3
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_gre5a"]
 resource_name = "curb_concrete"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("30_42n2r")
-shader_parameter/normal_tex = ExtResource("32_thnjo")
-shader_parameter/roughness_tex = ExtResource("33_bb3wc")
-shader_parameter/ao_tex = ExtResource("31_ugpar")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("30_4c8ln")
+shader_parameter/normal_tex = ExtResource("32_ir3xt")
+shader_parameter/roughness_tex = ExtResource("33_5oex2")
+shader_parameter/ao_tex = ExtResource("31_uw1kl")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(1, 0.96, 0.86, 1)
 shader_parameter/albedo_multiplier = 0.85
@@ -643,14 +647,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4al4m"]
 resource_name = "curb_concrete"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("30_42n2r")
-shader_parameter/normal_tex = ExtResource("32_thnjo")
-shader_parameter/roughness_tex = ExtResource("33_bb3wc")
-shader_parameter/ao_tex = ExtResource("31_ugpar")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("30_4c8ln")
+shader_parameter/normal_tex = ExtResource("32_ir3xt")
+shader_parameter/roughness_tex = ExtResource("33_5oex2")
+shader_parameter/ao_tex = ExtResource("31_uw1kl")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.55, 0.6, 0.53, 1)
 shader_parameter/albedo_multiplier = 0.55
@@ -684,7 +688,7 @@ shader_parameter/puddle_scale = 0.05
 transparency = 1
 cull_mode = 2
 shading_mode = 0
-albedo_texture = ExtResource("34_4c8ln")
+albedo_texture = ExtResource("34_iasv8")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_fw87q"]
 _surfaces = [{
@@ -758,14 +762,14 @@ _surfaces = [{
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qae00"]
 resource_name = "curb_concrete"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("30_42n2r")
-shader_parameter/normal_tex = ExtResource("32_thnjo")
-shader_parameter/roughness_tex = ExtResource("33_bb3wc")
-shader_parameter/ao_tex = ExtResource("31_ugpar")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("30_4c8ln")
+shader_parameter/normal_tex = ExtResource("32_ir3xt")
+shader_parameter/roughness_tex = ExtResource("33_5oex2")
+shader_parameter/ao_tex = ExtResource("31_uw1kl")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(1, 0.97, 0.88, 1)
 shader_parameter/albedo_multiplier = 0.85
@@ -797,7 +801,7 @@ shader_parameter/puddle_scale = 0.05
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vri6b"]
 render_priority = 0
-shader = ExtResource("35_uw1kl")
+shader = ExtResource("35_o4lm2")
 shader_parameter/foam_color = null
 shader_parameter/water_color = null
 shader_parameter/scroll_speed = null
@@ -806,14 +810,14 @@ shader_parameter/noise_scale = null
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_f841y"]
 resource_name = "brick_red"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("36_ir3xt")
-shader_parameter/normal_tex = ExtResource("38_iasv8")
-shader_parameter/roughness_tex = ExtResource("39_o4lm2")
-shader_parameter/ao_tex = ExtResource("37_5oex2")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("36_xcjkj")
+shader_parameter/normal_tex = ExtResource("38_c6tq1")
+shader_parameter/roughness_tex = ExtResource("39_r25fg")
+shader_parameter/ao_tex = ExtResource("37_0kg6f")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.72, 0.42, 0.35, 1)
 shader_parameter/albedo_multiplier = 0.65
@@ -846,7 +850,7 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_rry26"]
 resource_name = "window_glass"
 render_priority = 0
-shader = ExtResource("19_hkpin")
+shader = ExtResource("19_klolc")
 shader_parameter/interior_color = Color(0.035, 0.038, 0.042, 1)
 shader_parameter/frame_color = Color(0.85, 0.85, 0.82, 1)
 shader_parameter/frame_width = 0.06
@@ -919,14 +923,14 @@ _surfaces = [{
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nls4e"]
 resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("11_6c18d")
-shader_parameter/normal_tex = ExtResource("13_ncpkh")
-shader_parameter/roughness_tex = ExtResource("14_6cd1u")
-shader_parameter/ao_tex = ExtResource("12_caak1")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.62, 0.62, 0.6, 1)
 shader_parameter/albedo_multiplier = 0.55
@@ -960,19 +964,19 @@ shader_parameter/puddle_scale = 0.05
 transparency = 1
 cull_mode = 2
 shading_mode = 0
-albedo_texture = ExtResource("41_0kg6f")
+albedo_texture = ExtResource("41_5lxfq")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_c64g4"]
 resource_name = "limestone"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("3_jpx3o")
-shader_parameter/normal_tex = ExtResource("5_7y7m5")
-shader_parameter/roughness_tex = ExtResource("6_hpkmb")
-shader_parameter/ao_tex = ExtResource("4_rkapu")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.5, 0.72, 0.64, 1)
 shader_parameter/albedo_multiplier = 0.55
@@ -1005,14 +1009,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_06xto"]
 resource_name = "siding_white"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("42_c6tq1")
-shader_parameter/normal_tex = ExtResource("44_c0i5c")
-shader_parameter/roughness_tex = ExtResource("45_5lxfq")
-shader_parameter/ao_tex = ExtResource("43_r25fg")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("42_1hlwp")
+shader_parameter/normal_tex = ExtResource("44_lwl3g")
+shader_parameter/roughness_tex = ExtResource("45_m1deo")
+shader_parameter/ao_tex = ExtResource("43_ounx2")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.85, 0.83, 0.76, 1)
 shader_parameter/albedo_multiplier = 1.0
@@ -1092,27 +1096,27 @@ _surfaces = [{
 [sub_resource type="BoxShape3D" id="BoxShape3D_5u0ih"]
 size = Vector3(2, 2, 2)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_jcney"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_av5cv"]
 resource_name = "brick_buff"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("47_ounx2")
-shader_parameter/normal_tex = ExtResource("49_m1deo")
-shader_parameter/roughness_tex = ExtResource("50_jsbox")
-shader_parameter/ao_tex = ExtResource("48_lwl3g")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("47_ylxij")
+shader_parameter/normal_tex = ExtResource("49_jtlhf")
+shader_parameter/roughness_tex = ExtResource("50_ayhbl")
+shader_parameter/ao_tex = ExtResource("48_44pef")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
-shader_parameter/albedo_tint = Color(1.03, 0.85, 0.6, 1)
-shader_parameter/albedo_multiplier = 1.03
+shader_parameter/albedo_tint = Color(0.78, 0.62, 0.46, 1)
+shader_parameter/albedo_multiplier = 0.85
 shader_parameter/roughness_multiplier = 1.0
 shader_parameter/roughness_bias = 0.0
 shader_parameter/metallic = 0.0
 shader_parameter/normal_strength = 1.0
 shader_parameter/macro_variation_strength = 0.6
 shader_parameter/macro_variation_scale = 0.22
-shader_parameter/uv_scale = Vector2(0.8, 0.8)
+shader_parameter/uv_scale = Vector2(0.7, 0.7)
 shader_parameter/use_world_uv = false
 shader_parameter/triplanar = true
 shader_parameter/anti_tiling_enabled = true
@@ -1122,7 +1126,7 @@ shader_parameter/mortar_color = Color(0.76, 0.73, 0.68, 1)
 shader_parameter/mortar_saturation_threshold = 0.22
 shader_parameter/module_uv_scale = Vector2(5, 15)
 shader_parameter/module_variation_amount = 0.65
-shader_parameter/ground_level = 14.9
+shader_parameter/ground_level = 17.869769287109378
 shader_parameter/grime_height = 1.1
 shader_parameter/grime_strength = 0.35
 shader_parameter/edge_wear_amount = 0.0
@@ -1132,27 +1136,27 @@ shader_parameter/porosity = 0.45
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_57a3q"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_axt5o"]
 resource_name = "limestone"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("3_jpx3o")
-shader_parameter/normal_tex = ExtResource("5_7y7m5")
-shader_parameter/roughness_tex = ExtResource("6_hpkmb")
-shader_parameter/ao_tex = ExtResource("4_rkapu")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
-shader_parameter/albedo_tint = Color(1.05, 1, 0.9, 1)
-shader_parameter/albedo_multiplier = 0.9
+shader_parameter/albedo_tint = Color(1.05, 0.98, 0.88, 1)
+shader_parameter/albedo_multiplier = 1.2
 shader_parameter/roughness_multiplier = 1.0
 shader_parameter/roughness_bias = 0.0
 shader_parameter/metallic = 0.0
 shader_parameter/normal_strength = 1.0
 shader_parameter/macro_variation_strength = 0.05
 shader_parameter/macro_variation_scale = 0.1
-shader_parameter/uv_scale = Vector2(0.5, 0.5)
+shader_parameter/uv_scale = Vector2(0.02, 0.02)
 shader_parameter/use_world_uv = false
 shader_parameter/triplanar = true
 shader_parameter/anti_tiling_enabled = true
@@ -1162,7 +1166,7 @@ shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
 shader_parameter/mortar_saturation_threshold = 0.22
 shader_parameter/module_uv_scale = Vector2(5, 15)
 shader_parameter/module_variation_amount = 0.0
-shader_parameter/ground_level = 14.9
+shader_parameter/ground_level = 17.869769287109378
 shader_parameter/grime_height = 1.0
 shader_parameter/grime_strength = 0.25
 shader_parameter/edge_wear_amount = 0.0
@@ -1172,10 +1176,90 @@ shader_parameter/porosity = 0.5
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_6lxxu"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wedv7"]
+resource_name = "limestone"
+render_priority = 0
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
+shader_parameter/snow_albedo_multiplier = null
+shader_parameter/albedo_tint = Color(0.74, 0.72, 0.68, 1)
+shader_parameter/albedo_multiplier = 0.9
+shader_parameter/roughness_multiplier = 1.0
+shader_parameter/roughness_bias = 0.0
+shader_parameter/metallic = 0.0
+shader_parameter/normal_strength = 1.0
+shader_parameter/macro_variation_strength = 0.05
+shader_parameter/macro_variation_scale = 0.1
+shader_parameter/uv_scale = Vector2(0.04, 0.04)
+shader_parameter/use_world_uv = false
+shader_parameter/triplanar = true
+shader_parameter/anti_tiling_enabled = true
+shader_parameter/anti_tiling_rotation = false
+shader_parameter/separate_mortar = false
+shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
+shader_parameter/mortar_saturation_threshold = 0.22
+shader_parameter/module_uv_scale = Vector2(5, 15)
+shader_parameter/module_variation_amount = 0.0
+shader_parameter/ground_level = 17.869769287109378
+shader_parameter/grime_height = 1.0
+shader_parameter/grime_strength = 0.25
+shader_parameter/edge_wear_amount = 0.0
+shader_parameter/snow_slope_bias = -0.4
+shader_parameter/snow_noise_scale = 0.2
+shader_parameter/porosity = 0.5
+shader_parameter/allow_puddles = false
+shader_parameter/puddle_scale = 0.05
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sasqa"]
+resource_name = "limestone"
+render_priority = 0
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
+shader_parameter/snow_albedo_multiplier = null
+shader_parameter/albedo_tint = Color(0.96, 0.92, 0.84, 1)
+shader_parameter/albedo_multiplier = 0.95
+shader_parameter/roughness_multiplier = 1.0
+shader_parameter/roughness_bias = 0.0
+shader_parameter/metallic = 0.0
+shader_parameter/normal_strength = 1.0
+shader_parameter/macro_variation_strength = 0.05
+shader_parameter/macro_variation_scale = 0.1
+shader_parameter/uv_scale = Vector2(0.4, 0.4)
+shader_parameter/use_world_uv = false
+shader_parameter/triplanar = true
+shader_parameter/anti_tiling_enabled = true
+shader_parameter/anti_tiling_rotation = false
+shader_parameter/separate_mortar = false
+shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
+shader_parameter/mortar_saturation_threshold = 0.22
+shader_parameter/module_uv_scale = Vector2(5, 15)
+shader_parameter/module_variation_amount = 0.0
+shader_parameter/ground_level = 17.869769287109378
+shader_parameter/grime_height = 1.0
+shader_parameter/grime_strength = 0.25
+shader_parameter/edge_wear_amount = 0.0
+shader_parameter/snow_slope_bias = -0.4
+shader_parameter/snow_noise_scale = 0.2
+shader_parameter/porosity = 0.5
+shader_parameter/allow_puddles = false
+shader_parameter/puddle_scale = 0.05
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5o0qq"]
 resource_name = "window_glass"
 render_priority = 0
-shader = ExtResource("19_hkpin")
+shader = ExtResource("19_klolc")
 shader_parameter/interior_color = Color(0.035, 0.038, 0.042, 1)
 shader_parameter/frame_color = Color(0.85, 0.85, 0.82, 1)
 shader_parameter/frame_width = 0.06
@@ -1183,20 +1267,20 @@ shader_parameter/glass_roughness = 0.045
 shader_parameter/frost_amount_mult = 1.0
 shader_parameter/pane_scale = Vector2(1, 1)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_nggx6"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_b57ao"]
 resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("11_6c18d")
-shader_parameter/normal_tex = ExtResource("13_ncpkh")
-shader_parameter/roughness_tex = ExtResource("14_6cd1u")
-shader_parameter/ao_tex = ExtResource("12_caak1")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
-shader_parameter/albedo_tint = Color(0.1, 0.1, 0.1, 1)
-shader_parameter/albedo_multiplier = 0.4
+shader_parameter/albedo_tint = Color(0.16, 0.14, 0.13, 1)
+shader_parameter/albedo_multiplier = 0.35
 shader_parameter/roughness_multiplier = 1.0
 shader_parameter/roughness_bias = 0.0
 shader_parameter/metallic = 0.0
@@ -1213,7 +1297,7 @@ shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
 shader_parameter/mortar_saturation_threshold = 0.22
 shader_parameter/module_uv_scale = Vector2(5, 15)
 shader_parameter/module_variation_amount = 0.0
-shader_parameter/ground_level = 14.9
+shader_parameter/ground_level = 17.869769287109378
 shader_parameter/grime_height = 1.2
 shader_parameter/grime_strength = 0.4
 shader_parameter/edge_wear_amount = 0.0
@@ -1223,65 +1307,109 @@ shader_parameter/porosity = 0.5
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_53wl6"]
-transparency = 1
-cull_mode = 2
-shading_mode = 0
-albedo_texture = ExtResource("51_ylxij")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_gwo83"]
-resource_name = "brick_buff"
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i0r7n"]
+resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("47_ounx2")
-shader_parameter/normal_tex = ExtResource("49_m1deo")
-shader_parameter/roughness_tex = ExtResource("50_jsbox")
-shader_parameter/ao_tex = ExtResource("48_lwl3g")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
-shader_parameter/albedo_tint = Color(0.82, 0.72, 0.58, 1)
-shader_parameter/albedo_multiplier = 1.03
+shader_parameter/albedo_tint = Color(0.12, 0.07, 0.06, 1)
+shader_parameter/albedo_multiplier = 0.45
 shader_parameter/roughness_multiplier = 1.0
 shader_parameter/roughness_bias = 0.0
 shader_parameter/metallic = 0.0
 shader_parameter/normal_strength = 1.0
-shader_parameter/macro_variation_strength = 0.6
-shader_parameter/macro_variation_scale = 0.22
-shader_parameter/uv_scale = Vector2(0.8, 0.8)
+shader_parameter/macro_variation_strength = 0.05
+shader_parameter/macro_variation_scale = 0.12
+shader_parameter/uv_scale = Vector2(0.12, 0.12)
 shader_parameter/use_world_uv = false
 shader_parameter/triplanar = true
 shader_parameter/anti_tiling_enabled = true
 shader_parameter/anti_tiling_rotation = false
-shader_parameter/separate_mortar = true
-shader_parameter/mortar_color = Color(0.76, 0.73, 0.68, 1)
+shader_parameter/separate_mortar = false
+shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
 shader_parameter/mortar_saturation_threshold = 0.22
 shader_parameter/module_uv_scale = Vector2(5, 15)
-shader_parameter/module_variation_amount = 0.65
-shader_parameter/ground_level = 14.9
-shader_parameter/grime_height = 1.1
-shader_parameter/grime_strength = 0.35
+shader_parameter/module_variation_amount = 0.0
+shader_parameter/ground_level = 17.869769287109378
+shader_parameter/grime_height = 1.2
+shader_parameter/grime_strength = 0.4
 shader_parameter/edge_wear_amount = 0.0
 shader_parameter/snow_slope_bias = -0.5
 shader_parameter/snow_noise_scale = 0.2
-shader_parameter/porosity = 0.45
+shader_parameter/porosity = 0.5
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_s67rs"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xjh0t"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("51_0pnpc")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ebihq"]
+albedo_color = Color(0.98, 0.94, 0.82, 1)
+roughness = 0.35
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_quxat"]
+resource_name = "sidewalk_concrete"
+render_priority = 0
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("21_l1g55")
+shader_parameter/normal_tex = ExtResource("23_rsy1r")
+shader_parameter/roughness_tex = ExtResource("24_w48e8")
+shader_parameter/ao_tex = ExtResource("22_f5ood")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
+shader_parameter/snow_albedo_multiplier = null
+shader_parameter/albedo_tint = Color(0.7, 0.68, 0.64, 1)
+shader_parameter/albedo_multiplier = 0.8
+shader_parameter/roughness_multiplier = 1.0
+shader_parameter/roughness_bias = 0.0
+shader_parameter/metallic = 0.0
+shader_parameter/normal_strength = 1.0
+shader_parameter/macro_variation_strength = 0.05
+shader_parameter/macro_variation_scale = 0.05
+shader_parameter/uv_scale = Vector2(0.12, 0.12)
+shader_parameter/use_world_uv = true
+shader_parameter/triplanar = false
+shader_parameter/anti_tiling_enabled = true
+shader_parameter/anti_tiling_rotation = true
+shader_parameter/separate_mortar = false
+shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
+shader_parameter/mortar_saturation_threshold = 0.22
+shader_parameter/module_uv_scale = Vector2(5, 15)
+shader_parameter/module_variation_amount = 0.0
+shader_parameter/ground_level = 17.869769287109378
+shader_parameter/grime_height = 0.0
+shader_parameter/grime_strength = 0.0
+shader_parameter/edge_wear_amount = 0.0
+shader_parameter/snow_slope_bias = 0.2
+shader_parameter/snow_noise_scale = 0.1
+shader_parameter/porosity = 0.35
+shader_parameter/allow_puddles = true
+shader_parameter/puddle_scale = 0.35
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jtx08"]
 resource_name = "brick_red"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("36_ir3xt")
-shader_parameter/normal_tex = ExtResource("38_iasv8")
-shader_parameter/roughness_tex = ExtResource("39_o4lm2")
-shader_parameter/ao_tex = ExtResource("37_5oex2")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("36_xcjkj")
+shader_parameter/normal_tex = ExtResource("38_c6tq1")
+shader_parameter/roughness_tex = ExtResource("39_r25fg")
+shader_parameter/ao_tex = ExtResource("37_0kg6f")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
-shader_parameter/albedo_tint = Color(1.05, 0.7, 0.58, 1)
+shader_parameter/albedo_tint = Color(0.72, 0.48, 0.38, 1)
 shader_parameter/albedo_multiplier = 0.75
 shader_parameter/roughness_multiplier = 1.0
 shader_parameter/roughness_bias = 0.0
@@ -1299,7 +1427,7 @@ shader_parameter/mortar_color = Color(0.7, 0.66, 0.6, 1)
 shader_parameter/mortar_saturation_threshold = 0.22
 shader_parameter/module_uv_scale = Vector2(5, 15)
 shader_parameter/module_variation_amount = 0.65
-shader_parameter/ground_level = 14.9
+shader_parameter/ground_level = 17.869769287109378
 shader_parameter/grime_height = 1.1
 shader_parameter/grime_strength = 0.35
 shader_parameter/edge_wear_amount = 0.0
@@ -1309,103 +1437,249 @@ shader_parameter/porosity = 0.45
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_d50d6"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ocqe1"]
+resource_name = "roof_membrane"
+render_priority = 0
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("52_pdi8s")
+shader_parameter/normal_tex = ExtResource("54_iuiic")
+shader_parameter/roughness_tex = ExtResource("55_c7glw")
+shader_parameter/ao_tex = ExtResource("53_w1san")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
+shader_parameter/snow_albedo_multiplier = null
+shader_parameter/albedo_tint = Color(0.85, 0.8, 0.72, 1)
+shader_parameter/albedo_multiplier = 1.6
+shader_parameter/roughness_multiplier = 1.0
+shader_parameter/roughness_bias = 0.0
+shader_parameter/metallic = 0.0
+shader_parameter/normal_strength = 1.0
+shader_parameter/macro_variation_strength = 0.12
+shader_parameter/macro_variation_scale = 0.15
+shader_parameter/uv_scale = Vector2(0.4, 0.4)
+shader_parameter/use_world_uv = true
+shader_parameter/triplanar = false
+shader_parameter/anti_tiling_enabled = true
+shader_parameter/anti_tiling_rotation = true
+shader_parameter/separate_mortar = false
+shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
+shader_parameter/mortar_saturation_threshold = 0.22
+shader_parameter/module_uv_scale = Vector2(5, 15)
+shader_parameter/module_variation_amount = 0.0
+shader_parameter/ground_level = 17.869769287109378
+shader_parameter/grime_height = 0.0
+shader_parameter/grime_strength = 0.05
+shader_parameter/edge_wear_amount = 0.0
+shader_parameter/snow_slope_bias = 0.2
+shader_parameter/snow_noise_scale = 0.12
+shader_parameter/porosity = 0.1
+shader_parameter/allow_puddles = true
+shader_parameter/puddle_scale = 0.08
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tu55b"]
+resource_name = "roof_metal"
+render_priority = 0
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("15_hkpin")
+shader_parameter/normal_tex = ExtResource("17_y8fxo")
+shader_parameter/roughness_tex = ExtResource("18_5bea6")
+shader_parameter/ao_tex = ExtResource("16_8yboh")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
+shader_parameter/snow_albedo_multiplier = null
+shader_parameter/albedo_tint = Color(0.45, 0.44, 0.42, 1)
+shader_parameter/albedo_multiplier = 0.6
+shader_parameter/roughness_multiplier = 0.85
+shader_parameter/roughness_bias = 0.0
+shader_parameter/metallic = 0.25
+shader_parameter/normal_strength = 1.0
+shader_parameter/macro_variation_strength = 0.05
+shader_parameter/macro_variation_scale = 0.1
+shader_parameter/uv_scale = Vector2(0.12, 0.12)
+shader_parameter/use_world_uv = true
+shader_parameter/triplanar = false
+shader_parameter/anti_tiling_enabled = true
+shader_parameter/anti_tiling_rotation = false
+shader_parameter/separate_mortar = false
+shader_parameter/mortar_color = Color(0.72, 0.68, 0.62, 1)
+shader_parameter/mortar_saturation_threshold = 0.22
+shader_parameter/module_uv_scale = Vector2(5, 15)
+shader_parameter/module_variation_amount = 0.0
+shader_parameter/ground_level = 17.869769287109378
+shader_parameter/grime_height = 0.0
+shader_parameter/grime_strength = 0.05
+shader_parameter/edge_wear_amount = 0.0
+shader_parameter/snow_slope_bias = -0.1
+shader_parameter/snow_noise_scale = 0.15
+shader_parameter/porosity = 0.05
+shader_parameter/allow_puddles = false
+shader_parameter/puddle_scale = 0.05
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_pw05p"]
 _surfaces = [{
-"aabb": AABB(-8.25, 0, 0, 16.5, 11, 12),
+"aabb": AABB(-13.03, 0, 0, 25.73, 18.6, 35.5),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
+"format": 34359742487,
+"index_count": 144,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcAGgAbABwAGgAdABsAHgAfACAAIQAiACMAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALAAvAC0AMAAxADIAMAAzADEANAA1ADYANAA3ADUAOAA5ADoAOwA8AD0APgA/AEAAPgBBAD8AQgBDAEQAQgBFAEMARgBHAEgARgBJAEcASgBLAEwASgBNAEsATgBPAFAATgBRAE8AUgBTAFQAVQBWAFcAWABZAFoAWABbAFkAXABdAF4AXABfAF0AYABhAGIAYABjAGEAZABlAGYAZABnAGUA"),
+"material": SubResource("ShaderMaterial_av5cv"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 104,
+"vertex_data": PackedByteArray("MzNLwQAAAAAAAAAAMzNLQc3MTEEAAAAAMzNLwc3MTEEAAAAAMzNLQQAAAAAAAAAAMzNLQQAAAACamdlAMzNLwc3MTEGamdlAMzNLQc3MTEGamdlAMzNLQQAAAACamdlAMzNLwQAAAACamdlAMzNLwc3MTEGamdlAMzNLwQAAAACamdlAMzNLwc3MTEEAAAAAMzNLwc3MTEGamdlAMzNLwQAAAAAAAAAAMzNLQQAAAAAAAAAAMzNLQc3MTEGamdlAMzNLQc3MTEEAAAAAMzNLQQAAAACamdlAMzNLwQAAAACamdlAMzNLQQAAAAAAAAAAMzNLwQAAAAAAAAAAMzNLQQAAAACamdlAMzNLwc3MTEEAAAAAMzNLQc3MTEGamdlAMzNLwc3MTEGamdlAMzNLQc3MTEEAAAAAAABGwQAAAAAAALBAzMxKQc3MbEEAALBAAABGwc3MbEEAALBAzMxKQQAAAAAAALBAzMxKQQAAAAAAAA5CAABGwc3MbEEAAA5CzMxKQc3MbEEAAA5CzMxKQQAAAAAAAA5CAABGwQAAAAAAAA5CAABGwc3MbEEAAA5CAABGwQAAAAAAAA5CAABGwc3MbEEAALBAAABGwc3MbEEAAA5CAABGwQAAAAAAALBAzMxKQQAAAAAAALBAzMxKQc3MbEEAAA5CzMxKQc3MbEEAALBAzMxKQQAAAAAAAA5CAABGwQAAAAAAAA5CzMxKQQAAAAAAALBAAABGwQAAAAAAALBAzMxKQQAAAAAAAA5CAABGwc3MbEEAALBAzMxKQc3MbEEAAA5CAABGwc3MbEEAAA5CzMxKQc3MbEEAALBA4XpQwQAAAAAAAAAA4XpIwc3MbEEAAAAA4XpQwc3MbEEAAAAA4XpIwQAAAAAAAAAA4XpIwQAAAAAAAA5C4XpQwc3MbEEAAA5C4XpIwc3MbEEAAA5C4XpIwQAAAAAAAA5C4XpQwQAAAAAAAA5C4XpQwc3MbEEAAA5C4XpQwQAAAAAAAA5C4XpQwc3MbEEAAAAA4XpQwc3MbEEAAA5C4XpQwQAAAAAAAAAA4XpIwQAAAAAAAAAA4XpIwc3MbEEAAA5C4XpIwc3MbEEAAAAA4XpIwQAAAAAAAA5C4XpQwQAAAAAAAA5C4XpIwQAAAAAAAAAA4XpQwQAAAAAAAAAA4XpIwQAAAAAAAA5C4XpQwc3MbEEAAAAA4XpIwc3MbEEAAA5C4XpQwc3MbEEAAA5C4XpIwc3MbEEAAAAAzcxEwQAAAAAAALxBmZlJQc3MlEEAALxBzcxEwc3MlEEAALxBmZlJQQAAAAAAALxBmZlJQQAAAAAAAA5CzcxEwc3MlEEAAA5CmZlJQc3MlEEAAA5CmZlJQQAAAAAAAA5CzcxEwQAAAAAAAA5CzcxEwc3MlEEAAA5CzcxEwQAAAAAAAA5CzcxEwc3MlEEAALxBzcxEwc3MlEEAAA5CzcxEwQAAAAAAALxBmZlJQQAAAAAAALxBmZlJQc3MlEEAAA5CmZlJQc3MlEEAALxBmZlJQQAAAAAAAA5CzcxEwQAAAAAAAA5CmZlJQQAAAAAAALxBzcxEwQAAAAAAALxBmZlJQQAAAAAAAA5CzcxEwc3MlEEAALxBmZlJQc3MlEEAAA5CzcxEwc3MlEEAAA5CmZlJQc3MlEEAALxB//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7///////38AgP//////fwCA//////9/AID//////38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgAAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+///////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
+}, {
+"aabb": AABB(-12.73, 0, -0.26, 25.46, 12.8, 0.28),
 "attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
 "format": 34359742487,
 "index_count": 36,
 "index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcA"),
-"material": SubResource("ShaderMaterial_jcney"),
+"material": SubResource("ShaderMaterial_axt5o"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 26,
-"vertex_data": PackedByteArray("AAAEwQAAAAAAAAAAAAAEQQAAMEEAAAAAAAAEwQAAMEEAAAAAAAAEQQAAAAAAAAAAAAAEQQAAAAAAAEBBAAAEwQAAMEEAAEBBAAAEQQAAMEEAAEBBAAAEQQAAAAAAAEBBAAAEwQAAAAAAAEBBAAAEwQAAMEEAAEBBAAAEwQAAAAAAAEBBAAAEwQAAMEEAAAAAAAAEwQAAMEEAAEBBAAAEwQAAAAAAAAAAAAAEQQAAAAAAAAAAAAAEQQAAMEEAAEBBAAAEQQAAMEEAAAAAAAAEQQAAAAAAAEBBAAAEwQAAAAAAAEBBAAAEQQAAAAAAAAAAAAAEwQAAAAAAAAAAAAAEQQAAAAAAAEBBAAAEwQAAMEEAAAAAAAAEQQAAMEEAAEBBAAAEwQAAMEEAAEBBAAAEQQAAMEEAAAAA//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
+"vertex_data": PackedByteArray("FK5LwQAAAAC4HoW+FK5LQc3MTEG4HoW+FK5Lwc3MTEG4HoW+FK5LQQAAAAC4HoW+FK5LQQAAAAAM16M8FK5Lwc3MTEEM16M8FK5LQc3MTEEM16M8FK5LQQAAAAAM16M8FK5LwQAAAAAM16M8FK5Lwc3MTEEM16M8FK5LwQAAAAAM16M8FK5Lwc3MTEG4HoW+FK5Lwc3MTEEM16M8FK5LwQAAAAC4HoW+FK5LQQAAAAC4HoW+FK5LQc3MTEEM16M8FK5LQc3MTEG4HoW+FK5LQQAAAAAM16M8FK5LwQAAAAAM16M8FK5LQQAAAAC4HoW+FK5LwQAAAAC4HoW+FK5LQQAAAAAM16M8FK5Lwc3MTEG4HoW+FK5LQc3MTEEM16M8FK5Lwc3MTEEM16M8FK5LQc3MTEG4HoW+//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
 }, {
-"aabb": AABB(-8.55, 11, -0.3000002, 17.1, 1.9000006, 12.6),
+"aabb": AABB(-12.78, 0, -0.47000003, 25.56, 6.7, 0.34000003),
 "attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="),
 "format": 34359742487,
 "index_count": 72,
 "index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcAGgAbABwAGgAdABsAHgAfACAAIQAiACMAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALAAvAC0AMAAxADIAMAAzADEA"),
-"material": SubResource("ShaderMaterial_57a3q"),
+"material": SubResource("ShaderMaterial_wedv7"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 52,
-"vertex_data": PackedByteArray("zcwIwQAAMEGgmZm+zcwIQczMPEGgmZm+zcwIwczMPEGgmZm+zcwIQQAAMEGgmZm+zcwIQQAAMEHNzERBzcwIwczMPEHNzERBzcwIQczMPEHNzERBzcwIQQAAMEHNzERBzcwIwQAAMEHNzERBzcwIwczMPEHNzERBzcwIwQAAMEHNzERBzcwIwczMPEGgmZm+zcwIwczMPEHNzERBzcwIwQAAMEGgmZm+zcwIQQAAMEGgmZm+zcwIQczMPEHNzERBzcwIQczMPEGgmZm+zcwIQQAAMEHNzERBzcwIwQAAMEHNzERBzcwIQQAAMEGgmZm+zcwIwQAAMEGgmZm+zcwIQQAAMEHNzERBzcwIwczMPEGgmZm+zcwIQczMPEHNzERBzcwIwczMPEHNzERBzcwIQczMPEGgmZm+zczMvzMzO0GamZk+zczMP2dmTkGamZk+zczMv2dmTkGamZk+zczMPzMzO0GamZk+zczMPzMzO0EzMzM/zczMv2dmTkEzMzM/zczMP2dmTkEzMzM/zczMPzMzO0EzMzM/zczMvzMzO0EzMzM/zczMv2dmTkEzMzM/zczMvzMzO0EzMzM/zczMv2dmTkGamZk+zczMv2dmTkEzMzM/zczMvzMzO0GamZk+zczMPzMzO0GamZk+zczMP2dmTkEzMzM/zczMP2dmTkGamZk+zczMPzMzO0EzMzM/zczMvzMzO0EzMzM/zczMPzMzO0GamZk+zczMvzMzO0GamZk+zczMPzMzO0EzMzM/zczMv2dmTkGamZk+zczMP2dmTkEzMzM/zczMv2dmTkEzMzM/zczMP2dmTkGamZk+//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/78=")
+"vertex_data": PackedByteArray("4XpMwQAAAADYo/C+4XpMQQAAgEDYo/C+4XpMwQAAgEDYo/C+4XpMQQAAAADYo/C+4XpMQQAAAAC5HgW+4XpMwQAAgEC5HgW+4XpMQQAAgEC5HgW+4XpMQQAAAAC5HgW+4XpMwQAAAAC5HgW+4XpMwQAAgEC5HgW+4XpMwQAAAAC5HgW+4XpMwQAAgEDYo/C+4XpMwQAAgEC5HgW+4XpMwQAAAADYo/C+4XpMQQAAAADYo/C+4XpMQQAAgEC5HgW+4XpMQQAAgEDYo/C+4XpMQQAAAAC5HgW+4XpMwQAAAAC5HgW+4XpMQQAAAADYo/C+4XpMwQAAAADYo/C+4XpMQQAAAAC5HgW+4XpMwQAAgEDYo/C+4XpMQQAAgEC5HgW+4XpMwQAAgEC5HgW+4XpMQQAAgEDYo/C+mplBwa5H0UBmZua+mplBQWZm1kBmZua+mplBwWZm1kBmZua+mplBQa5H0UBmZua+mplBQa5H0UBSuJ6+mplBwWZm1kBSuJ6+mplBQWZm1kBSuJ6+mplBQa5H0UBSuJ6+mplBwa5H0UBSuJ6+mplBwWZm1kBSuJ6+mplBwa5H0UBSuJ6+mplBwWZm1kBmZua+mplBwWZm1kBSuJ6+mplBwa5H0UBmZua+mplBQa5H0UBmZua+mplBQWZm1kBSuJ6+mplBQWZm1kBmZua+mplBQa5H0UBSuJ6+mplBwa5H0UBSuJ6+mplBQa5H0UBmZua+mplBwa5H0UBmZua+mplBQa5H0UBSuJ6+mplBwWZm1kBmZua+mplBQWZm1kBSuJ6+mplBwWZm1kBSuJ6+mplBQWZm1kBmZua+//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/78=")
 }, {
-"aabb": AABB(-5.25, 0.5999999, -0.03, 10.5, 8.35, 1e-05),
-"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/"),
+"aabb": AABB(-13.120001, 4.1, -2.45, 26.220001, 10.549999, 37.95),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
 "format": 34359742487,
-"index_count": 90,
-"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALAAvAC0AMAAxADIAMAAzADEANAA1ADYANAA3ADUAOAA5ADoAOAA7ADkA"),
-"material": SubResource("ShaderMaterial_6lxxu"),
+"index_count": 576,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcAGgAbABwAGgAdABsAHgAfACAAIQAiACMAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALAAvAC0AMAAxADIAMAAzADEANAA1ADYANAA3ADUAOAA5ADoAOwA8AD0APgA/AEAAPgBBAD8AQgBDAEQAQgBFAEMARgBHAEgARgBJAEcASgBLAEwASgBNAEsATgBPAFAATgBRAE8AUgBTAFQAVQBWAFcAWABZAFoAWABbAFkAXABdAF4AXABfAF0AYABhAGIAYABjAGEAZABlAGYAZABnAGUAaABpAGoAaABrAGkAbABtAG4AbwBwAHEAcgBzAHQAcgB1AHMAdgB3AHgAdgB5AHcAegB7AHwAegB9AHsAfgB/AIAAfgCBAH8AggCDAIQAggCFAIMAhgCHAIgAiQCKAIsAjACNAI4AjACPAI0AkACRAJIAkACTAJEAlACVAJYAlACXAJUAmACZAJoAmACbAJkAnACdAJ4AnACfAJ0AoAChAKIAowCkAKUApgCnAKgApgCpAKcAqgCrAKwAqgCtAKsArgCvALAArgCxAK8AsgCzALQAsgC1ALMAtgC3ALgAtgC5ALcAugC7ALwAvQC+AL8AwADBAMIAwADDAMEAxADFAMYAxADHAMUAyADJAMoAyADLAMkAzADNAM4AzADPAM0A0ADRANIA0ADTANEA1ADVANYA1wDYANkA2gDbANwA2gDdANsA3gDfAOAA3gDhAN8A4gDjAOQA4gDlAOMA5gDnAOgA5gDpAOcA6gDrAOwA6gDtAOsA7gDvAPAA8QDyAPMA9AD1APYA9AD3APUA+AD5APoA+AD7APkA/AD9AP4A/AD/AP0AAAEBAQIBAAEDAQEBBAEFAQYBBAEHAQUBCAEJAQoBCwEMAQ0BDgEPARABDgERAQ8BEgETARQBEgEVARMBFgEXARgBFgEZARcBGgEbARwBGgEdARsBHgEfASABHgEhAR8BIgEjASQBJQEmAScBKAEpASoBKAErASkBLAEtAS4BLAEvAS0BMAExATIBMAEzATEBNAE1ATYBNAE3ATUBOAE5AToBOAE7ATkBPAE9AT4BPwFAAUEBQgFDAUQBQgFFAUMBRgFHAUgBRgFJAUcBSgFLAUwBSgFNAUsBTgFPAVABTgFRAU8BUgFTAVQBUgFVAVMBVgFXAVgBWQFaAVsBXAFdAV4BXAFfAV0BYAFhAWIBYAFjAWEBZAFlAWYBZAFnAWUBaAFpAWoBaAFrAWkBbAFtAW4BbAFvAW0BcAFxAXIBcwF0AXUBdgF3AXgBdgF5AXcBegF7AXwBegF9AXsBfgF/AYABfgGBAX8BggGDAYQBggGFAYMBhgGHAYgBhgGJAYcBigGLAYwBjQGOAY8BkAGRAZIBkAGTAZEBlAGVAZYBlAGXAZUBmAGZAZoBmAGbAZkBnAGdAZ4BnAGfAZ0B"),
+"material": SubResource("ShaderMaterial_sasqa"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 60,
-"vertex_data": PackedByteArray("AACIwJqZgUCPwvW8AACowGZmvkCPwvW8AACowJqZgUCPwvW8AACIwGZmvkCPwvW8ZmYWwJqZgUCPwvW8ZmZWwGZmvkCPwvW8ZmZWwJqZgUCPwvW8ZmYWwGZmvkCPwvW8YGbmvpqZgUCPwvW8mJm5v2ZmvkCPwvW8mJm5v5qZgUCPwvW8YGbmvmZmvkCPwvW8nJm5P5qZgUCPwvW8cGbmPmZmvkCPwvW8cGbmPpqZgUCPwvW8nJm5P2ZmvkCPwvW8ZmZWQJqZgUCPwvW8ZmYWQGZmvkCPwvW8ZmYWQJqZgUCPwvW8ZmZWQGZmvkCPwvW8AQCoQJqZgUCPwvW8AQCIQGZmvkCPwvW8AQCIQJqZgUCPwvW8AQCoQGZmvkCPwvW8AACIwJqZ4UCPwvW8AACowDMzD0GPwvW8AACowJqZ4UCPwvW8AACIwDMzD0GPwvW8ZmYWwJqZ4UCPwvW8ZmZWwDMzD0GPwvW8ZmZWwJqZ4UCPwvW8ZmYWwDMzD0GPwvW8YGbmvpqZ4UCPwvW8mJm5vzMzD0GPwvW8mJm5v5qZ4UCPwvW8YGbmvjMzD0GPwvW8nJm5P5qZ4UCPwvW8cGbmPjMzD0GPwvW8cGbmPpqZ4UCPwvW8nJm5PzMzD0GPwvW8ZmZWQJqZ4UCPwvW8ZmYWQDMzD0GPwvW8ZmYWQJqZ4UCPwvW8ZmZWQDMzD0GPwvW8AQCoQJqZ4UCPwvW8AQCIQDMzD0GPwvW8AQCIQJqZ4UCPwvW8AQCoQDMzD0GPwvW8Zmb2v5iZGT+PwvW8ZmaKwAAAQECPwvW8ZmaKwJiZGT+PwvW8Zmb2vwAAQECPwvW8mpmZP5iZGT+PwvW8mpmZvwAAQECPwvW8mpmZv5iZGT+PwvW8mpmZPwAAQECPwvW8ZmaKQJiZGT+PwvW8Zmb2PwAAQECPwvW8Zmb2P5iZGT+PwvW8ZmaKQAAAQECPwvW8//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA")
+"vertex_count": 416,
+"vertex_data": PackedByteArray("MzNNwaRwJUFmZua+MzNNQfYoLEFmZua+MzNNwfYoLEFmZua+MzNNQaRwJUFmZua+MzNNQaRwJUEfhWu+MzNNwfYoLEEfhWu+MzNNQfYoLEEfhWu+MzNNQaRwJUEfhWu+MzNNwaRwJUEfhWu+MzNNwfYoLEEfhWu+MzNNwaRwJUEfhWu+MzNNwfYoLEFmZua+MzNNwfYoLEEfhWu+MzNNwaRwJUFmZua+MzNNQaRwJUFmZua+MzNNQfYoLEEfhWu+MzNNQfYoLEFmZua+MzNNQaRwJUEfhWu+MzNNwaRwJUEfhWu+MzNNQaRwJUFmZua+MzNNwaRwJUFmZua+MzNNQaRwJUEfhWu+MzNNwfYoLEFmZua+MzNNQfYoLEEfhWu+MzNNwfYoLEEfhWu+MzNNQfYoLEFmZua+mplRwdejNEGuRyG/mplRQfUoQEGuRyG/mplRwfUoQEGuRyG/mplRQdejNEGuRyG/mplRQdejNEE9Cle+mplRwfUoQEE9Cle+mplRQfUoQEE9Cle+mplRQdejNEE9Cle+mplRwdejNEE9Cle+mplRwfUoQEE9Cle+mplRwdejNEE9Cle+mplRwfUoQEGuRyG/mplRwfUoQEE9Cle+mplRwdejNEGuRyG/mplRQdejNEGuRyG/mplRQfUoQEE9Cle+mplRQfUoQEGuRyG/mplRQdejNEE9Cle+mplRwdejNEE9Cle+mplRQdejNEGuRyG/mplRwdejNEGuRyG/mplRQdejNEE9Cle+mplRwfUoQEGuRyG/mplRQfUoQEE9Cle+mplRwfUoQEE9Cle+mplRQfUoQEGuRyG/mplNwc3MQkGuR+G+mplNQZmZS0GuR+G+mplNwZmZS0GuR+G+mplNQc3MQkGuR+G+mplNQc3MQkEL1yO+mplNwZmZS0EL1yO+mplNQZmZS0EL1yO+mplNQc3MQkEL1yO+mplNwc3MQkEL1yO+mplNwZmZS0EL1yO+mplNwc3MQkEL1yO+mplNwZmZS0GuR+G+mplNwZmZS0EL1yO+mplNwc3MQkGuR+G+mplNQc3MQkGuR+G+mplNQZmZS0EL1yO+mplNQZmZS0GuR+G+mplNQc3MQkEL1yO+mplNwc3MQkEL1yO+mplNQc3MQkGuR+G+mplNwc3MQkGuR+G+mplNQc3MQkEL1yO+mplNwZmZS0GuR+G+mplNQZmZS0EL1yO+mplNwZmZS0EL1yO+mplNQZmZS0GuR+G+C9cxwf//00DNzMy+KVwZwczMGkHNzMy+C9cxwczMGkHNzMy+KVwZwf//00DNzMy+KVwZwf//00ApXI++C9cxwczMGkEpXI++KVwZwczMGkEpXI++KVwZwf//00ApXI++C9cxwf//00ApXI++C9cxwczMGkEpXI++C9cxwf//00ApXI++C9cxwczMGkHNzMy+C9cxwczMGkEpXI++C9cxwf//00DNzMy+KVwZwf//00DNzMy+KVwZwczMGkEpXI++KVwZwczMGkHNzMy+KVwZwf//00ApXI++C9cxwf//00ApXI++KVwZwf//00DNzMy+C9cxwf//00DNzMy+KVwZwf//00ApXI++C9cxwczMGkHNzMy+KVwZwczMGkEpXI++C9cxwczMGkEpXI++KVwZwczMGkHNzMy+exS+wP//00DNzMy+uR6NwMzMGkHNzMy+exS+wMzMGkHNzMy+uR6NwP//00DNzMy+uR6NwP//00ApXI++exS+wMzMGkEpXI++uR6NwMzMGkEpXI++uR6NwP//00ApXI++exS+wP//00ApXI++exS+wMzMGkEpXI++exS+wP//00ApXI++exS+wMzMGkHNzMy+exS+wMzMGkEpXI++exS+wP//00DNzMy+uR6NwP//00DNzMy+uR6NwMzMGkEpXI++uR6NwMzMGkHNzMy+uR6NwP//00ApXI++exS+wP//00ApXI++uR6NwP//00DNzMy+exS+wP//00DNzMy+uR6NwP//00ApXI++exS+wMzMGkHNzMy+uR6NwMzMGkEpXI++exS+wMzMGkEpXI++uR6NwMzMGkHNzMy+cT1qv///00DNzMy+cT1qP8zMGkHNzMy+cT1qv8zMGkHNzMy+cT1qP///00DNzMy+cT1qP///00ApXI++cT1qv8zMGkEpXI++cT1qP8zMGkEpXI++cT1qP///00ApXI++cT1qv///00ApXI++cT1qv8zMGkEpXI++cT1qv///00ApXI++cT1qv8zMGkHNzMy+cT1qv8zMGkEpXI++cT1qv///00DNzMy+cT1qP///00DNzMy+cT1qP8zMGkEpXI++cT1qP8zMGkHNzMy+cT1qP///00ApXI++cT1qv///00ApXI++cT1qP///00DNzMy+cT1qv///00DNzMy+cT1qP///00ApXI++cT1qv8zMGkHNzMy+cT1qP8zMGkEpXI++cT1qv8zMGkEpXI++cT1qP8zMGkHNzMy+uR6NQP//00DNzMy+exS+QMzMGkHNzMy+uR6NQMzMGkHNzMy+exS+QP//00DNzMy+exS+QP//00ApXI++uR6NQMzMGkEpXI++exS+QMzMGkEpXI++exS+QP//00ApXI++uR6NQP//00ApXI++uR6NQMzMGkEpXI++uR6NQP//00ApXI++uR6NQMzMGkHNzMy+uR6NQMzMGkEpXI++uR6NQP//00DNzMy+exS+QP//00DNzMy+exS+QMzMGkEpXI++exS+QMzMGkHNzMy+exS+QP//00ApXI++uR6NQP//00ApXI++exS+QP//00DNzMy+uR6NQP//00DNzMy+exS+QP//00ApXI++uR6NQMzMGkHNzMy+exS+QMzMGkEpXI++uR6NQMzMGkEpXI++exS+QMzMGkHNzMy+KVwZQf//00DNzMy+C9cxQczMGkHNzMy+KVwZQczMGkHNzMy+C9cxQf//00DNzMy+C9cxQf//00ApXI++KVwZQczMGkEpXI++C9cxQczMGkEpXI++C9cxQf//00ApXI++KVwZQf//00ApXI++KVwZQczMGkEpXI++KVwZQf//00ApXI++KVwZQczMGkHNzMy+KVwZQczMGkEpXI++KVwZQf//00DNzMy+C9cxQf//00DNzMy+C9cxQczMGkEpXI++C9cxQczMGkHNzMy+C9cxQf//00ApXI++KVwZQf//00ApXI++C9cxQf//00DNzMy+KVwZQf//00DNzMy+C9cxQf//00ApXI++KVwZQczMGkHNzMy+C9cxQczMGkEpXI++KVwZQczMGkEpXI++C9cxQczMGkHNzMy+4XpIwTMzg0BcjwK/j8JBwZqZKUFcjwK/4XpIwZqZKUFcjwK/j8JBwTMzg0BcjwK/j8JBwTMzg0DiepS+4XpIwZqZKUHiepS+j8JBwZqZKUHiepS+j8JBwTMzg0DiepS+4XpIwTMzg0DiepS+4XpIwZqZKUHiepS+4XpIwTMzg0DiepS+4XpIwZqZKUFcjwK/4XpIwZqZKUHiepS+4XpIwTMzg0BcjwK/j8JBwTMzg0BcjwK/j8JBwZqZKUHiepS+j8JBwZqZKUFcjwK/j8JBwTMzg0DiepS+4XpIwTMzg0DiepS+j8JBwTMzg0BcjwK/4XpIwTMzg0BcjwK/j8JBwTMzg0DiepS+4XpIwZqZKUFcjwK/j8JBwZqZKUHiepS+4XpIwZqZKUHiepS+j8JBwZqZKUFcjwK/lkPzwDMzg0BcjwK/8tLlwJqZKUFcjwK/lkPzwJqZKUFcjwK/8tLlwDMzg0BcjwK/8tLlwDMzg0DiepS+lkPzwJqZKUHiepS+8tLlwJqZKUHiepS+8tLlwDMzg0DiepS+lkPzwDMzg0DiepS+lkPzwJqZKUHiepS+lkPzwDMzg0DiepS+lkPzwJqZKUFcjwK/lkPzwJqZKUHiepS+lkPzwDMzg0BcjwK/8tLlwDMzg0BcjwK/8tLlwJqZKUHiepS+8tLlwJqZKUFcjwK/8tLlwDMzg0DiepS+lkPzwDMzg0DiepS+8tLlwDMzg0BcjwK/lkPzwDMzg0BcjwK/8tLlwDMzg0DiepS+lkPzwJqZKUFcjwK/8tLlwJqZKUHiepS+lkPzwJqZKUHiepS+8tLlwJqZKUFcjwK/0SIrwDMzg0BcjwK/iUEQwJqZKUFcjwK/0SIrwJqZKUFcjwK/iUEQwDMzg0BcjwK/iUEQwDMzg0DiepS+0SIrwJqZKUHiepS+iUEQwJqZKUHiepS+iUEQwDMzg0DiepS+0SIrwDMzg0DiepS+0SIrwJqZKUHiepS+0SIrwDMzg0DiepS+0SIrwJqZKUFcjwK/0SIrwJqZKUHiepS+0SIrwDMzg0BcjwK/iUEQwDMzg0BcjwK/iUEQwJqZKUHiepS+iUEQwJqZKUFcjwK/iUEQwDMzg0DiepS+0SIrwDMzg0DiepS+iUEQwDMzg0BcjwK/0SIrwDMzg0BcjwK/iUEQwDMzg0DiepS+0SIrwJqZKUFcjwK/iUEQwJqZKUHiepS+0SIrwJqZKUHiepS+iUEQwJqZKUFcjwK/iUEQQDMzg0BcjwK/0SIrQJqZKUFcjwK/iUEQQJqZKUFcjwK/0SIrQDMzg0BcjwK/0SIrQDMzg0DiepS+iUEQQJqZKUHiepS+0SIrQJqZKUHiepS+0SIrQDMzg0DiepS+iUEQQDMzg0DiepS+iUEQQJqZKUHiepS+iUEQQDMzg0DiepS+iUEQQJqZKUFcjwK/iUEQQJqZKUHiepS+iUEQQDMzg0BcjwK/0SIrQDMzg0BcjwK/0SIrQJqZKUHiepS+0SIrQJqZKUFcjwK/0SIrQDMzg0DiepS+iUEQQDMzg0DiepS+0SIrQDMzg0BcjwK/iUEQQDMzg0BcjwK/0SIrQDMzg0DiepS+iUEQQJqZKUFcjwK/0SIrQJqZKUHiepS+iUEQQJqZKUHiepS+0SIrQJqZKUFcjwK/8tLlQDMzg0BcjwK/lkPzQJqZKUFcjwK/8tLlQJqZKUFcjwK/lkPzQDMzg0BcjwK/lkPzQDMzg0DiepS+8tLlQJqZKUHiepS+lkPzQJqZKUHiepS+lkPzQDMzg0DiepS+8tLlQDMzg0DiepS+8tLlQJqZKUHiepS+8tLlQDMzg0DiepS+8tLlQJqZKUFcjwK/8tLlQJqZKUHiepS+8tLlQDMzg0BcjwK/lkPzQDMzg0BcjwK/lkPzQJqZKUHiepS+lkPzQJqZKUFcjwK/lkPzQDMzg0DiepS+8tLlQDMzg0DiepS+lkPzQDMzg0BcjwK/8tLlQDMzg0BcjwK/lkPzQDMzg0DiepS+8tLlQJqZKUFcjwK/lkPzQJqZKUHiepS+8tLlQJqZKUHiepS+lkPzQJqZKUFcjwK/j8JBQTMzg0BcjwK/4XpIQZqZKUFcjwK/j8JBQZqZKUFcjwK/4XpIQTMzg0BcjwK/4XpIQTMzg0DiepS+j8JBQZqZKUHiepS+4XpIQZqZKUHiepS+4XpIQTMzg0DiepS+j8JBQTMzg0DiepS+j8JBQZqZKUHiepS+j8JBQTMzg0DiepS+j8JBQZqZKUFcjwK/j8JBQZqZKUHiepS+j8JBQTMzg0BcjwK/4XpIQTMzg0BcjwK/4XpIQZqZKUHiepS+4XpIQZqZKUFcjwK/4XpIQTMzg0DiepS+j8JBQTMzg0DiepS+4XpIQTMzg0BcjwK/j8JBQTMzg0BcjwK/4XpIQTMzg0DiepS+j8JBQZqZKUFcjwK/4XpIQZqZKUHiepS+j8JBQZqZKUHiepS+4XpIQZqZKUFcjwK/MzOTwB+Fi0DNzBzAMzOTQOF6lEDNzBzAMzOTwOF6lEDNzBzAMzOTQB+Fi0DNzBzAMzOTQB+Fi0DNzAy/MzOTwOF6lEDNzAy/MzOTQOF6lEDNzAy/MzOTQB+Fi0DNzAy/MzOTwB+Fi0DNzAy/MzOTwOF6lEDNzAy/MzOTwB+Fi0DNzAy/MzOTwOF6lEDNzBzAMzOTwOF6lEDNzAy/MzOTwB+Fi0DNzBzAMzOTQB+Fi0DNzBzAMzOTQOF6lEDNzAy/MzOTQOF6lEDNzBzAMzOTQB+Fi0DNzAy/MzOTwB+Fi0DNzAy/MzOTQB+Fi0DNzBzAMzOTwB+Fi0DNzBzAMzOTQB+Fi0DNzAy/MzOTwOF6lEDNzBzAMzOTQOF6lEDNzAy/MzOTwOF6lEDNzAy/MzOTQOF6lEDNzBzAhutRwQAAZEEAAAAAAABQwWZmakEAAAAAhutRwWZmakEAAAAAAABQwQAAZEEAAAAAAABQwQAAZEEAAA5ChutRwWZmakEAAA5CAABQwWZmakEAAA5CAABQwQAAZEEAAA5ChutRwQAAZEEAAA5ChutRwWZmakEAAA5ChutRwQAAZEEAAA5ChutRwWZmakEAAAAAhutRwWZmakEAAA5ChutRwQAAZEEAAAAAAABQwQAAZEEAAAAAAABQwWZmakEAAA5CAABQwWZmakEAAAAAAABQwQAAZEEAAA5ChutRwQAAZEEAAA5CAABQwQAAZEEAAAAAhutRwQAAZEEAAAAAAABQwQAAZEEAAA5ChutRwWZmakEAAAAAAABQwWZmakEAAA5ChutRwWZmakEAAA5CAABQwWZmakEAAAAA//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7///////38AgP//////fwCA//////9/AID//////38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgAAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+///////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7///////38AgP//////fwCA//////9/AID//////38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgAAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+///////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7///////38AgP//////fwCA//////9/AID//////38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgAAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+///////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7///////38AgP//////fwCA//////9/AID//////38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgAAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+///////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7///////38AgP//////fwCA//////9/AID//////38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgAAA/3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/////f/9//7////9//3//v////3//f/+/////f/9//7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+///////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
 }, {
-"aabb": AABB(7.175, 5.5, -2.4, 0.14999962, 1.6000004, 2.4),
+"aabb": AABB(-11.925, 0.625, -0.54999995, 23.85, 8.875, 0.119999945),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8="),
+"format": 34359742487,
+"index_count": 60,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEAJAAlACYAJAAnACUA"),
+"material": SubResource("ShaderMaterial_5o0qq"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 40,
+"vertex_data": PackedByteArray("mpkbwZmZ2UD2KNy+mpkvwQAAGEH2KNy+mpkvwZmZ2UD2KNy+mpkbwQAAGEH2KNy+mpmRwJmZ2UD2KNy+mpm5wAAAGEH2KNy+mpm5wJmZ2UD2KNy+mpmRwAAAGEH2KNy+ZmZGP5mZ2UD2KNy+ZmZGvwAAGEH2KNy+ZmZGv5mZ2UD2KNy+ZmZGPwAAGEH2KNy+mpm5QJmZ2UD2KNy+mpmRQAAAGEH2KNy+mpmRQJmZ2UD2KNy+mpm5QAAAGEH2KNy+mpkvQZmZ2UD2KNy+mpkbQQAAGEH2KNy+mpkbQZmZ2UD2KNy+mpkvQQAAGEH2KNy+Z2YMwQAAID/MzAy/zcw+wc3MREDMzAy/zcw+wQAAID/MzAy/Z2YMwc3MREDMzAy/Z2aKwAAAID/MzAy/zczAwM3MREDMzAy/zczAwAAAID/MzAy/Z2aKwM3MREDMzAy/MzODP5mZMUDMzAy/MzODv83MVEDMzAy/MzODv5mZMUDMzAy/MzODP83MVEDMzAy/zczAQAAAID/MzAy/Z2aKQM3MREDMzAy/Z2aKQAAAID/MzAy/zczAQM3MREDMzAy/zcw+QQAAID/MzAy/Z2YMQc3MREDMzAy/Z2YMQQAAID/MzAy/zcw+Qc3MREDMzAy///////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AID//////38AgP//////fwCA//////9/AIA=")
+}, {
+"aabb": AABB(-1.025, 0.27499998, -0.54, 2.05, 2.5499997, 0.08000001),
 "attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
 "format": 34359742487,
 "index_count": 36,
 "index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcA"),
-"material": SubResource("ShaderMaterial_nggx6"),
+"material": SubResource("ShaderMaterial_b57ao"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 26,
-"vertex_data": PackedByteArray("mpnlQAAAsECamRnAZmbqQDQz40CamRnAmpnlQDQz40CamRnAZmbqQAAAsECamRnAZmbqQAAAsEAAAAAAmpnlQDQz40AAAAAAZmbqQDQz40AAAAAAZmbqQAAAsEAAAAAAmpnlQAAAsEAAAAAAmpnlQDQz40AAAAAAmpnlQAAAsEAAAAAAmpnlQDQz40CamRnAmpnlQDQz40AAAAAAmpnlQAAAsECamRnAZmbqQAAAsECamRnAZmbqQDQz40AAAAAAZmbqQDQz40CamRnAZmbqQAAAsEAAAAAAmpnlQAAAsEAAAAAAZmbqQAAAsECamRnAmpnlQAAAsECamRnAZmbqQAAAsEAAAAAAmpnlQDQz40CamRnAZmbqQDQz40AAAAAAmpnlQDQz40AAAAAAZmbqQDQz40CamRnA//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
+"vertex_data": PackedByteArray("MzODv8zMjD5xPQq/MzODP8zMNEBxPQq/MzODv8zMNEBxPQq/MzODP8zMjD5xPQq/MzODP8zMjD4fheu+MzODv8zMNEAfheu+MzODP8zMNEAfheu+MzODP8zMjD4fheu+MzODv8zMjD4fheu+MzODv8zMNEAfheu+MzODv8zMjD4fheu+MzODv8zMNEBxPQq/MzODv8zMNEAfheu+MzODv8zMjD5xPQq/MzODP8zMjD5xPQq/MzODP8zMNEAfheu+MzODP8zMNEBxPQq/MzODP8zMjD4fheu+MzODv8zMjD4fheu+MzODP8zMjD5xPQq/MzODv8zMjD5xPQq/MzODP8zMjD4fheu+MzODv8zMNEBxPQq/MzODP8zMNEAfheu+MzODv8zMNEAfheu+MzODP8zMNEBxPQq///////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
 }, {
-"aabb": AABB(7.17, 5.6000004, -2.3000002, 0.15999985, 1.3999996, 2.2000003),
-"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8="),
+"aabb": AABB(-13.2, 3.225, -2.4399998, 17.8, 3.225, 5.4399996),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+"format": 34359742487,
+"index_count": 72,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcAGgAbABwAGgAdABsAHgAfACAAIQAiACMAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALAAvAC0AMAAxADIAMAAzADEA"),
+"material": SubResource("ShaderMaterial_i0r7n"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 52,
+"vertex_data": PackedByteArray("MzOTwGZmTkD1KBzAMzOTQAAAjED1KBzAMzOTwAAAjED1KBzAMzOTQGZmTkD1KBzAMzOTQGZmTkDXoxDAMzOTwAAAjEDXoxDAMzOTQAAAjEDXoxDAMzOTQGZmTkDXoxDAMzOTwGZmTkDXoxDAMzOTwAAAjEDXoxDAMzOTwGZmTkDXoxDAMzOTwAAAjED1KBzAMzOTwAAAjEDXoxDAMzOTwGZmTkD1KBzAMzOTQGZmTkD1KBzAMzOTQAAAjEDXoxDAMzOTQAAAjED1KBzAMzOTQGZmTkDXoxDAMzOTwGZmTkDXoxDAMzOTQGZmTkD1KBzAMzOTwGZmTkD1KBzAMzOTQGZmTkDXoxDAMzOTwAAAjED1KBzAMzOTQAAAjEDXoxDAMzOTwAAAjEDXoxDAMzOTQAAAjED1KBzAMzNTwQAAmEDQzEw+16NQwWZmzkDQzEw+MzNTwWZmzkDQzEw+16NQwQAAmEDQzEw+16NQwQAAmEAAAEBAMzNTwWZmzkAAAEBA16NQwWZmzkAAAEBA16NQwQAAmEAAAEBAMzNTwQAAmEAAAEBAMzNTwWZmzkAAAEBAMzNTwQAAmEAAAEBAMzNTwWZmzkDQzEw+MzNTwWZmzkAAAEBAMzNTwQAAmEDQzEw+16NQwQAAmEDQzEw+16NQwWZmzkAAAEBA16NQwWZmzkDQzEw+16NQwQAAmEAAAEBAMzNTwQAAmEAAAEBA16NQwQAAmEDQzEw+MzNTwQAAmEDQzEw+16NQwQAAmEAAAEBAMzNTwWZmzkDQzEw+16NQwWZmzkAAAEBAMzNTwWZmzkAAAEBA16NQwWZmzkDQzEw+//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/78=")
+}, {
+"aabb": AABB(-13.22, 3.275, -2.47, 17.695, 3.0499997, 5.3199997),
+"attribute_data": PackedByteArray("AAAAAAAAgD8AAIA/AAAAAAAAgD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAgD8AAAAAAACAPwAAgD8AAAAAAAAAAA=="),
 "format": 34359742487,
 "index_count": 12,
-"index_data": PackedByteArray("AAABAAIAAwAEAAUABgAHAAgABgAJAAcA"),
-"material": SubResource("StandardMaterial3D_53wl6"),
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUA"),
+"material": SubResource("StandardMaterial3D_xjh0t"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 10,
-"vertex_data": PackedByteArray("XI/qQDQzs0DQzMy9XI/qQAAA4EA0MxPAXI/qQDQzs0A0MxPAXI/qQDQzs0DQzMy9XI/qQAAA4EDQzMy9XI/qQAAA4EA0MxPApHDlQDQzs0A0MxPApHDlQAAA4EDQzMy9pHDlQDQzs0DQzMy9pHDlQAAA4EA0MxPA////f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+/AAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//78=")
+"vertex_count": 8,
+"vertex_data": PackedByteArray("MzOPQJqZUUB7FB7AMzOPwGZmikB7FB7AMzOPwJqZUUB7FB7AMzOPQGZmikB7FB7AH4VTwQAAnEA0M7M+H4VTwWZmykBmZjZAH4VTwQAAnEBmZjZAH4VTwWZmykA0M7M+//////9/AID//////38AgP//////fwCA//////9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vw==")
 }, {
-"aabb": AABB(-9, 0, 12, 20, 14, 26),
+"aabb": AABB(-4.31, 4.63, -2.46, 8.62, 0.15999985, 0.32000017),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
+"format": 34359742487,
+"index_count": 1536,
+"index_data": PackedByteArray("AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIAMwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBDAEQARQBGAEcASABJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAXQBeAF8AYABhAGIAYwBkAGUAZgBnAGgAaQBqAGsAbABtAG4AbwBwAHEAcgBzAHQAdQB2AHcAeAB5AHoAewB8AH0AfgB/AIAAgQCCAIMAhACFAIYAhwCIAIkAigCLAIwAjQCOAI8AkACRAJEAkgCTAJQAlQCRAJEAlgCXAJgAmQCRAJEAmgCbAJwAnQCRAJEAngCfAKAAoQCRAJEAogCjAKQApQCRAJEApgCnAKgAqQCRAJEAqgCrAKwArQCRAJEArgCvALAAsQCyALMAtAC1ALYAtwC4ALkAugC7ALwAvQC+AL8AwADBAMIAwwDEAMUAxgDHAMgAyQDKAMsAzADNAM4AzwDQANEA0gDTANQA1QDWANcA2ADZANoA2wDcAN0A3gDfAOAA4QDiAOMA5ADlAOYA5wDoAOkA6gDrAOwA7QDuAO8A8ADxAPIA8wD0APUA9gD3APgA+QD6APsA/AD9AP4A/wAAAQEBAgEDAQQBBQEGAQcBCAEJAQoBCwEMAQ0BDgEPARABEQESARMBFAEVARYBFwEYARkBGgEbARwBHQEeAR8BIAEhASIBIwEkASUBJgEnASgBKQEqASsBLAEtAS4BLwEwATEBMgEzATQBNQE2ATcBOAE5AToBOwE8AT0BPgE/AUABQQFCAUIBQwFEAUUBRgFCAUIBRwFIAUkBSgFCAUIBSwFMAU0BTgFCAUIBTwFQAVEBUgFCAUIBUwFUAVUBVgFCAUIBVwFYAVkBWgFCAUIBWwFcAV0BXgFCAUIBXwFgAWEBYgFjAWQBZQFmAWcBaAFpAWoBawFsAW0BbgFvAXABcQFyAXMBdAF1AXYBdwF4AXkBegF7AXwBfQF+AX8BgAGBAYIBgwGEAYUBhgGHAYgBiQGKAYsBjAGNAY4BjwGQAZEBkgGTAZQBlQGWAZcBmAGZAZoBmwGcAZ0BngGfAaABoQGiAaMBpAGlAaYBpwGoAakBqgGrAawBrQGuAa8BsAGxAbIBswG0AbUBtgG3AbgBuQG6AbsBvAG9Ab4BvwHAAcEBwgHDAcQBxQHGAccByAHJAcoBywHMAc0BzgHPAdAB0QHSAdMB1AHVAdYB1wHYAdkB2gHbAdwB3QHeAd8B4AHhAeIB4wHkAeUB5gHnAegB6QHqAesB7AHtAe4B7wHwAfEB8gHzAfMB9AH1AfYB9wHzAfMB+AH5AfoB+wHzAfMB/AH9Af4B/wHzAfMBAAIBAgICAwLzAfMBBAIFAgYCBwLzAfMBCAIJAgoCCwLzAfMBDAINAg4CDwLzAfMBEAIRAhICEwIUAhUCFgIXAhgCGQIaAhsCHAIdAh4CHwIgAiECIgIjAiQCJQImAicCKAIpAioCKwIsAi0CLgIvAjACMQIyAjMCNAI1AjYCNwI4AjkCOgI7AjwCPQI+Aj8CQAJBAkICQwJEAkUCRgJHAkgCSQJKAksCTAJNAk4CTwJQAlECUgJTAlQCVQJWAlcCWAJZAloCWwJcAl0CXgJfAmACYQJiAmMCZAJlAmYCZwJoAmkCagJrAmwCbQJuAm8CcAJxAnICcwJ0AnUCdgJ3AngCeQJ6AnsCfAJ9An4CfwKAAoECggKDAoQChQKGAocCiAKJAooCiwKMAo0CjgKPApACkQKSApMClAKVApYClwKYApkCmgKbApwCnQKeAp8CoAKhAqICowKkAqQCpQKmAqcCqAKkAqQCqQKqAqsCrAKkAqQCrQKuAq8CsAKkAqQCsQKyArMCtAKkAqQCtQK2ArcCuAKkAqQCuQK6ArsCvAKkAqQCvQK+Ar8CwAKkAqQCwQLCAsMCxALFAsYCxwLIAskCygLLAswCzQLOAs8C0ALRAtIC0wLUAtUC1gLXAtgC2QLaAtsC3ALdAt4C3wLgAuEC4gLjAuQC5QLmAucC6ALpAuoC6wLsAu0C7gLvAvAC8QLyAvMC9AL1AvYC9wL4AvkC+gL7AvwC/QL+Av8CAAMBAwIDAwMEAwUDBgMHAwgDCQMKAwsDDAMNAw4DDwMQAxEDEgMTAxQDFQMWAxcDGAMZAxoDGwMcAx0DHgMfAyADIQMiAyMDJAMlAyYDJwMoAykDKgMrAywDLQMuAy8DMAMxAzIDMwM0AzUDNgM3AzgDOQM6AzsDPAM9Az4DPwNAA0EDQgNDA0QDRQNGA0cDSANJA0oDSwNMA00DTgNPA1ADUQNSA1MDVANVA1UDVgNXA1gDWQNVA1UDWgNbA1wDXQNVA1UDXgNfA2ADYQNVA1UDYgNjA2QDZQNVA1UDZgNnA2gDaQNVA1UDagNrA2wDbQNVA1UDbgNvA3ADcQNVA1UDcgNzA3QDdQN2A3cDeAN5A3oDewN8A30DfgN/A4ADgQOCA4MDhAOFA4YDhwOIA4kDigOLA4wDjQOOA48DkAORA5IDkwOUA5UDlgOXA5gDmQOaA5sDnAOdA54DnwOgA6EDogOjA6QDpQOmA6cDqAOpA6oDqwOsA60DrgOvA7ADsQOyA7MDtAO1A7YDtwO4A7kDugO7A7wDvQO+A78DwAPBA8IDwwPEA8UDxgPHA8gDyQPKA8sDzAPNA84DzwPQA9ED0gPTA9QD1QPWA9cD2APZA9oD2wPcA90D3gPfA+AD4QPiA+MD5APlA+YD5wPoA+kD6gPrA+wD7QPuA+8D8APxA/ID8wP0A/UD9gP3A/gD+QP6A/sD/AP9A/4D/wMABAEEAgQDBAQEBQQGBAYEBwQIBAkECgQGBAYECwQMBA0EDgQGBAYEDwQQBBEEEgQGBAYEEwQUBBUEFgQGBAYEFwQYBBkEGgQGBAYEGwQcBB0EHgQGBAYEHwQgBCEEIgQGBAYEIwQkBCUEJgQnBCgEKQQqBCsELAQtBC4ELwQwBDEEMgQzBDQENQQ2BDcEOAQ5BDoEOwQ8BD0EPgQ/BEAEQQRCBEMERARFBEYERwRIBEkESgRLBEwETQROBE8EUARRBFIEUwRUBFUEVgRXBFgEWQRaBFsEXARdBF4EXwRgBGEEYgRjBGQEZQRmBGcEaARpBGoEawRsBG0EbgRvBHAEcQRyBHMEdAR1BHYEdwR4BHkEegR7BHwEfQR+BH8EgASBBIIEgwSEBIUEhgSHBIgEiQSKBIsEjASNBI4EjwSQBJEEkgSTBJQElQSWBJcEmASZBJoEmwScBJ0EngSfBKAEoQSiBKMEpASlBKYEpwSoBKkEqgSrBKwErQSuBK8EsASxBLIEswS0BLUEtgS3BLcEuAS5BLoEuwS3BLcEvAS9BL4EvwS3BLcEwATBBMIEwwS3BLcExATFBMYExwS3BLcEyATJBMoEywS3BLcEzATNBM4EzwS3BLcE0ATRBNIE0wS3BLcE1ATVBNYE1wTYBNkE2gTbBNwE3QTeBN8E4AThBOIE4wTkBOUE5gTnBOgE6QTqBOsE7ATtBO4E7wTwBPEE8gTzBPQE9QT2BPcE+AT5BPoE+wT8BP0E/gT/BAAFAQUCBQMFBAUFBQYFBwUIBQkFCgULBQwFDQUOBQ8FEAURBRIFEwUUBRUFFgUXBRgFGQUaBRsFHAUdBR4FHwUgBSEFIgUjBSQFJQUmBScFKAUpBSoFKwUsBS0FLgUvBTAFMQUyBTMFNAU1BTYFNwU4BTkFOgU7BTwFPQU+BT8FQAVBBUIFQwVEBUUFRgVHBUgFSQVKBUsFTAVNBU4FTwVQBVEFUgVTBVQFVQVWBVcFWAVZBVoFWwVcBV0FXgVfBWAFYQViBWMFZAVlBWYFZwVoBWgFaQVqBWsFbAVoBWgFbQVuBW8FcAVoBWgFcQVyBXMFdAVoBWgFdQV2BXcFeAVoBWgFeQV6BXsFfAVoBWgFfQV+BX8FgAVoBWgFgQWCBYMFhAVoBWgFhQWGBYcF"),
+"material": SubResource("StandardMaterial3D_ebihq"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 1416,
+"vertex_data": PackedByteArray("KVx/wPYolEAzMxPAiHSBwI0elkCpggzA2hGAwI0elkAzMxPAKVx/wPYolEAzMxPA+y2BwPYolECQ9QvAiHSBwI0elkCpggzA+y2BwPYolECQ9QvAzcyEwI0elkBOvQnAiHSBwI0elkCpggzA+y2BwPYolECQ9QvAzcyEwPYolEDC9QjAzcyEwI0elkBOvQnAzcyEwPYolEDC9QjAEiWIwI0elkCpggzAzcyEwI0elkBOvQnAzcyEwPYolEDC9QjAn2uIwPYolECQ9QvAEiWIwI0elkCpggzAn2uIwPYolECQ9QvAwIeJwI0elkAzMxPAEiWIwI0elkCpggzAn2uIwPYolECQ9QvAheuJwPYolEAzMxPAwIeJwI0elkAzMxPAheuJwPYolEAzMxPAEiWIwI0elkC94xnAwIeJwI0elkAzMxPAheuJwPYolEAzMxPAn2uIwPYolEDWcBrAEiWIwI0elkC94xnAn2uIwPYolEDWcBrAzcyEwI0elkAYqRzAEiWIwI0elkC94xnAn2uIwPYolEDWcBrAzcyEwPYolECkcB3AzcyEwI0elkAYqRzAzcyEwPYolECkcB3AiHSBwI0elkC94xnAzcyEwI0elkAYqRzAzcyEwPYolECkcB3A+y2BwPYolEDWcBrAiHSBwI0elkC94xnA+y2BwPYolEDWcBrA2hGAwI0elkAzMxPAiHSBwI0elkC94xnA+y2BwPYolEDWcBrAKVx/wPYolEAzMxPA2hGAwI0elkAzMxPA2hGAwI0elkAzMxPAcT2CwMjHl0B7FA7A+y2BwMjHl0AzMxPA2hGAwI0elkAzMxPAiHSBwI0elkCpggzAcT2CwMjHl0B7FA7AiHSBwI0elkCpggzAzcyEwMjHl0CQ9QvAcT2CwMjHl0B7FA7AiHSBwI0elkCpggzAzcyEwI0elkBOvQnAzcyEwMjHl0CQ9QvAzcyEwI0elkBOvQnAKVyHwMjHl0B7FA7AzcyEwMjHl0CQ9QvAzcyEwI0elkBOvQnAEiWIwI0elkCpggzAKVyHwMjHl0B7FA7AEiWIwI0elkCpggzAn2uIwMjHl0AzMxPAKVyHwMjHl0B7FA7AEiWIwI0elkCpggzAwIeJwI0elkAzMxPAn2uIwMjHl0AzMxPAwIeJwI0elkAzMxPAKVyHwMjHl0DrURjAn2uIwMjHl0AzMxPAwIeJwI0elkAzMxPAEiWIwI0elkC94xnAKVyHwMjHl0DrURjAEiWIwI0elkC94xnAzcyEwMjHl0DWcBrAKVyHwMjHl0DrURjAEiWIwI0elkC94xnAzcyEwI0elkAYqRzAzcyEwMjHl0DWcBrAzcyEwI0elkAYqRzAcT2CwMjHl0DrURjAzcyEwMjHl0DWcBrAzcyEwI0elkAYqRzAiHSBwI0elkC94xnAcT2CwMjHl0DrURjAiHSBwI0elkC94xnA+y2BwMjHl0AzMxPAcT2CwMjHl0DrURjAiHSBwI0elkC94xnA2hGAwI0elkAzMxPA+y2BwMjHl0AzMxPA+y2BwMjHl0AzMxPAH2qDwOnjmEDYbRDANteCwOnjmEAzMxPA+y2BwMjHl0AzMxPAcT2CwMjHl0B7FA7AH2qDwOnjmEDYbRDAcT2CwMjHl0B7FA7AzcyEwOnjmEAESA/AH2qDwOnjmEDYbRDAcT2CwMjHl0B7FA7AzcyEwMjHl0CQ9QvAzcyEwOnjmEAESA/AzcyEwMjHl0CQ9QvAey+GwOnjmEDYbRDAzcyEwOnjmEAESA/AzcyEwMjHl0CQ9QvAKVyHwMjHl0B7FA7Aey+GwOnjmEDYbRDAKVyHwMjHl0B7FA7AZMKGwOnjmEAzMxPAey+GwOnjmEDYbRDAKVyHwMjHl0B7FA7An2uIwMjHl0AzMxPAZMKGwOnjmEAzMxPAn2uIwMjHl0AzMxPAey+GwOnjmECO+BXAZMKGwOnjmEAzMxPAn2uIwMjHl0AzMxPAKVyHwMjHl0DrURjAey+GwOnjmECO+BXAKVyHwMjHl0DrURjAzcyEwOnjmEBiHhfAey+GwOnjmECO+BXAKVyHwMjHl0DrURjAzcyEwMjHl0DWcBrAzcyEwOnjmEBiHhfAzcyEwMjHl0DWcBrAH2qDwOnjmECO+BXAzcyEwOnjmEBiHhfAzcyEwMjHl0DWcBrAcT2CwMjHl0DrURjAH2qDwOnjmECO+BXAcT2CwMjHl0DrURjANteCwOnjmEAzMxPAH2qDwOnjmECO+BXAcT2CwMjHl0DrURjA+y2BwMjHl0AzMxPANteCwOnjmEAzMxPANteCwOnjmEAzMxPAzcyEwK5HmUAzMxPANteCwOnjmEAzMxPAH2qDwOnjmEDYbRDAzcyEwK5HmUAzMxPAH2qDwOnjmEDYbRDAH2qDwOnjmEDYbRDAzcyEwOnjmEAESA/AzcyEwK5HmUAzMxPAzcyEwOnjmEAESA/AzcyEwOnjmEAESA/Aey+GwOnjmEDYbRDAzcyEwK5HmUAzMxPAey+GwOnjmEDYbRDAey+GwOnjmEDYbRDAZMKGwOnjmEAzMxPAzcyEwK5HmUAzMxPAZMKGwOnjmEAzMxPAZMKGwOnjmEAzMxPAey+GwOnjmECO+BXAzcyEwK5HmUAzMxPAey+GwOnjmECO+BXAey+GwOnjmECO+BXAzcyEwOnjmEBiHhfAzcyEwK5HmUAzMxPAzcyEwOnjmEBiHhfAzcyEwOnjmEBiHhfAH2qDwOnjmECO+BXAzcyEwK5HmUAzMxPAH2qDwOnjmECO+BXAH2qDwOnjmECO+BXANteCwOnjmEAzMxPAzcyEwK5HmUAzMxPAankzwPYolEAzMxPAUQY3wI0elkCpggzA9kA0wI0elkAzMxPAankzwPYolEAzMxPAOHk2wPYolECQ9QvAUQY3wI0elkCpggzAOHk2wPYolECQ9QvA27Y9wI0elkBOvQnAUQY3wI0elkCpggzAOHk2wPYolECQ9QvA27Y9wPYolEDC9QjA27Y9wI0elkBOvQnA27Y9wPYolEDC9QjAZWdEwI0elkCpggzA27Y9wI0elkBOvQnA27Y9wPYolEDC9QjAfvREwPYolECQ9QvAZWdEwI0elkCpggzAfvREwPYolECQ9QvAwCxHwI0elkAzMxPAZWdEwI0elkCpggzAfvREwPYolECQ9QvATPRHwPYolEAzMxPAwCxHwI0elkAzMxPATPRHwPYolEAzMxPAZWdEwI0elkC94xnAwCxHwI0elkAzMxPATPRHwPYolEAzMxPAfvREwPYolEDWcBrAZWdEwI0elkC94xnAfvREwPYolEDWcBrA27Y9wI0elkAYqRzAZWdEwI0elkC94xnAfvREwPYolEDWcBrA27Y9wPYolECkcB3A27Y9wI0elkAYqRzA27Y9wPYolECkcB3AUQY3wI0elkC94xnA27Y9wI0elkAYqRzA27Y9wPYolECkcB3AOHk2wPYolEDWcBrAUQY3wI0elkC94xnAOHk2wPYolEDWcBrA9kA0wI0elkAzMxPAUQY3wI0elkC94xnAOHk2wPYolEDWcBrAankzwPYolEAzMxPA9kA0wI0elkAzMxPA9kA0wI0elkAzMxPAI5g4wMjHl0B7FA7AOHk2wMjHl0AzMxPA9kA0wI0elkAzMxPAUQY3wI0elkCpggzAI5g4wMjHl0B7FA7AUQY3wI0elkCpggzA27Y9wMjHl0CQ9QvAI5g4wMjHl0B7FA7AUQY3wI0elkCpggzA27Y9wI0elkBOvQnA27Y9wMjHl0CQ9QvA27Y9wI0elkBOvQnAk9VCwMjHl0B7FA7A27Y9wMjHl0CQ9QvA27Y9wI0elkBOvQnAZWdEwI0elkCpggzAk9VCwMjHl0B7FA7AZWdEwI0elkCpggzAfvREwMjHl0AzMxPAk9VCwMjHl0B7FA7AZWdEwI0elkCpggzAwCxHwI0elkAzMxPAfvREwMjHl0AzMxPAwCxHwI0elkAzMxPAk9VCwMjHl0DrURjAfvREwMjHl0AzMxPAwCxHwI0elkAzMxPAZWdEwI0elkC94xnAk9VCwMjHl0DrURjAZWdEwI0elkC94xnA27Y9wMjHl0DWcBrAk9VCwMjHl0DrURjAZWdEwI0elkC94xnA27Y9wI0elkAYqRzA27Y9wMjHl0DWcBrA27Y9wI0elkAYqRzAI5g4wMjHl0DrURjA27Y9wMjHl0DWcBrA27Y9wI0elkAYqRzAUQY3wI0elkC94xnAI5g4wMjHl0DrURjAUQY3wI0elkC94xnAOHk2wMjHl0AzMxPAI5g4wMjHl0DrURjAUQY3wI0elkC94xnA9kA0wI0elkAzMxPAOHk2wMjHl0AzMxPAOHk2wMjHl0AzMxPAgPE6wOnjmEDYbRDArMs5wOnjmEAzMxPAOHk2wMjHl0AzMxPAI5g4wMjHl0B7FA7AgPE6wOnjmEDYbRDAI5g4wMjHl0B7FA7A27Y9wOnjmEAESA/AgPE6wOnjmEDYbRDAI5g4wMjHl0B7FA7A27Y9wMjHl0CQ9QvA27Y9wOnjmEAESA/A27Y9wMjHl0CQ9QvANnxAwOnjmEDYbRDA27Y9wOnjmEAESA/A27Y9wMjHl0CQ9QvAk9VCwMjHl0B7FA7ANnxAwOnjmEDYbRDAk9VCwMjHl0B7FA7ACqJBwOnjmEAzMxPANnxAwOnjmEDYbRDAk9VCwMjHl0B7FA7AfvREwMjHl0AzMxPACqJBwOnjmEAzMxPAfvREwMjHl0AzMxPANnxAwOnjmECO+BXACqJBwOnjmEAzMxPAfvREwMjHl0AzMxPAk9VCwMjHl0DrURjANnxAwOnjmECO+BXAk9VCwMjHl0DrURjA27Y9wOnjmEBiHhfANnxAwOnjmECO+BXAk9VCwMjHl0DrURjA27Y9wMjHl0DWcBrA27Y9wOnjmEBiHhfA27Y9wMjHl0DWcBrAgPE6wOnjmECO+BXA27Y9wOnjmEBiHhfA27Y9wMjHl0DWcBrAI5g4wMjHl0DrURjAgPE6wOnjmECO+BXAI5g4wMjHl0DrURjArMs5wOnjmEAzMxPAgPE6wOnjmECO+BXAI5g4wMjHl0DrURjAOHk2wMjHl0AzMxPArMs5wOnjmEAzMxPArMs5wOnjmEAzMxPA27Y9wK5HmUAzMxPArMs5wOnjmEAzMxPAgPE6wOnjmEDYbRDA27Y9wK5HmUAzMxPAgPE6wOnjmEDYbRDAgPE6wOnjmEDYbRDA27Y9wOnjmEAESA/A27Y9wK5HmUAzMxPA27Y9wOnjmEAESA/A27Y9wOnjmEAESA/ANnxAwOnjmEDYbRDA27Y9wK5HmUAzMxPANnxAwOnjmEDYbRDANnxAwOnjmEDYbRDACqJBwOnjmEAzMxPA27Y9wK5HmUAzMxPACqJBwOnjmEAzMxPACqJBwOnjmEAzMxPANnxAwOnjmECO+BXA27Y9wK5HmUAzMxPANnxAwOnjmECO+BXANnxAwOnjmECO+BXA27Y9wOnjmEBiHhfA27Y9wK5HmUAzMxPA27Y9wOnjmEBiHhfA27Y9wOnjmEBiHhfAgPE6wOnjmECO+BXA27Y9wK5HmUAzMxPAgPE6wOnjmECO+BXAgPE6wOnjmECO+BXArMs5wOnjmEAzMxPA27Y9wK5HmUAzMxPAWi3Pv/YolEAzMxPAJ0fWv40elkCpggzAcbzQv40elkAzMxPAWi3Pv/YolEAzMxPA9CzVv/YolECQ9QvAJ0fWv40elkCpggzA9CzVv/YolECQ9QvAO6jjv40elkBOvQnAJ0fWv40elkCpggzA9CzVv/YolECQ9QvAO6jjv/YolEDC9QjAO6jjv40elkBOvQnAO6jjv/YolEDC9QjATwnxv40elkCpggzAO6jjv40elkBOvQnAO6jjv/YolEDC9QjAgiPyv/YolECQ9QvATwnxv40elkCpggzAgiPyv/YolECQ9QvABZT2v40elkAzMxPATwnxv40elkCpggzAgiPyv/YolECQ9QvAHCP4v/YolEAzMxPABZT2v40elkAzMxPAHCP4v/YolEAzMxPATwnxv40elkC94xnABZT2v40elkAzMxPAHCP4v/YolEAzMxPAgiPyv/YolEDWcBrATwnxv40elkC94xnAgiPyv/YolEDWcBrAO6jjv40elkAYqRzATwnxv40elkC94xnAgiPyv/YolEDWcBrAO6jjv/YolECkcB3AO6jjv40elkAYqRzAO6jjv/YolECkcB3AJ0fWv40elkC94xnAO6jjv40elkAYqRzAO6jjv/YolECkcB3A9CzVv/YolEDWcBrAJ0fWv40elkC94xnA9CzVv/YolEDWcBrAcbzQv40elkAzMxPAJ0fWv40elkC94xnA9CzVv/YolEDWcBrAWi3Pv/YolEAzMxPAcbzQv40elkAzMxPAcbzQv40elkAzMxPAymrZv8jHl0B7FA7A9CzVv8jHl0AzMxPAcbzQv40elkAzMxPAJ0fWv40elkCpggzAymrZv8jHl0B7FA7AJ0fWv40elkCpggzAO6jjv8jHl0CQ9QvAymrZv8jHl0B7FA7AJ0fWv40elkCpggzAO6jjv40elkBOvQnAO6jjv8jHl0CQ9QvAO6jjv40elkBOvQnArOXtv8jHl0B7FA7AO6jjv8jHl0CQ9QvAO6jjv40elkBOvQnATwnxv40elkCpggzArOXtv8jHl0B7FA7ATwnxv40elkCpggzAgiPyv8jHl0AzMxPArOXtv8jHl0B7FA7ATwnxv40elkCpggzABZT2v40elkAzMxPAgiPyv8jHl0AzMxPABZT2v40elkAzMxPArOXtv8jHl0DrURjAgiPyv8jHl0AzMxPABZT2v40elkAzMxPATwnxv40elkC94xnArOXtv8jHl0DrURjATwnxv40elkC94xnAO6jjv8jHl0DWcBrArOXtv8jHl0DrURjATwnxv40elkC94xnAO6jjv40elkAYqRzAO6jjv8jHl0DWcBrAO6jjv40elkAYqRzAymrZv8jHl0DrURjAO6jjv8jHl0DWcBrAO6jjv40elkAYqRzAJ0fWv40elkC94xnAymrZv8jHl0DrURjAJ0fWv40elkC94xnA9CzVv8jHl0AzMxPAymrZv8jHl0DrURjAJ0fWv40elkC94xnAcbzQv40elkAzMxPA9CzVv8jHl0AzMxPA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whgIv+njmEAzMxPAfMUXv65HmUAzMxPAwhgIv+njmEAzMxPAD7AMv+njmEDYbRDAfMUXv65HmUAzMxPAD7AMv+njmEDYbRDAD7AMv+njmEDYbRDAfMUXv+njmEAESA/AfMUXv65HmUAzMxPAfMUXv+njmEAESA/AfMUXv+njmEAESA/A6doiv+njmEDYbRDAfMUXv65HmUAzMxPA6doiv+njmEDYbRDA6doiv+njmEDYbRDANnInv+njmEAzMxPAfMUXv65HmUAzMxPANnInv+njmEAzMxPANnInv+njmEAzMxPA6doiv+njmECO+BXAfMUXv65HmUAzMxPA6doiv+njmECO+BXA6doiv+njmECO+BXAfMUXv+njmEBiHhfAfMUXv65HmUAzMxPAfMUXv+njmEBiHhfAfMUXv+njmEBiHhfAD7AMv+njmECO+BXAfMUXv65HmUAzMxPAD7AMv+njmECO+BXAD7AMv+njmECO+BXAwhgIv+njmEAzMxPAfMUXv65HmUAzMxPAPrtAP/YolEAzMxPAo4cyP40elkCpggzAEJ09P40elkAzMxPAPrtAP/YolEAzMxPACbw0P/YolECQ9QvAo4cyP40elkCpggzACbw0P/YolECQ9QvAfMUXP40elkBOvQnAo4cyP40elkCpggzACbw0P/YolECQ9QvAfMUXP/YolEDC9QjAfMUXP40elkBOvQnAfMUXP/YolEDC9QjAqgb6Po0elkCpggzAfMUXP40elkBOvQnAfMUXP/YolEDC9QjA3p31PvYolECQ9QvAqgb6Po0elkCpggzA3p31PvYolECQ9QvA0NvjPo0elkAzMxPAqgb6Po0elkCpggzA3p31PvYolECQ9QvAc5/dPvYolEAzMxPA0NvjPo0elkAzMxPAc5/dPvYolEAzMxPAqgb6Po0elkC94xnA0NvjPo0elkAzMxPAc5/dPvYolEAzMxPA3p31PvYolEDWcBrAqgb6Po0elkC94xnA3p31PvYolEDWcBrAfMUXP40elkAYqRzAqgb6Po0elkC94xnA3p31PvYolEDWcBrAfMUXP/YolECkcB3AfMUXP40elkAYqRzAfMUXP/YolECkcB3Ao4cyP40elkC94xnAfMUXP40elkAYqRzAfMUXP/YolECkcB3ACbw0P/YolEDWcBrAo4cyP40elkC94xnACbw0P/YolEDWcBrAEJ09P40elkAzMxPAo4cyP40elkC94xnACbw0P/YolEDWcBrAPrtAP/YolEAzMxPAEJ09P40elkAzMxPAEJ09P40elkAzMxPAXUAsP8jHl0B7FA7ACbw0P8jHl0AzMxPAEJ09P40elkAzMxPAo4cyP40elkCpggzAXUAsP8jHl0B7FA7Ao4cyP40elkCpggzAfMUXP8jHl0CQ9QvAXUAsP8jHl0B7FA7Ao4cyP40elkCpggzAfMUXP40elkBOvQnAfMUXP8jHl0CQ9QvAfMUXP40elkBOvQnAm0oDP8jHl0B7FA7AfMUXP8jHl0CQ9QvAfMUXP40elkBOvQnAqgb6Po0elkCpggzAm0oDP8jHl0B7FA7Aqgb6Po0elkCpggzA3p31PsjHl0AzMxPAm0oDP8jHl0B7FA7Aqgb6Po0elkCpggzA0NvjPo0elkAzMxPA3p31PsjHl0AzMxPA0NvjPo0elkAzMxPAm0oDP8jHl0DrURjA3p31PsjHl0AzMxPA0NvjPo0elkAzMxPAqgb6Po0elkC94xnAm0oDP8jHl0DrURjAqgb6Po0elkC94xnAfMUXP8jHl0DWcBrAm0oDP8jHl0DrURjAqgb6Po0elkC94xnAfMUXP40elkAYqRzAfMUXP8jHl0DWcBrAfMUXP40elkAYqRzAXUAsP8jHl0DrURjAfMUXP8jHl0DWcBrAfMUXP40elkAYqRzAo4cyP40elkC94xnAXUAsP8jHl0DrURjAo4cyP40elkC94xnACbw0P8jHl0AzMxPAXUAsP8jHl0DrURjAo4cyP40elkC94xnAEJ09P40elkAzMxPACbw0P8jHl0AzMxPACbw0P8jHl0AzMxPA6doiP+njmEDYbRDANnInP+njmEAzMxPACbw0P8jHl0AzMxPAXUAsP8jHl0B7FA7A6doiP+njmEDYbRDAXUAsP8jHl0B7FA7AfMUXP+njmEAESA/A6doiP+njmEDYbRDAXUAsP8jHl0B7FA7AfMUXP8jHl0CQ9QvAfMUXP+njmEAESA/AfMUXP8jHl0CQ9QvAD7AMP+njmEDYbRDAfMUXP+njmEAESA/AfMUXP8jHl0CQ9QvAm0oDP8jHl0B7FA7AD7AMP+njmEDYbRDAm0oDP8jHl0B7FA7AwhgIP+njmEAzMxPAD7AMP+njmEDYbRDAm0oDP8jHl0B7FA7A3p31PsjHl0AzMxPAwhgIP+njmEAzMxPA3p31PsjHl0AzMxPAD7AMP+njmECO+BXAwhgIP+njmEAzMxPA3p31PsjHl0AzMxPAm0oDP8jHl0DrURjAD7AMP+njmECO+BXAm0oDP8jHl0DrURjAfMUXP+njmEBiHhfAD7AMP+njmECO+BXAm0oDP8jHl0DrURjAfMUXP8jHl0DWcBrAfMUXP+njmEBiHhfAfMUXP8jHl0DWcBrA6doiP+njmECO+BXAfMUXP+njmEBiHhfAfMUXP8jHl0DWcBrAXUAsP8jHl0DrURjA6doiP+njmECO+BXAXUAsP8jHl0DrURjANnInP+njmEAzMxPA6doiP+njmECO+BXAXUAsP8jHl0DrURjACbw0P8jHl0AzMxPANnInP+njmEAzMxPANnInP+njmEAzMxPAfMUXP65HmUAzMxPANnInP+njmEAzMxPA6doiP+njmEDYbRDAfMUXP65HmUAzMxPA6doiP+njmEDYbRDA6doiP+njmEDYbRDAfMUXP+njmEAESA/AfMUXP65HmUAzMxPAfMUXP+njmEAESA/AfMUXP+njmEAESA/AD7AMP+njmEDYbRDAfMUXP65HmUAzMxPAD7AMP+njmEDYbRDAD7AMP+njmEDYbRDAwhgIP+njmEAzMxPAfMUXP65HmUAzMxPAwhgIP+njmEAzMxPAwhgIP+njmEAzMxPAD7AMP+njmECO+BXAfMUXP65HmUAzMxPAD7AMP+njmECO+BXAD7AMP+njmECO+BXAfMUXP+njmEBiHhfAfMUXP65HmUAzMxPAfMUXP+njmEBiHhfAfMUXP+njmEBiHhfA6doiP+njmECO+BXAfMUXP65HmUAzMxPA6doiP+njmECO+BXA6doiP+njmECO+BXANnInP+njmEAzMxPAfMUXP65HmUAzMxPAHCP4P/YolEAzMxPATwnxP40elkCpggzABZT2P40elkAzMxPAHCP4P/YolEAzMxPAgiPyP/YolECQ9QvATwnxP40elkCpggzAgiPyP/YolECQ9QvAO6jjP40elkBOvQnATwnxP40elkCpggzAgiPyP/YolECQ9QvAO6jjP/YolEDC9QjAO6jjP40elkBOvQnAO6jjP/YolEDC9QjAJ0fWP40elkCpggzAO6jjP40elkBOvQnAO6jjP/YolEDC9QjA9CzVP/YolECQ9QvAJ0fWP40elkCpggzA9CzVP/YolECQ9QvAcbzQP40elkAzMxPAJ0fWP40elkCpggzA9CzVP/YolECQ9QvAWi3PP/YolEAzMxPAcbzQP40elkAzMxPAWi3PP/YolEAzMxPAJ0fWP40elkC94xnAcbzQP40elkAzMxPAWi3PP/YolEAzMxPA9CzVP/YolEDWcBrAJ0fWP40elkC94xnA9CzVP/YolEDWcBrAO6jjP40elkAYqRzAJ0fWP40elkC94xnA9CzVP/YolEDWcBrAO6jjP/YolECkcB3AO6jjP40elkAYqRzAO6jjP/YolECkcB3ATwnxP40elkC94xnAO6jjP40elkAYqRzAO6jjP/YolECkcB3AgiPyP/YolEDWcBrATwnxP40elkC94xnAgiPyP/YolEDWcBrABZT2P40elkAzMxPATwnxP40elkC94xnAgiPyP/YolEDWcBrAHCP4P/YolEAzMxPABZT2P40elkAzMxPABZT2P40elkAzMxPArOXtP8jHl0B7FA7AgiPyP8jHl0AzMxPABZT2P40elkAzMxPATwnxP40elkCpggzArOXtP8jHl0B7FA7ATwnxP40elkCpggzAO6jjP8jHl0CQ9QvArOXtP8jHl0B7FA7ATwnxP40elkCpggzAO6jjP40elkBOvQnAO6jjP8jHl0CQ9QvAO6jjP40elkBOvQnAymrZP8jHl0B7FA7AO6jjP8jHl0CQ9QvAO6jjP40elkBOvQnAJ0fWP40elkCpggzAymrZP8jHl0B7FA7AJ0fWP40elkCpggzA9CzVP8jHl0AzMxPAymrZP8jHl0B7FA7AJ0fWP40elkCpggzAcbzQP40elkAzMxPA9CzVP8jHl0AzMxPAcbzQP40elkAzMxPAymrZP8jHl0DrURjA9CzVP8jHl0AzMxPAcbzQP40elkAzMxPAJ0fWP40elkC94xnAymrZP8jHl0DrURjAJ0fWP40elkC94xnAO6jjP8jHl0DWcBrAymrZP8jHl0DrURjAJ0fWP40elkC94xnAO6jjP40elkAYqRzAO6jjP8jHl0DWcBrAO6jjP40elkAYqRzArOXtP8jHl0DrURjAO6jjP8jHl0DWcBrAO6jjP40elkAYqRzATwnxP40elkC94xnArOXtP8jHl0DrURjA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")
+}, {
+"aabb": AABB(-13.14, 0, 0, 0.15999985, 1.5, 35.5),
 "attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
 "format": 34359742487,
 "index_count": 36,
 "index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcA"),
-"material": SubResource("ShaderMaterial_gwo83"),
+"material": SubResource("ShaderMaterial_quxat"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 26,
-"vertex_data": PackedByteArray("AAAQwQAAAAAAAEBBAAAwQQAAYEEAAEBBAAAQwQAAYEEAAEBBAAAwQQAAAAAAAEBBAAAwQQAAAAAAABhCAAAQwQAAYEEAABhCAAAwQQAAYEEAABhCAAAwQQAAAAAAABhCAAAQwQAAAAAAABhCAAAQwQAAYEEAABhCAAAQwQAAAAAAABhCAAAQwQAAYEEAAEBBAAAQwQAAYEEAABhCAAAQwQAAAAAAAEBBAAAwQQAAAAAAAEBBAAAwQQAAYEEAABhCAAAwQQAAYEEAAEBBAAAwQQAAAAAAABhCAAAQwQAAAAAAABhCAAAwQQAAAAAAAEBBAAAQwQAAAAAAAEBBAAAwQQAAAAAAABhCAAAQwQAAYEEAAEBBAAAwQQAAYEEAABhCAAAQwQAAYEEAABhCAAAwQQAAYEEAAEBB//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
+"vertex_data": PackedByteArray("cT1SwQAAAAAAAAAAFa5PwQAAwD8AAAAAcT1SwQAAwD8AAAAAFa5PwQAAAAAAAAAAFa5PwQAAAAAAAA5CcT1SwQAAwD8AAA5CFa5PwQAAwD8AAA5CFa5PwQAAAAAAAA5CcT1SwQAAAAAAAA5CcT1SwQAAwD8AAA5CcT1SwQAAAAAAAA5CcT1SwQAAwD8AAAAAcT1SwQAAwD8AAA5CcT1SwQAAAAAAAAAAFa5PwQAAAAAAAAAAFa5PwQAAwD8AAA5CFa5PwQAAwD8AAAAAFa5PwQAAAAAAAA5CcT1SwQAAAAAAAA5CFa5PwQAAAAAAAAAAcT1SwQAAAAAAAAAAFa5PwQAAAAAAAA5CcT1SwQAAwD8AAAAAFa5PwQAAwD8AAA5CcT1SwQAAwD8AAA5CFa5PwQAAwD8AAAAA//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
 }, {
-"aabb": AABB(8.4, 0, 36.2, 1.6000004, 20, 1.5999985),
+"aabb": AABB(-11.150001, 14.800001, 12.7, 2.1000004, 8.799999, 1.6000004),
 "attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
 "format": 34359742487,
 "index_count": 36,
 "index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcA"),
-"material": SubResource("ShaderMaterial_s67rs"),
+"material": SubResource("ShaderMaterial_jtx08"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 26,
-"vertex_data": PackedByteArray("ZmYGQQAAAADNzBBCAAAgQQAAoEHNzBBCZmYGQQAAoEHNzBBCAAAgQQAAAADNzBBCAAAgQQAAAAAzMxdCZmYGQQAAoEEzMxdCAAAgQQAAoEEzMxdCAAAgQQAAAAAzMxdCZmYGQQAAAAAzMxdCZmYGQQAAoEEzMxdCZmYGQQAAAAAzMxdCZmYGQQAAoEHNzBBCZmYGQQAAoEEzMxdCZmYGQQAAAADNzBBCAAAgQQAAAADNzBBCAAAgQQAAoEEzMxdCAAAgQQAAoEHNzBBCAAAgQQAAAAAzMxdCZmYGQQAAAAAzMxdCAAAgQQAAAADNzBBCZmYGQQAAAADNzBBCAAAgQQAAAAAzMxdCZmYGQQAAoEHNzBBCAAAgQQAAoEEzMxdCZmYGQQAAoEEzMxdCAAAgQQAAoEHNzBBC//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
+"vertex_data": PackedByteArray("Z2Yywc7MbEEzM0tBzcwQwc3MvEEzM0tBZ2Yywc3MvEEzM0tBzcwQwc7MbEEzM0tBzcwQwc7MbEHNzGRBZ2Yywc3MvEHNzGRBzcwQwc3MvEHNzGRBzcwQwc7MbEHNzGRBZ2Yywc7MbEHNzGRBZ2Yywc3MvEHNzGRBZ2Yywc7MbEHNzGRBZ2Yywc3MvEEzM0tBZ2Yywc3MvEHNzGRBZ2Yywc7MbEEzM0tBzcwQwc7MbEEzM0tBzcwQwc3MvEHNzGRBzcwQwc3MvEEzM0tBzcwQwc7MbEHNzGRBZ2Yywc7MbEHNzGRBzcwQwc7MbEEzM0tBZ2Yywc7MbEEzM0tBzcwQwc7MbEHNzGRBZ2Yywc3MvEEzM0tBzcwQwc3MvEHNzGRBZ2Yywc3MvEHNzGRBzcwQwc3MvEEzM0tB//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/vw==")
+}, {
+"aabb": AABB(-12, 12.799999, 0.60000014, 24.05, 2.1200008, 34.5),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+"format": 34359742487,
+"index_count": 72,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABwAIAAkACgALAAwACgANAAsADgAPABAADgARAA8AEgATABQAEgAVABMAFgAXABgAFgAZABcAGgAbABwAGgAdABsAHgAfACAAIQAiACMAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALAAvAC0AMAAxADIAMAAzADEA"),
+"material": SubResource("ShaderMaterial_ocqe1"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 52,
+"vertex_data": PackedByteArray("AABAwczMTEGcmRk/AABAQVK4TkGcmRk/AABAwVK4TkGcmRk/AABAQczMTEGcmRk/AABAQczMTEGamblAAABAwVK4TkGamblAAABAQVK4TkGamblAAABAQczMTEGamblAAABAwczMTEGamblAAABAwVK4TkGamblAAABAwczMTEGamblAAABAwVK4TkGcmRk/AABAwVK4TkGamblAAABAwczMTEGcmRk/AABAQczMTEGcmRk/AABAQVK4TkGamblAAABAQVK4TkGcmRk/AABAQczMTEGamblAAABAwczMTEGamblAAABAQczMTEGcmRk/AABAwczMTEGcmRk/AABAQczMTEGamblAAABAwVK4TkGcmRk/AABAQVK4TkGamblAAABAwVK4TkGamblAAABAQVK4TkGcmRk/AAA8wczMbEHMzLxAzMxAQVK4bkHMzLxAAAA8wVK4bkHMzLxAzMxAQczMbEHMzLxAzMxAQczMbEFmZgxCAAA8wVK4bkFmZgxCzMxAQVK4bkFmZgxCzMxAQczMbEFmZgxCAAA8wczMbEFmZgxCAAA8wVK4bkFmZgxCAAA8wczMbEFmZgxCAAA8wVK4bkHMzLxAAAA8wVK4bkFmZgxCAAA8wczMbEHMzLxAzMxAQczMbEHMzLxAzMxAQVK4bkFmZgxCzMxAQVK4bkHMzLxAzMxAQczMbEFmZgxCAAA8wczMbEFmZgxCzMxAQczMbEHMzLxAAAA8wczMbEHMzLxAzMxAQczMbEFmZgxCAAA8wVK4bkHMzLxAzMxAQVK4bkFmZgxCAAA8wVK4bkFmZgxCzMxAQVK4bkHMzLxA//////9/AID//////38AgP//////fwCA//////9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAAAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//v////3//f/+/////f/9//7////9//3//v////3//f/+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v///////fwCA//////9/AID//////38AgP//////fwCA/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AID/f/9//38AgP9//3//fwCAAAD/f/9//78AAP9//3//vwAA/3//f/+/AAD/f/9//7////9//3//v////3//f/+/////f/9//7////9//3//v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/78=")
+}, {
+"aabb": AABB(-4.75, 12.85, 3.476919, 8.9, 0.6999998, 1.0461619),
+"attribute_data": PackedByteArray("O++wPgAAAAAAAAAAMzMzPwAAAAAAAAAAO++wPgAAAAA777A+MzMzPwAAAAAzMzM/O+8wPwAAAAA777A+MzMzPzvvsD4AAAAAO+8wPwAAAAA77zA/MzMzPzvvsD4zMzM/bLOEPwAAAAA77zA/MzMzPzvvMD8AAAAAbLOEPzMzMz8777A/AAAAAGyzhD8zMzM/bLOEPwAAAAA777A/MzMzPwor3T8AAAAAO++wPzMzMz8777A/AAAAAAor3T8zMzM/bLMEQAAAAAAKK90/MzMzPwor3T8AAAAAbLMEQDMzMz9U0RpAAAAAAGyzBEAzMzM/bLMEQAAAAABU0RpAMzMzPzvvMEAAAAAAVNEaQDMzMz9U0RpAAAAAADvvMEAzMzM/Iw1HQAAAAAA77zBAMzMzPzvvMEAAAAAAIw1HQDMzMz8AAAAAAAAAACMNR0AzMzM/Iw1HQAAAAAAAAAAAMzMzPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO++wPgAAAAAAAAAAMzMzPwAAAAAAAAAAO++wPgAAAAA777A+MzMzPwAAAAAzMzM/O+8wPwAAAAA777A+MzMzPzvvsD4AAAAAO+8wPwAAAAA77zA/MzMzPzvvsD4zMzM/bLOEPwAAAAA77zA/MzMzPzvvMD8AAAAAbLOEPzMzMz8777A/AAAAAGyzhD8zMzM/bLOEPwAAAAA777A/MzMzPwor3T8AAAAAO++wPzMzMz8777A/AAAAAAor3T8zMzM/bLMEQAAAAAAKK90/MzMzPwor3T8AAAAAbLMEQDMzMz9U0RpAAAAAAGyzBEAzMzM/bLMEQAAAAABU0RpAMzMzPzvvMEAAAAAAVNEaQDMzMz9U0RpAAAAAADvvMEAzMzM/Iw1HQAAAAAA77zBAMzMzPzvvMEAAAAAAIw1HQDMzMz8AAAAAAAAAACMNR0AzMzM/Iw1HQAAAAAAAAAAAMzMzPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
+"format": 34359742487,
+"index_count": 240,
+"index_data": PackedByteArray("AAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0AIAAhACIAIAAjACEAJAAlACYAJAAnACUAKAApACoAKAArACkALAAtAC4ALAAvAC0ALAAwAC8ALAAxADAALAAyADEAMwA0ADUALAA2ADcAOAA5ADoALAA7ADwALAAuADsAPQA+AD8APQA/AEAAQQBCAEMAPQBEAEUAPQBFAEYAPQBGAEcAPQBHAEgAPQBIAEkAPQBJAEoASwBMAE0ATgBPAFAAUQBSAFMAVABVAFYAVwBYAFkAWgBbAFwAWgBdAFsAXgBfAGAAXgBhAF8AYgBjAGQAYgBlAGMAZgBnAGgAZgBpAGcAagBrAGwAagBtAGsAbgBvAHAAbgBxAG8AcgBzAHQAcgB1AHMAdgB3AHgAdgB5AHcAegB7AHwAegB9AHsAegB+AH0AegB/AH4AegCAAH8AgQCCAIMAegCEAIUAhgCHAIgAegCJAIoAegB8AIkAiwCMAI0AiwCNAI4AjwCQAJEAiwCSAJMAiwCTAJQAiwCUAJUAiwCVAJYAiwCWAJcAiwCXAJgAmQCaAJsA"),
+"material": SubResource("ShaderMaterial_tu55b"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 156,
+"vertex_data": PackedByteArray("lVJwwJqZTUFTWIpAmZlpwM3MWEEAAIBAmZlpwJqZTUEAAIBAlVJwwJqZTUFTWIpAlVJwwM3MWEFTWIpAmZlpwM3MWEEAAIBAF/aAwJqZTUEUvZBAlVJwwM3MWEFTWIpAlVJwwJqZTUFTWIpAF/aAwJqZTUEUvZBAF/aAwM3MWEEUvZBAlVJwwM3MWEFTWIpAtdaLwJqZTUEUvZBAF/aAwM3MWEEUvZBAF/aAwJqZTUEUvZBAtdaLwM3MWEEUvZBAgaOUwJqZTUFTWIpAtdaLwM3MWEEUvZBAtdaLwJqZTUEUvZBAgaOUwM3MWEFTWIpAAACYwJqZTUEAAIBAgaOUwM3MWEFTWIpAgaOUwJqZTUFTWIpAAACYwM3MWEEAAIBAgaOUwJqZTUFaT2tAAACYwM3MWEEAAIBAAACYwJqZTUEAAIBAgaOUwM3MWEFaT2tAtdaLwJqZTUHXhV5AgaOUwM3MWEFaT2tAgaOUwJqZTUFaT2tAtdaLwM3MWEHXhV5AF/aAwJqZTUHXhV5AtdaLwM3MWEHXhV5AtdaLwJqZTUHXhV5AF/aAwM3MWEHXhV5AlVJwwJqZTUFaT2tAF/aAwM3MWEHXhV5AF/aAwJqZTUHXhV5AlVJwwM3MWEFaT2tAmZlpwJqZTUEAAIBAlVJwwM3MWEFaT2tAlVJwwJqZTUFaT2tAmZlpwM3MWEEAAIBAZmaGwJqZTUEAAIBAlVJwwJqZTUFTWIpAmZlpwJqZTUEAAIBAF/aAwJqZTUEUvZBAtdaLwJqZTUEUvZBAgaOUwJqZTUFTWIpAAACYwJqZTUEAAIBAZmaGwJqZTUEAAIBAgaOUwJqZTUFaT2tAAACYwJqZTUEAAIBAtdaLwJqZTUHXhV5AgaOUwJqZTUFaT2tAZmaGwJqZTUEAAIBAF/aAwJqZTUHXhV5AtdaLwJqZTUHXhV5AlVJwwJqZTUFaT2tAF/aAwJqZTUHXhV5AZmaGwM3MWEEAAIBAmZlpwM3MWEEAAIBAlVJwwM3MWEFTWIpAF/aAwM3MWEEUvZBAZmaGwM3MWEEAAIBAF/aAwM3MWEEUvZBAtdaLwM3MWEEUvZBAtdaLwM3MWEEUvZBAgaOUwM3MWEFTWIpAAACYwM3MWEEAAIBAgaOUwM3MWEFaT2tAtdaLwM3MWEHXhV5AF/aAwM3MWEHXhV5AlVJwwM3MWEFaT2tAZmaGwM3MWEEAAIBAlVJwwM3MWEFaT2tAmZlpwM3MWEEAAIBATnCBQJqZTUFTWIpAzcyEQM3MWEEAAIBAzcyEQJqZTUEAAIBATnCBQJqZTUFTWIpATnCBQM3MWEFTWIpAzcyEQM3MWEEAAIBAA0dxQJqZTUEUvZBATnCBQM3MWEFTWIpATnCBQJqZTUFTWIpAA0dxQJqZTUEUvZBAA0dxQM3MWEEUvZBATnCBQM3MWEFTWIpAyYVbQJqZTUEUvZBAA0dxQM3MWEEUvZBAA0dxQJqZTUEUvZBAyYVbQM3MWEEUvZBAL+xJQJqZTUFTWIpAyYVbQM3MWEEUvZBAyYVbQJqZTUEUvZBAL+xJQM3MWEFTWIpAMzNDQJqZTUEAAIBAL+xJQM3MWEFTWIpAL+xJQJqZTUFTWIpAMzNDQM3MWEEAAIBAL+xJQJqZTUFaT2tAMzNDQM3MWEEAAIBAMzNDQJqZTUEAAIBAL+xJQM3MWEFaT2tAyYVbQJqZTUHXhV5AL+xJQM3MWEFaT2tAL+xJQJqZTUFaT2tAyYVbQM3MWEHXhV5AA0dxQJqZTUHXhV5AyYVbQM3MWEHXhV5AyYVbQJqZTUHXhV5AA0dxQM3MWEHXhV5ATnCBQJqZTUFaT2tAA0dxQM3MWEHXhV5AA0dxQJqZTUHXhV5ATnCBQM3MWEFaT2tAzcyEQJqZTUEAAIBATnCBQM3MWEFaT2tATnCBQJqZTUFaT2tAzcyEQM3MWEEAAIBAZmZmQJqZTUEAAIBATnCBQJqZTUFTWIpAzcyEQJqZTUEAAIBAA0dxQJqZTUEUvZBAyYVbQJqZTUEUvZBAL+xJQJqZTUFTWIpAMzNDQJqZTUEAAIBAZmZmQJqZTUEAAIBAL+xJQJqZTUFaT2tAMzNDQJqZTUEAAIBAyYVbQJqZTUHXhV5AL+xJQJqZTUFaT2tAZmZmQJqZTUEAAIBAA0dxQJqZTUHXhV5AyYVbQJqZTUHXhV5ATnCBQJqZTUFaT2tAA0dxQJqZTUHXhV5AZmZmQM3MWEEAAIBAzcyEQM3MWEEAAIBATnCBQM3MWEFTWIpAA0dxQM3MWEEUvZBAZmZmQM3MWEEAAIBAA0dxQM3MWEEUvZBAyYVbQM3MWEEUvZBAyYVbQM3MWEEUvZBAL+xJQM3MWEFTWIpAMzNDQM3MWEEAAIBAL+xJQM3MWEFaT2tAyYVbQM3MWEHXhV5AA0dxQM3MWEHXhV5ATnCBQM3MWEFaT2tAZmZmQM3MWEEAAIBATnCBQM3MWEFaT2tAzcyEQM3MWEEAAIBAm+D/f+xiRrub4P9/7GJGu5vg/3/sYka7m+D/f+xiRrub4P9/7GJGu5vg/3/sYka73LX/f79Wm6Pctf9/v1abo9y1/3+/Vpuj3LX/f79Wm6Pctf9/v1abo9y1/3+/Vpuj/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAiSv9/P6mboyJK/38/qZujIkr/fz+pm6MiSv9/P6mbo2Mf/38SnUa7Yx//fxKdRrtjH/9/Ep1Gu2Mf/38SnUa7AABjn+xiRrsAAGOf7GJGuwAAY5/sYka7AABjn+xiRrsAACLKv1abowAAIsq/VpujAAAiyr9Wm6MAACLKv1abo///////fwCA//////9/AID//////38AgP//////fwCA//8iyj+pm6P//yLKP6mbo///Iso/qZuj//8iyj+pm6P//2OfEp1Gu///Y58SnUa7//9jnxKdRrv//2OfEp1Gu/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+/m+D/f+xiRrub4P9/7GJGu5vg/3/sYka7m+D/f+xiRrub4P9/7GJGu5vg/3/sYka73LX/f79Wm6Pctf9/v1abo9y1/3+/Vpuj3LX/f79Wm6Pctf9/v1abo9y1/3+/Vpuj/3//f/9/AID/f/9//38AgP9//3//fwCA/3//f/9/AIAiSv9/P6mboyJK/38/qZujIkr/fz+pm6MiSv9/P6mbo2Mf/38SnUa7Yx//fxKdRrtjH/9/Ep1Gu2Mf/38SnUa7AABjn+xiRrsAAGOf7GJGuwAAY5/sYka7AABjn+xiRrsAACLKv1abowAAIsq/VpujAAAiyr9Wm6MAACLKv1abo///////fwCA//////9/AID//////38AgP//////fwCA//8iyj+pm6P//yLKP6mbo///Iso/qZuj//8iyj+pm6P//2OfEp1Gu///Y58SnUa7//9jnxKdRrv//2OfEp1Gu/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//fwAAAAD/v/9/AAAAAP+//38AAAAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+//3///wAA/7//f///AAD/v/9///8AAP+/")
 }]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_frkh7"]
-size = Vector3(16.5, 11, 12)
+[sub_resource type="BoxShape3D" id="BoxShape3D_o2ete"]
+size = Vector3(25.4, 14.8, 35.8)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_7nk0e"]
-size = Vector3(20, 14, 26)
+[sub_resource type="BoxShape3D" id="BoxShape3D_nn0nc"]
+size = Vector3(24.9, 18.6, 12)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_iivr1"]
 resource_name = "siding_white"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("42_c6tq1")
-shader_parameter/normal_tex = ExtResource("44_c0i5c")
-shader_parameter/roughness_tex = ExtResource("45_5lxfq")
-shader_parameter/ao_tex = ExtResource("43_r25fg")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("42_1hlwp")
+shader_parameter/normal_tex = ExtResource("44_lwl3g")
+shader_parameter/roughness_tex = ExtResource("45_m1deo")
+shader_parameter/ao_tex = ExtResource("43_ounx2")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.98, 0.95, 0.88, 1)
 shader_parameter/albedo_multiplier = 1.0
@@ -1438,14 +1712,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_156dk"]
 resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("11_6c18d")
-shader_parameter/normal_tex = ExtResource("13_ncpkh")
-shader_parameter/roughness_tex = ExtResource("14_6cd1u")
-shader_parameter/ao_tex = ExtResource("12_caak1")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.85, 0.76, 0.58, 1)
 shader_parameter/albedo_multiplier = 0.75
@@ -1478,7 +1752,7 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wa2l0"]
 resource_name = "shingles_dark"
 render_priority = 0
-shader = ExtResource("53_jtlhf")
+shader = ExtResource("57_xswie")
 shader_parameter/shingle_color_dark = Color(0.5, 0.46, 0.42, 1)
 shader_parameter/shingle_color_light = Color(0.62, 0.58, 0.53, 1)
 shader_parameter/roughness_base = 0.88
@@ -1490,9 +1764,9 @@ shader_parameter/v_is_downslope = true
 shader_parameter/ridge_xy = Vector2(0, 1.55)
 shader_parameter/fascia_color = Color(0.1, 0.09, 0.085, 1)
 shader_parameter/fascia_roughness = 0.7
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = 1.75
 shader_parameter/snow_slope_bias = -0.15
 shader_parameter/snow_noise_scale = 0.15
@@ -1501,14 +1775,14 @@ shader_parameter/porosity = 0.2
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7sndf"]
 resource_name = "siding_white"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("42_c6tq1")
-shader_parameter/normal_tex = ExtResource("44_c0i5c")
-shader_parameter/roughness_tex = ExtResource("45_5lxfq")
-shader_parameter/ao_tex = ExtResource("43_r25fg")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("42_1hlwp")
+shader_parameter/normal_tex = ExtResource("44_lwl3g")
+shader_parameter/roughness_tex = ExtResource("45_m1deo")
+shader_parameter/ao_tex = ExtResource("43_ounx2")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.95, 0.94, 0.9, 1)
 shader_parameter/albedo_multiplier = 1.0
@@ -1541,14 +1815,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0tjaw"]
 resource_name = "brick_red"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("36_ir3xt")
-shader_parameter/normal_tex = ExtResource("38_iasv8")
-shader_parameter/roughness_tex = ExtResource("39_o4lm2")
-shader_parameter/ao_tex = ExtResource("37_5oex2")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("36_xcjkj")
+shader_parameter/normal_tex = ExtResource("38_c6tq1")
+shader_parameter/roughness_tex = ExtResource("39_r25fg")
+shader_parameter/ao_tex = ExtResource("37_0kg6f")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(1.05, 0.7, 0.58, 1)
 shader_parameter/albedo_multiplier = 0.75
@@ -1581,7 +1855,7 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_c8h4k"]
 resource_name = "window_glass"
 render_priority = 0
-shader = ExtResource("19_hkpin")
+shader = ExtResource("19_klolc")
 shader_parameter/interior_color = Color(0.035, 0.038, 0.042, 1)
 shader_parameter/frame_color = Color(0.85, 0.85, 0.82, 1)
 shader_parameter/frame_width = 0.06
@@ -1592,14 +1866,14 @@ shader_parameter/pane_scale = Vector2(1, 1)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_as058"]
 resource_name = "siding_white"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("42_c6tq1")
-shader_parameter/normal_tex = ExtResource("44_c0i5c")
-shader_parameter/roughness_tex = ExtResource("45_5lxfq")
-shader_parameter/ao_tex = ExtResource("43_r25fg")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("42_1hlwp")
+shader_parameter/normal_tex = ExtResource("44_lwl3g")
+shader_parameter/roughness_tex = ExtResource("45_m1deo")
+shader_parameter/ao_tex = ExtResource("43_ounx2")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.72, 0.72, 0.7, 1)
 shader_parameter/albedo_multiplier = 1.0
@@ -1721,14 +1995,14 @@ size = Vector3(7, 4.4, 8)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dg7p1"]
 resource_name = "curb_concrete"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("30_42n2r")
-shader_parameter/normal_tex = ExtResource("32_thnjo")
-shader_parameter/roughness_tex = ExtResource("33_bb3wc")
-shader_parameter/ao_tex = ExtResource("31_ugpar")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("30_4c8ln")
+shader_parameter/normal_tex = ExtResource("32_ir3xt")
+shader_parameter/roughness_tex = ExtResource("33_5oex2")
+shader_parameter/ao_tex = ExtResource("31_uw1kl")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.42, 0.42, 0.4, 1)
 shader_parameter/albedo_multiplier = 0.5
@@ -1761,14 +2035,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3h322"]
 resource_name = "limestone"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("3_jpx3o")
-shader_parameter/normal_tex = ExtResource("5_7y7m5")
-shader_parameter/roughness_tex = ExtResource("6_hpkmb")
-shader_parameter/ao_tex = ExtResource("4_rkapu")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("3_p2q8e")
+shader_parameter/normal_tex = ExtResource("5_23ger")
+shader_parameter/roughness_tex = ExtResource("6_p7ibp")
+shader_parameter/ao_tex = ExtResource("4_m23ox")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.92, 0.72, 0.36, 1)
 shader_parameter/albedo_multiplier = 0.72
@@ -1801,14 +2075,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_quksj"]
 resource_name = "stone_foundation"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("11_6c18d")
-shader_parameter/normal_tex = ExtResource("13_ncpkh")
-shader_parameter/roughness_tex = ExtResource("14_6cd1u")
-shader_parameter/ao_tex = ExtResource("12_caak1")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("11_w0c3x")
+shader_parameter/normal_tex = ExtResource("13_4ah2h")
+shader_parameter/roughness_tex = ExtResource("14_ivvsv")
+shader_parameter/ao_tex = ExtResource("12_boa1b")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.13, 0.11, 0.09, 1)
 shader_parameter/albedo_multiplier = 0.4
@@ -1841,7 +2115,7 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_6xss1"]
 resource_name = "window_glass"
 render_priority = 0
-shader = ExtResource("19_hkpin")
+shader = ExtResource("19_klolc")
 shader_parameter/interior_color = Color(0.035, 0.038, 0.042, 1)
 shader_parameter/frame_color = Color(0.85, 0.85, 0.82, 1)
 shader_parameter/frame_width = 0.06
@@ -1852,14 +2126,14 @@ shader_parameter/pane_scale = Vector2(1, 1)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hq6th"]
 resource_name = "brick_red"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("36_ir3xt")
-shader_parameter/normal_tex = ExtResource("38_iasv8")
-shader_parameter/roughness_tex = ExtResource("39_o4lm2")
-shader_parameter/ao_tex = ExtResource("37_5oex2")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("36_xcjkj")
+shader_parameter/normal_tex = ExtResource("38_c6tq1")
+shader_parameter/roughness_tex = ExtResource("39_r25fg")
+shader_parameter/ao_tex = ExtResource("37_0kg6f")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.55, 0.2, 0.24, 1)
 shader_parameter/albedo_multiplier = 0.55
@@ -1892,14 +2166,14 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tv15g"]
 resource_name = "siding_white"
 render_priority = 0
-shader = ExtResource("2_dpoa1")
-shader_parameter/albedo_tex = ExtResource("42_c6tq1")
-shader_parameter/normal_tex = ExtResource("44_c0i5c")
-shader_parameter/roughness_tex = ExtResource("45_5lxfq")
-shader_parameter/ao_tex = ExtResource("43_r25fg")
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader = ExtResource("2_hpkmb")
+shader_parameter/albedo_tex = ExtResource("42_1hlwp")
+shader_parameter/normal_tex = ExtResource("44_lwl3g")
+shader_parameter/roughness_tex = ExtResource("45_m1deo")
+shader_parameter/ao_tex = ExtResource("43_ounx2")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = null
 shader_parameter/albedo_tint = Color(0.95, 0.94, 0.9, 1)
 shader_parameter/albedo_multiplier = 1.0
@@ -1932,7 +2206,7 @@ shader_parameter/puddle_scale = 0.05
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mber7"]
 resource_name = "shingles_dark"
 render_priority = 0
-shader = ExtResource("53_jtlhf")
+shader = ExtResource("57_xswie")
 shader_parameter/shingle_color_dark = Color(0.24, 0.2, 0.17, 1)
 shader_parameter/shingle_color_light = Color(0.32, 0.27, 0.23, 1)
 shader_parameter/roughness_base = 0.88
@@ -1944,9 +2218,9 @@ shader_parameter/v_is_downslope = true
 shader_parameter/ridge_xy = Vector2(0, 1.55)
 shader_parameter/fascia_color = Color(0.1, 0.09, 0.085, 1)
 shader_parameter/fascia_roughness = 0.7
-shader_parameter/snow_albedo_tex = ExtResource("7_p2q8e")
-shader_parameter/snow_normal_tex = ExtResource("8_m23ox")
-shader_parameter/snow_roughness_tex = ExtResource("9_23ger")
+shader_parameter/snow_albedo_tex = ExtResource("7_6c18d")
+shader_parameter/snow_normal_tex = ExtResource("8_caak1")
+shader_parameter/snow_roughness_tex = ExtResource("9_ncpkh")
 shader_parameter/snow_albedo_multiplier = 1.75
 shader_parameter/snow_slope_bias = -0.15
 shader_parameter/snow_noise_scale = 0.15
@@ -2035,108 +2309,108 @@ _surfaces = [{
 [sub_resource type="BoxShape3D" id="BoxShape3D_pte41"]
 size = Vector3(25, 18, 14)
 
-[node name="Landmarks" type="Node3D" unique_id=1377013482]
+[node name="Landmarks" type="Node3D" unique_id=1158283421]
 
-[node name="lee_county_courthouse" type="Node3D" parent="." unique_id=1517009506 instance=ExtResource("1_d3fno")]
+[node name="lee_county_courthouse" type="Node3D" parent="." unique_id=396715461 instance=ExtResource("1_7y7m5")]
 transform = Transform3D(0.9617414, 0, 0.273959, 0, 1, 0, -0.273959, 0, 0.9617414, 1691.9, 27.17078, -1233.5)
 
-[node name="Mesh" type="MeshInstance3D" parent="lee_county_courthouse" unique_id=1290045070]
+[node name="Mesh" type="MeshInstance3D" parent="lee_county_courthouse" unique_id=1946501058]
 mesh = SubResource("ArrayMesh_gs0mn")
 
-[node name="Collision" type="StaticBody3D" parent="lee_county_courthouse" unique_id=892482540]
+[node name="Collision" type="StaticBody3D" parent="lee_county_courthouse" unique_id=362895188]
 
-[node name="Shape0" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=1270649073]
+[node name="Shape0" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=838682885]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
 shape = SubResource("BoxShape3D_n2r3p")
 
-[node name="Shape1" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=1534565840]
+[node name="Shape1" type="CollisionShape3D" parent="lee_county_courthouse/Collision" unique_id=231325988]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, -13.95)
 shape = SubResource("BoxShape3D_o31h5")
 
-[node name="dixon_arch_complex" type="Node3D" parent="." unique_id=1153477589 instance=ExtResource("20_8yboh")]
+[node name="dixon_arch_complex" type="Node3D" parent="." unique_id=168880616 instance=ExtResource("20_0n0nw")]
 
-[node name="DixonArch" type="Node3D" parent="dixon_arch_complex" unique_id=1991761773]
+[node name="DixonArch" type="Node3D" parent="dixon_arch_complex" unique_id=320053549]
 transform = Transform3D(0.955793, 0, 0.29404032, 0, 1, 0, -0.29404032, 0, 0.955793, 1631.3, 22.890856, -1214.2)
 
-[node name="Mesh" type="MeshInstance3D" parent="dixon_arch_complex/DixonArch" unique_id=1849015347]
+[node name="Mesh" type="MeshInstance3D" parent="dixon_arch_complex/DixonArch" unique_id=791619566]
 mesh = SubResource("ArrayMesh_nph81")
 
-[node name="Collision" type="StaticBody3D" parent="dixon_arch_complex/DixonArch" unique_id=1235416548]
+[node name="Collision" type="StaticBody3D" parent="dixon_arch_complex/DixonArch" unique_id=1889166988]
 
-[node name="Shape0" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=265686470]
+[node name="Shape0" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=1004176182]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.8, 1.15, 0)
 shape = SubResource("BoxShape3D_xu5xt")
 
-[node name="Shape1" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=1289702585]
+[node name="Shape1" type="CollisionShape3D" parent="dixon_arch_complex/DixonArch/Collision" unique_id=988971541]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.8, 1.15, 0)
 shape = SubResource("BoxShape3D_xu1k5")
 
-[node name="GalenaBridgeDressing" type="Node3D" parent="dixon_arch_complex" unique_id=1112150325]
+[node name="GalenaBridgeDressing" type="Node3D" parent="dixon_arch_complex" unique_id=893607503]
 
-[node name="Mesh" type="MeshInstance3D" parent="dixon_arch_complex/GalenaBridgeDressing" unique_id=367239057]
+[node name="Mesh" type="MeshInstance3D" parent="dixon_arch_complex/GalenaBridgeDressing" unique_id=730064029]
 mesh = SubResource("ArrayMesh_fw87q")
 
-[node name="DixonDam" type="Node3D" parent="dixon_arch_complex" unique_id=1594573613]
+[node name="DixonDam" type="Node3D" parent="dixon_arch_complex" unique_id=789222717]
 
-[node name="Mesh" type="MeshInstance3D" parent="dixon_arch_complex/DixonDam" unique_id=761393126]
+[node name="Mesh" type="MeshInstance3D" parent="dixon_arch_complex/DixonDam" unique_id=1020531881]
 mesh = SubResource("ArrayMesh_nysrp")
 
-[node name="lincoln_statue" type="Node3D" parent="." unique_id=1749684596 instance=ExtResource("40_xcjkj")]
+[node name="lincoln_statue" type="Node3D" parent="." unique_id=559528919 instance=ExtResource("40_c0i5c")]
 transform = Transform3D(0.2756374, 0, -0.9612617, 0, 1, 0, 0.9612617, 0, 0.2756374, 1387.8, 7.140526, -1726.6)
 
-[node name="Mesh" type="MeshInstance3D" parent="lincoln_statue" unique_id=1583773060]
+[node name="Mesh" type="MeshInstance3D" parent="lincoln_statue" unique_id=1630981499]
 mesh = SubResource("ArrayMesh_0ve0k")
 
-[node name="Collision" type="StaticBody3D" parent="lincoln_statue" unique_id=1674746231]
+[node name="Collision" type="StaticBody3D" parent="lincoln_statue" unique_id=212731775]
 
-[node name="Shape0" type="CollisionShape3D" parent="lincoln_statue/Collision" unique_id=2120410449]
+[node name="Shape0" type="CollisionShape3D" parent="lincoln_statue/Collision" unique_id=2074599235]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("BoxShape3D_5u0ih")
 
-[node name="dixon_theatre" type="Node3D" parent="." unique_id=1379925623 instance=ExtResource("46_1hlwp")]
-transform = Transform3D(-0.2722803, 0, 0.962218, 0, 1, 0, -0.962218, 0, -0.2722803, 1629.2, 18.891842, -1336.9)
+[node name="dixon_theatre" type="Node3D" parent="." unique_id=1043723226 instance=ExtResource("46_jsbox")]
+transform = Transform3D(-0.2923719, 0, 0.95630467, 0, 1, 0, -0.95630467, 0, -0.2923719, 1608, 17.86977, -1333.1)
 
-[node name="Mesh" type="MeshInstance3D" parent="dixon_theatre" unique_id=1292341036]
-mesh = SubResource("ArrayMesh_d50d6")
+[node name="Mesh" type="MeshInstance3D" parent="dixon_theatre" unique_id=1875381601]
+mesh = SubResource("ArrayMesh_pw05p")
 
-[node name="Collision" type="StaticBody3D" parent="dixon_theatre" unique_id=123031122]
+[node name="Collision" type="StaticBody3D" parent="dixon_theatre" unique_id=76807633]
 
-[node name="Shape0" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=754147138]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, 6)
-shape = SubResource("BoxShape3D_frkh7")
+[node name="Shape0" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=276136201]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.4, 17.6)
+shape = SubResource("BoxShape3D_o2ete")
 
-[node name="Shape1" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=1906370794]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 7, 25)
-shape = SubResource("BoxShape3D_7nk0e")
+[node name="Shape1" type="CollisionShape3D" parent="dixon_theatre/Collision" unique_id=1157478571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 9.3, 29.5)
+shape = SubResource("BoxShape3D_nn0nc")
 
-[node name="reagan_boyhood_home" type="Node3D" parent="." unique_id=1001290285 instance=ExtResource("52_44pef")]
+[node name="reagan_boyhood_home" type="Node3D" parent="." unique_id=2002042545 instance=ExtResource("56_c5b7f")]
 transform = Transform3D(0.29070225, 0, -0.9568136, 0, 1, 0, 0.9568136, 0, 0.29070225, 1723.1, 30.518219, -590)
 
-[node name="Mesh" type="MeshInstance3D" parent="reagan_boyhood_home" unique_id=1696388946]
+[node name="Mesh" type="MeshInstance3D" parent="reagan_boyhood_home" unique_id=1532518883]
 mesh = SubResource("ArrayMesh_ba580")
 
-[node name="Collision" type="StaticBody3D" parent="reagan_boyhood_home" unique_id=1285783274]
+[node name="Collision" type="StaticBody3D" parent="reagan_boyhood_home" unique_id=92067001]
 
-[node name="Shape0" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=1983799742]
+[node name="Shape0" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=2125502684]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 shape = SubResource("BoxShape3D_5x6qv")
 
-[node name="Shape1" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=240802915]
+[node name="Shape1" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=145524700]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.3, -6.4)
 shape = SubResource("BoxShape3D_bd3fi")
 
-[node name="Shape2" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=611226405]
+[node name="Shape2" type="CollisionShape3D" parent="reagan_boyhood_home/Collision" unique_id=369300171]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 2.2, 1)
 shape = SubResource("BoxShape3D_s6rum")
 
-[node name="nachusa_house" type="Node3D" parent="." unique_id=1398972056 instance=ExtResource("54_ayhbl")]
+[node name="nachusa_house" type="Node3D" parent="." unique_id=1117841773 instance=ExtResource("58_p8k86")]
 transform = Transform3D(0.3040331, 0, -0.95266145, 0, 1, 0, 0.95266145, 0, 0.3040331, 1601.5, 22.157463, -1219.8)
 
-[node name="Mesh" type="MeshInstance3D" parent="nachusa_house" unique_id=1455757181]
+[node name="Mesh" type="MeshInstance3D" parent="nachusa_house" unique_id=1796772542]
 mesh = SubResource("ArrayMesh_xb8cg")
 
-[node name="Collision" type="StaticBody3D" parent="nachusa_house" unique_id=774947033]
+[node name="Collision" type="StaticBody3D" parent="nachusa_house" unique_id=610279505]
 
-[node name="Shape0" type="CollisionShape3D" parent="nachusa_house/Collision" unique_id=1920063183]
+[node name="Shape0" type="CollisionShape3D" parent="nachusa_house/Collision" unique_id=907012123]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 0)
 shape = SubResource("BoxShape3D_pte41")

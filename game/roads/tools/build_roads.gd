@@ -43,6 +43,8 @@ func _ready() -> void:
 	_run.call_deferred()
 
 func _load_json(path: String):
+	if path.begins_with("res://"):
+		path = ProjectSettings.globalize_path(path)
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		push_error("build_roads: cannot open " + path)

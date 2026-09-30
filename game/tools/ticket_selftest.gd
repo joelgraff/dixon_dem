@@ -27,7 +27,7 @@ func _run() -> void:
 	tt.call("_add_tag", vp * Vector2(0.45, 0.55))
 	tt.call("_add_tag", vp * Vector2(0.70, 0.62))
 	tt.set("_note", "selftest: facade reads flat, no window reveals")
-	tt.call("_save")
+	await tt.call("_save")
 	await get_tree().process_frame
 	print("SELFTEST OK")
 	get_tree().quit(0)

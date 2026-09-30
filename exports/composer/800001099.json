@@ -1,0 +1,39 @@
+{
+	"footprint": [
+		[
+			1665.55,
+			-2133.9
+		],
+		[
+			1653.91,
+			-2130.97
+		],
+		[
+			1649.92,
+			-2146.71
+		],
+		[
+			1661.55,
+			-2149.64
+		]
+	],
+	"format": "dixon-footprint",
+	"ground_y_max": null,
+	"ground_y_min": null,
+	"height_m": 7.0,
+	"hints": {
+		"dressing": "plain",
+		"form": "foursquare",
+		"material": "clapboard",
+		"porch": "shed_full",
+		"roof": "pyramidal",
+		"roof_axis": "side",
+		"storeys": 2.0
+	},
+	"id": "800001099",
+	"source": "dixon_dem",
+	"tags": {
+		"building": "yes"
+	},
+	"version": 1
+}

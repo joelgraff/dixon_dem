@@ -1,0 +1,174 @@
+{
+	"buildings": {
+		"1010753803": {
+			"awnings": "none",
+			"dressing": "commercial_1900",
+			"flip_normals": false,
+			"form": "party_wall_commercial",
+			"ground": "double",
+			"material": "limestone",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 5.0
+		},
+		"1010753812": {
+			"dressing": "italianate",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "106 West River Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010753814": {
+			"dressing": "commercial_1900",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "117 East First Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010774114": {
+			"dressing": "plain",
+			"form": "church_nave",
+			"material": "brick",
+			"note": "110 East Third Street",
+			"porch": "stoop",
+			"roof": "gable",
+			"roof_axis": "front",
+			"storeys": 1.0,
+			"tower": true
+		},
+		"1010774125": {
+			"dressing": "commercial_1900",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "501-511 West First Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010774126": {
+			"dressing": "commercial_1900",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "414 West First Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010774133": {
+			"dressing": "commercial_1900",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "308 West First Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010774163": {
+			"dressing": "italianate",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "201 West First Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010774169": {
+			"dressing": "commercial_1900",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "207 West Second Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010774185": {
+			"dressing": "italianate",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "202 West First Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1010815400": {
+			"awnings": "none",
+			"color": "brick_dark",
+			"dressing": "italianate",
+			"flip_normals": false,
+			"form": "party_wall_commercial",
+			"ground": "normal",
+			"material": "brick",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"1020578838": {
+			"dressing": "commercial_1900",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "202 East River Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"440071975": {
+			"dressing": "italianate",
+			"form": "party_wall_commercial",
+			"material": "brick",
+			"note": "417 West Second Street",
+			"porch": "none",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"554473284": {
+			"dressing": "plain",
+			"form": "civic_block",
+			"material": "limestone",
+			"note": "100 West Second Street",
+			"porch": "stoop",
+			"roof": "flat_parapet",
+			"roof_axis": "side",
+			"storeys": 2.0
+		},
+		"554475075": {
+			"dressing": "plain",
+			"form": "church_nave",
+			"material": "brick",
+			"note": "221 West Third Street",
+			"porch": "stoop",
+			"roof": "gable",
+			"roof_axis": "front",
+			"storeys": 1.0,
+			"tower": true
+		},
+		"738208756": {
+			"awnings": "none",
+			"color": "brick_red",
+			"dressing": "plain",
+			"flip_normals": false,
+			"form": "church_nave",
+			"ground": "normal",
+			"material": "brick",
+			"porch": "stoop",
+			"roof": "gable",
+			"roof_axis": "front",
+			"storeys": 2.0
+		}
+	}
+}

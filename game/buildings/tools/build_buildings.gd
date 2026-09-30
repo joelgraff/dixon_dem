@@ -112,6 +112,7 @@ func _init() -> void:
 			var body := StaticBody3D.new()
 			body.name = chunk_name + "_collision"
 			body.position = chunk_origin
+			var ids: Array[int] = []
 			for col in collisions:
 				var hull: Array = col["hull"]
 				if hull.size() < 3:
@@ -126,8 +127,12 @@ func _init() -> void:
 				shape.points = pts
 				var cs := CollisionShape3D.new()
 				cs.shape = shape
+				var building_id := int(col.get("id", -1))
+				cs.set_meta("building_id", building_id)
 				body.add_child(cs)
+				ids.append(building_id)
 				total_collisions += 1
+			body.set_meta("building_ids", ids)
 			collision_container.add_child(body)
 
 	_set_owner_recursive(root, root)
@@ -152,6 +157,10 @@ func _init() -> void:
 
 
 func _read_json(path: String):
+	# _build is .gdignore'd so the editor does not import hundreds of megabytes
+	# of chunk JSON. FileAccess still reads it by absolute path.
+	if path.begins_with("res://"):
+		path = ProjectSettings.globalize_path(path)
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		return null

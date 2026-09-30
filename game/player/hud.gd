@@ -71,7 +71,7 @@ func _mk_label(size: int, alpha: float) -> Label:
 func _build_ui() -> void:
 	_panel = _mk_label(17, 0.94)
 	_hint = _mk_label(13, 0.6)
-	_hint.text = "F7 location   F8 minimap   F9 map zoom   F10 coords   F11 BUG TICKET   F12 screenshot"
+	_hint.text = "F1 help   F7 location   F8 minimap   F9 map zoom   F10 coords   F11 BUG TICKET   F12 screenshot"
 	_map = Control.new()
 	_map.size = Vector2(240, 240)
 	_map.draw.connect(_draw_map)
@@ -192,7 +192,8 @@ func _compass(deg: float) -> String:
 func _process(delta: float) -> void:
 	var capture := _is_capture_mode()
 	var pl := _find_player()
-	var on := not capture and pl != null
+	var covered := str(get_tree().root.get_meta("ui_cover", "")) != ""
+	var on := not capture and pl != null and not covered
 	_panel.visible = on and (show_location or show_coords)
 	_map.visible = on and show_minimap
 	if _hint_timer > 0.0:

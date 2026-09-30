@@ -76,7 +76,9 @@ void sky() {
 	float up = dir.y;
 
 	// base gradient: ground / horizon / zenith
-	float sky_t = pow(clamp(up, 0.0, 1.0), 0.45);
+	// 0.45 kept most of a street-level view in the pale horizon color. 0.7
+	// lets the zenith blue reach down without losing the horizon band.
+	float sky_t = pow(clamp(up, 0.0, 1.0), 0.7);
 	vec3 col = mix(horizon_color, zenith_color, sky_t);
 	float ground_t = pow(clamp(-up, 0.0, 1.0), 0.6);
 	col = mix(col, ground_color, ground_t);

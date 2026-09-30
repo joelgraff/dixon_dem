@@ -66,6 +66,9 @@ class MeshBuild:
     def set_outward_ref(self, cx, cz):
         self._out_ref = (cx, cz)
 
+    def set_flip_outward(self, flip):
+        self._flip_outward = bool(flip)
+
     @staticmethod
     def _cross(a, b, c):
         ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
@@ -110,7 +113,13 @@ class MeshBuild:
             else:                                   # roofs / caps: face upward
                 N = n if n[1] >= 0.0 else (-n[0], -n[1], -n[2])
         dot = n[0] * N[0] + n[1] * N[1] + n[2] * N[2]
-        return ("mirror" if dot > 0.0 else "default"), N
+        mode = "mirror" if dot > 0.0 else "default"
+        # Per-building correction from the in-game editor. Flip both the shading
+        # normal and the winding so the face that was inside-out turns outward.
+        if getattr(self, "_flip_outward", False):
+            N = (-N[0], -N[1], -N[2])
+            mode = "default" if mode == "mirror" else "mirror"
+        return mode, N
 
     def add_quad(self, material, p0, p1, p2, p3, normal=None, uvs=None, color=(1.0, 1.0, 1.0, 1.0)):
         """Any vertex order is accepted; winding is derived from geometry (see RULE above).

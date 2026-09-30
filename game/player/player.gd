@@ -160,11 +160,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(_delta: float) -> void:
 	if _capture_mode:
 		return
-	# Debug toggles use F5/F6 -- NOT F1-F4, which are WorldState's season/
-	# weather/hour debug keys owned by the atmosphere workstream (see
-	# docs/atmosphere_notes.md and docs/player_notes.md "Debug keys").
+	# F5 cycles the season. Free-fly is Shift+F5 so the two do not share a key.
 	var f5 := Input.is_physical_key_pressed(KEY_F5)
-	if f5 and not _f5_was_pressed:
+	var shift := Input.is_physical_key_pressed(KEY_SHIFT)
+	if f5 and shift and not _f5_was_pressed:
 		_noclip = not _noclip
 		if _noclip:
 			velocity = Vector3.ZERO
@@ -173,12 +172,13 @@ func _process(_delta: float) -> void:
 	var f6 := Input.is_physical_key_pressed(KEY_F6)
 	if f6 and not _f6_was_pressed:
 		_debug_readout_visible = not _debug_readout_visible
-		if _debug_label:
-			_debug_label.visible = _debug_readout_visible
 	_f6_was_pressed = f6
 
-	if _debug_readout_visible and _debug_label:
-		_update_debug_label()
+	if _debug_label:
+		var covered := str(get_tree().root.get_meta("ui_cover", "")) != ""
+		_debug_label.visible = _debug_readout_visible and not covered
+		if _debug_label.visible:
+			_update_debug_label()
 
 
 # ---------------------------------------------------------------------------
@@ -503,7 +503,7 @@ func _update_debug_label() -> void:
 	# WorldState is an autoload, always available at runtime.
 	var season_name: String = WorldState.Season.keys()[WorldState.season]
 	var weather_name: String = WorldState.Weather.keys()[WorldState.weather]
-	_debug_label.text = "pos %.1f, %.1f, %.1f  |  %d fps  |  %s / %s / %02d:%02d  (F5 noclip%s · F6 hide)" % [
+	_debug_label.text = "pos %.1f, %.1f, %.1f  |  %d fps  |  %s / %s / %02d:%02d  (Shift+F5 noclip%s · F6 hide)" % [
 		global_position.x, global_position.y, global_position.z,
 		Engine.get_frames_per_second(),
 		season_name, weather_name,

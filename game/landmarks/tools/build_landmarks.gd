@@ -20,10 +20,10 @@ extends SceneTree
 ## ~16deg off true north), and Reagan Boyhood Home (different block, same
 ## citywide grid) matches within 1deg. Bearings used below (outward front-
 ## wall normal, compass degrees clockwise from north):
-##   courthouse 344.1 (north/northwest, matches the reference doc's "faces
-##     north/northwest across the square"), theatre 73.9 / reagan 73.1 /
-##     nachusa 72.3 (all "faces east onto Galena/Hennepin Ave" per their
-##     docs), dixon_arch spans across Galena Ave at bearing 72.9 (its long
+##   courthouse 344.1 (north/northwest across the square), reagan 73.1 /
+##     nachusa 72.3 (face east onto their avenues), theatre 253.0
+##     (west-southwest onto South Galena; local -X is 2nd Street),
+##     dixon_arch spans across Galena Ave at bearing 72.9 (its long
 ##     footprint axis -- the arch's clear-span direction).
 ## Godot-space rotation formula used throughout (derived and documented
 ## alongside `facing_rotation`/`span_rotation` below): for a local model
@@ -52,12 +52,12 @@ func _init() -> void:
 	_placements.append(_place("lee_county_courthouse", _build_courthouse(), Vector2(1691.9, -1233.5), 344.1, true))
 	_placements.append(_place("dixon_arch_complex", _build_dixon_arch_complex(), Vector2.ZERO, 0.0, false, true))
 	_placements.append(_place("lincoln_statue", _build_lincoln_statue(), Vector2(1387.8, -1726.6), 74.0, true))
-	# Position/bearing corrected 2026-09-20: the data pipeline tags THREE buildings with
-	# landmark_id "dixon_theatre" (including First Baptist Church), and this used the first
-	# match -- an unnamed 439 m2 building that put the theatre in the middle of Galena Ave.
-	# The real one is the OSM way named "The Dixon: Historic Theatre": centroid
-	# (1629.2, -1336.9), 901 m2, 32.4 m from South Galena Avenue, which it faces (yaw 254.2).
-	_placements.append(_place("dixon_theatre", _build_dixon_theatre(), Vector2(1629.2, -1336.9), 254.2, true))
+	# OSM way 738208757, "The Dixon: Historic Theatre" (25.4 m on South Galena by
+	# 35.5 m deep). Local origin is the front wall, so the node sits on that
+	# Galena edge -- midpoint (1608.0, -1333.1), outward bearing 253.0 -- not the
+	# centroid. The centroid left the facade about 18 m back from the sidewalk.
+	# 2nd Street is local -X (viewer's right, facing the Galena front).
+	_placements.append(_place("dixon_theatre", _build_dixon_theatre(), Vector2(1608.0, -1333.1), 253.0, true))
 	_placements.append(_place("reagan_boyhood_home", _build_reagan_home(), Vector2(1723.1, -590.0), 73.1, true))
 	_placements.append(_place("nachusa_house", _build_nachusa_house(), Vector2(1601.5, -1219.8), 72.3, true))
 	_build_landmarks_tscn()
@@ -524,52 +524,116 @@ func _build_dixon_theatre() -> Node3D:
 	var root := Node3D.new()
 	root.name = "DixonTheatre"
 	var mb := MB.new()
-	var gy := 0.0
+	# Grade at the Galena front wall. The grime shader reads this as world Y.
+	var gy := TerrainHeight.get_height(1608.0, -1333.1)
 
-	var brick_front := LM.tinted("brick_buff", 14.9, {"uv_scale": Vector2(0.8, 0.8)})
-	var brick_side := LM.tinted("brick_buff", 14.9, {"albedo_tint": Color(0.82, 0.72, 0.58), "uv_scale": Vector2(0.8, 0.8)})
-	var brick_chimney := LM.tinted("brick_red", 14.9, {"uv_scale": Vector2(0.8, 0.8)})
-	var trim := LM.flat_color("limestone", Color(1.05, 1.0, 0.9), 14.9, 0.9, {"uv_scale": Vector2(0.5, 0.5)})
-	var glass := LM.window_glass(14.9)
+	# Cream glazed terra cotta on the Galena front (references/dixon_theater_looking_west.jpeg).
+	# The 2nd Street wall is plain tan brick with a concrete base (Dixon_Theater_PB170128.jpg).
+	# Glazed cream terra cotta reads as a flat light wall, not ashlar. The stone
+	# base is a separate grayer band, as in the Galena elevation.
+	var terra := LM.flat_color("limestone", Color(1.05, 0.98, 0.88), gy, 1.2, {"uv_scale": Vector2(0.02, 0.02)})
+	var brick_side := LM.tinted("brick_buff", gy, {"albedo_tint": Color(0.78, 0.62, 0.46), "albedo_multiplier": 0.85, "uv_scale": Vector2(0.7, 0.7)})
+	var brick_chimney := LM.tinted("brick_red", gy, {"albedo_tint": Color(0.72, 0.48, 0.38), "uv_scale": Vector2(0.8, 0.8)})
+	var stone := LM.flat_color("limestone", Color(0.74, 0.72, 0.68), gy, 0.9, {"uv_scale": Vector2(0.04, 0.04)})
+	var trim := LM.flat_color("limestone", Color(0.96, 0.92, 0.84), gy, 0.95, {"uv_scale": Vector2(0.4, 0.4)})
+	var concrete := LM.flat_color("sidewalk_concrete", Color(0.7, 0.68, 0.64), gy, 0.8)
+	var glass := LM.window_glass(gy)
+	var door := LM.flat_color("stone_foundation", Color(0.16, 0.14, 0.13), gy, 0.35)
 	var marquee_mat := LM.signage("theatre_marquee.png")
-	var dark := LM.flat_color("stone_foundation", Color(0.1, 0.1, 0.1), 14.9, 0.4)
+	var dark := LM.flat_color("stone_foundation", Color(0.12, 0.07, 0.06), gy, 0.45)
+	var roof := LM.tinted("roof_membrane", gy, {"uv_scale": Vector2(0.4, 0.4)})
+	var bulb := LM.flat_unshaded(Color(0.98, 0.94, 0.82), 0.35)
 
-	var front_w := 16.5
-	var front_d := 12.0
-	var front_h := 11.0
+	# Footprint of OSM 738208757. Local -X is East 2nd Street.
+	var width := 25.4
+	var depth := 35.5
+	var front_h := 12.8
+	var aud_h := 14.8
+	var fly_h := 18.6
+	var side_x := -width * 0.5
 
-	# front-of-house block, front wall at -Z
-	mb.add_box(brick_front, Vector3(0, front_h * 0.5, front_d * 0.5), Vector3(front_w, front_h, front_d))
-	mb.add_box(trim, Vector3(0, front_h + 0.4, front_d * 0.5), Vector3(front_w + 0.6, 0.8, front_d + 0.6))
-	# pediment/cartouche above the corner entrance
-	mb.add_box(trim, Vector3(0, front_h + 1.3, 0.5), Vector3(3.2, 1.2, 0.4))
+	# Front-of-house, cream face on Galena (local -Z) and brick sides.
+	mb.add_box(brick_side, Vector3(0, front_h * 0.5, 3.4), Vector3(width, front_h, 6.8))
+	mb.add_box(terra, Vector3(0, front_h * 0.5, -0.12), Vector3(width + 0.06, front_h, 0.28))
+	# Stone storefront base, proud of the terra cotta.
+	mb.add_box(stone, Vector3(0, 2.0, -0.30), Vector3(width + 0.16, 4.0, 0.34))
+	# Cornice and parapet. The straight-on photo is a level cornice, not a pediment.
+	mb.add_box(trim, Vector3(0, 10.55, -0.34), Vector3(width + 0.25, 0.42, 0.22))
+	mb.add_box(trim, Vector3(0, 11.65, -0.42), Vector3(width + 0.8, 0.72, 0.42))
+	mb.add_box(trim, Vector3(0, 12.45, -0.30), Vector3(width + 0.3, 0.55, 0.28))
 
-	# upper-facade window rhythm, 2 floors
-	add_window_row(mb, glass, Vector3(-front_w * 0.5 + 1.6, 5.0, 0.0), Vector3(front_w * 0.5 - 1.6, 5.0, 0.0), 6, 1.0, 1.9, Vector3(0, 0, -1))
-	add_window_row(mb, glass, Vector3(-front_w * 0.5 + 1.6, 8.0, 0.0), Vector3(front_w * 0.5 - 1.6, 8.0, 0.0), 6, 1.0, 1.9, Vector3(0, 0, -1))
-	# ground floor storefront glazing
-	add_window_row(mb, glass, Vector3(-front_w * 0.5 + 2.0, 1.8, 0.0), Vector3(front_w * 0.5 - 2.0, 1.8, 0.0), 3, 2.4, 2.4, Vector3(0, 0, -1))
+	# Five upper bays. The center bay is the entrance axis and slightly wider.
+	var bay_n := 5
+	var margin := 2.35
+	for i in bay_n:
+		var x := lerpf(-width * 0.5 + margin, width * 0.5 - margin, float(i) / float(bay_n - 1))
+		var win_w := 1.55 if i == 2 else 1.25
+		mb.add_box(trim, Vector3(x, 8.15, -0.34), Vector3(win_w + 0.28, 3.05, 0.12))
+		add_window(mb, glass, Vector3(x, 8.15, -0.40), win_w, 2.7, Vector3(0, 0, -1))
+	# Pilasters at the corners and in the bays.
+	for i in bay_n + 1:
+		var x := lerpf(-width * 0.5 + 0.38, width * 0.5 - 0.38, float(i) / float(bay_n))
+		mb.add_box(trim, Vector3(x, 7.35, -0.40), Vector3(0.42, 6.5, 0.22))
+	# Continuous sill under the upper windows.
+	mb.add_box(stone, Vector3(0, 6.62, -0.38), Vector3(width - 1.2, 0.16, 0.14))
 
-	# marquee/blade sign projecting from the corner, facing along X (readable
-	# by pedestrians walking the sidewalk)
-	var marq_c := Vector3(front_w * 0.5 - 1.0, 6.3, -1.2)
-	mb.add_box(dark, marq_c, Vector3(0.15, 1.6, 2.4))
-	mb.add_panel(marquee_mat, marq_c + Vector3(0.08, 0, 0), Vector3(1, 0, 0), 2.2, 1.4)
-	mb.add_panel(marquee_mat, marq_c + Vector3(-0.08, 0, 0), Vector3(-1, 0, 0), 2.2, 1.4)
+	# Ground floor: display windows flanking a centered entrance.
+	for i in bay_n:
+		var x := lerpf(-width * 0.5 + margin, width * 0.5 - margin, float(i) / float(bay_n - 1))
+		if i == 2:
+			mb.add_box(door, Vector3(x, 1.55, -0.50), Vector3(2.05, 2.55, 0.08))
+			add_window(mb, glass, Vector3(x, 3.05, -0.52), 2.05, 0.55, Vector3(0, 0, -1))
+		else:
+			var gw := 3.15 if (i == 0 or i == 4) else 1.7
+			add_window(mb, glass, Vector3(x, 1.85, -0.52), gw, 2.45, Vector3(0, 0, -1))
 
-	# tall blank auditorium block behind (deeper into the block, +Z)
-	var aud_w := 20.0; var aud_d := 26.0; var aud_h := 14.0
-	var aud_z := front_d + aud_d * 0.5
-	mb.add_box(brick_side, Vector3(1.0, aud_h * 0.5, aud_z), Vector3(aud_w, aud_h, aud_d))
-	# chimney at the rear corner
-	mb.add_box(brick_chimney, Vector3(aud_w * 0.5 - 0.8, 10.0, aud_z + aud_d * 0.5 - 1.0), Vector3(1.6, 20.0, 1.6))
+	# Horizontal marquee over the entrance, globe lights along the top.
+	# The older front photo reads "DIXON THEATRE" across this canopy.
+	var marq_w := 9.2
+	var marq_d := 1.9
+	var marq_y := 4.35
+	var marq_z := -0.55 - marq_d * 0.5
+	mb.add_box(trim, Vector3(0, marq_y + 0.15, marq_z), Vector3(marq_w, 0.28, marq_d))
+	mb.add_box(dark, Vector3(0, marq_y - 0.55, marq_z - marq_d * 0.5 + 0.1), Vector3(marq_w, 1.15, 0.18))
+	# add_panel's street-facing side is the back face, so a 0..1 UV reads mirrored.
+	# Measured against a capture: uv (1,0)-(0,1) painted the texture rotated 180.
+	mb.add_panel(marquee_mat, Vector3(0, marq_y - 0.55, marq_z - marq_d * 0.5 - 0.02), Vector3(0, 0, -1), marq_w - 0.25, 1.05, Vector3.UP, Vector2(0, 1), Vector2(1, 0))
+	for i in 8:
+		var x := lerpf(-marq_w * 0.5 + 0.45, marq_w * 0.5 - 0.45, float(i) / 7.0)
+		mb.add_dome(bulb, Vector3(x, marq_y + 0.28, marq_z - marq_d * 0.5 + 0.15), 0.16, 8, 4)
 
-	mb.add_box_collision(Vector3(0, front_h * 0.5, front_d * 0.5), Vector3(front_w, front_h, front_d))
-	mb.add_box_collision(Vector3(1.0, aud_h * 0.5, aud_z), Vector3(aud_w, aud_h, aud_d))
+	# Auditorium / fly tower. Taller than the front, set just behind the parapet
+	# so the Galena skyline stays the cornice and the 2nd Street wall reads tall.
+	var aud_d := depth - 5.5
+	var aud_z := 5.5 + aud_d * 0.5
+	mb.add_box(brick_side, Vector3(0.15, aud_h * 0.5, aud_z), Vector3(width - 0.35, aud_h, aud_d))
+	# Outer 2nd Street wall runs the full depth, concrete base, blank above.
+	mb.add_box(brick_side, Vector3(side_x - 0.08, aud_h * 0.5, depth * 0.5), Vector3(0.5, aud_h, depth))
+	mb.add_box(concrete, Vector3(side_x - 0.36, 0.75, depth * 0.5), Vector3(0.16, 1.5, depth))
+	mb.add_box(trim, Vector3(side_x - 0.36, aud_h - 0.35, depth * 0.5), Vector3(0.12, 0.4, depth))
+	# Reader board on the 2nd Street wall, just around the corner from the canopy.
+	var blade := Vector3(side_x - 0.42, 5.6, 1.6)
+	mb.add_box(dark, blade, Vector3(0.16, 1.7, 2.8))
+	mb.add_panel(marquee_mat, blade + Vector3(-0.1, 0, 0), Vector3(-1, 0, 0), 2.5, 1.45, Vector3.UP, Vector2(0, 1), Vector2(1, 0))
+
+	# Stage house at the rear, and the chimney on the 2nd Street side of the roof
+	# (viewer's right in the Galena elevation).
+	var fly_d := 12.0
+	mb.add_box(brick_side, Vector3(0.15, fly_h * 0.5, depth - fly_d * 0.5), Vector3(width - 0.5, fly_h, fly_d))
+	mb.add_box(brick_chimney, Vector3(side_x + 2.6, aud_h + 4.4, 13.5), Vector3(2.1, 8.8, 1.6))
+
+	mb.add_box(roof, Vector3(0, front_h + 0.06, 3.2), Vector3(width - 1.4, 0.12, 5.2))
+	mb.add_box(roof, Vector3(0.15, aud_h + 0.06, aud_z), Vector3(width - 1.6, 0.12, aud_d - 0.8))
+	var vent := LM.flat_color("roof_metal", Color(0.45, 0.44, 0.42), gy, 0.6)
+	for vx in [-4.2, 3.6]:
+		mb.add_cylinder(vent, Vector3(vx, front_h + 0.05, 4.0), 0.7, 0.55, 0.55, 10, true, true)
+
+	mb.add_box_collision(Vector3(0, aud_h * 0.5, depth * 0.5 - 0.15), Vector3(width, aud_h, depth + 0.3))
+	mb.add_box_collision(Vector3(0.15, fly_h * 0.5, depth - fly_d * 0.5), Vector3(width - 0.5, fly_h, fly_d))
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
-	mi.name = "Mesh"   # explicit: unnamed nodes get reserved @-names
+	mi.name = "Mesh"
 	mi.mesh = mesh
 	root.add_child(mi)
 	root.add_child(mb.build_collision_body("Collision"))

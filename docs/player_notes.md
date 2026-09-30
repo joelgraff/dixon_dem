@@ -24,13 +24,15 @@ game/player/
 | Ctrl (held) | crouch |
 | Space | jump (coyote time + jump buffering, ~0.12s each) |
 | Esc | release mouse; click to recapture |
-| F5 | toggle noclip/free-fly |
+| F1 | key-command help |
+| F5 | cycle season |
+| Shift+F5 | toggle noclip/free-fly |
+| F2 | cycle weather |
+| F3 / F4 | hour back / forward |
 | F6 | toggle on-screen debug readout (position, FPS, season/weather/hour) |
 
-**F1-F4 are NOT touched by this workstream** -- they belong to
-`WorldState`'s season/weather/hour debug cycling, owned by atmosphere
-(`docs/atmosphere_notes.md`: F1 season, F2 weather, F3/F4 hour -+). Player
-debug toggles deliberately use F5/F6 to avoid stealing those keys.
+Plain F1 is the help overlay (`game/player/help_overlay.gd`). Season is F5.
+Free-fly is Shift+F5. F2–F4 are still atmosphere's weather and hour keys.
 
 ## Movement feel
 
@@ -213,5 +215,23 @@ S Galena Ave, The Dixon: Historic Theatre" is a lead.
 The `ticket.md` ends with a shots JSON so the exact view can be re-rendered offline:
 `game/tools/capture.sh res://world/world.tscn <that json> <outdir> 80`
 
-Verified end-to-end by `game/tools/ticket_selftest.tscn`, which drives the whole path
+Verified end-to-end by `game/tools/ticket_selftest.tscn`, which drives the whole path. The help overlay and the building editor are checked without loading the city by `game/tools/tools_selftest.tscn`. Both, plus the template resolver, run from `game/tools/run_checks.sh`.
 (enter -> tag by raycast -> note -> save) with no human input. The tool is inert in capture_mode.
+
+## Building Composer export (building editor, X)
+
+X in the building editor (`game/player/building_edit.gd`) writes the selected building's footprint to `exports/composer/<id>.json` (`format: "dixon-footprint"`: the traced outline in game meters, ground height, height, OSM tags, and `front`) and opens it in Building Composer (`#import=` in the page address; `game/tools/composer_server.py` is started for Composer if none answers at `BUILDING_COMPOSER_URL`).
+
+The structure the game generated is **not** exported (no `hints`): only a building designed in Composer carries its own design. `front` is a unit vector `[x, z]` (x east, z south) from the footprint's middle toward the nearest street (`street_front`; alleys, paths and footways only count when no street is within 250 m). Composer turns it into the side of the squared footprint it faces, using the saved rotation, and names the walls from it.
+
+### Bringing a Composer design back (Send to game, I, R)
+
+In Composer, **Send to game** (only for a building opened with X) POSTs the model to the server, which writes `game/data/composed/<id>.json` (`format: "dixon-composed"`: triangles grouped by the game's material names, already in game space and Godot's winding, heights relative to the ground, a collision hull, and the Composer project under `project`). Without the server it downloads the file instead; put it in `game/data/composed/`.
+
+`pipeline/buildings/composed.py` uses that file in place of the generated building whenever the chunk is built, so later full builds keep it. In the building editor:
+
+- **I** uses the Composer design (removes `composed: false` from the override) and rebuilds the chunk;
+- **R** reverts to the generated building (`composed: false` in `building_overrides.json`); the design file stays, and I brings it back;
+- **X** again opens the outline in Composer; if a design was sent, it is carried along (`project`) and Composer reopens it. If the outline was changed in the game since, Composer says so and opens the fresh outline instead.
+
+Buildings that never went through Composer are untouched: the game keeps generating them from the footprint.

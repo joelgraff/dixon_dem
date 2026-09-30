@@ -1,0 +1,50 @@
+{
+	"footprint": [
+		[
+			508.108497196343,
+			-212.66817373503
+		],
+		[
+			523.094637260889,
+			-213.555096043274
+		],
+		[
+			524.530218404601,
+			-189.453476924449
+		],
+		[
+			509.544028454926,
+			-188.566549813375
+		],
+		[
+			508.108497196343,
+			-212.66817373503
+		]
+	],
+	"format": "dixon-footprint",
+	"ground_y_max": 17.14,
+	"ground_y_min": 16.92,
+	"height_m": 10.0,
+	"hints": {
+		"dressing": "plain",
+		"form": "front_gable",
+		"material": "clapboard",
+		"porch": "stoop",
+		"roof": "gable",
+		"roof_axis": "front",
+		"storeys": 1.5
+	},
+	"id": "115768678",
+	"source": "dixon_dem",
+	"tags": {
+		"amenity": null,
+		"building": "yes",
+		"building_material": null,
+		"height": null,
+		"levels": null,
+		"name": null,
+		"roof_material": null,
+		"roof_shape": null
+	},
+	"version": 1
+}

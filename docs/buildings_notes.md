@@ -97,11 +97,14 @@ then re-check `world/world.tscn`'s `Buildings` node has no stray `transform`.
    flock .locks/gpu.lock ~/AppImage/Godot_v4.6-stable_linux.x86_64 --headless \
      --path game --script res://buildings/tools/build_buildings.gd
    ```
-   Reads the `_build/` JSON and writes `game/buildings/buildings.tscn`
-   (~30MB): one `Node3D` with `Near/` (per-chunk merged multi-surface
-   `ArrayMesh`, real facades), `Far/` (per-chunk single-material HLOD box
-   mesh), and `Collision/` (one `StaticBody3D` per chunk holding one
-   `ConvexPolygonShape3D` per building).
+   Reads the `_build/` JSON and writes `game/buildings/buildings.tscn`.
+   The game does not load that file. `world.tscn` instances `buildings.scn`,
+   so pack the text scene into the binary one or the running city will not change:
+
+   ```
+   flock .locks/gpu.lock ~/AppImage/Godot_v4.6-stable_linux.x86_64 --headless \
+     --path game --script res://tools/pack_scenes.gd
+   ```
 
 Source modules (`pipeline/buildings/`): `common_buildings.py` (indexed
 triangle-soup `MeshBuild` + polygon/grid-index helpers, mirrors
@@ -109,6 +112,20 @@ triangle-soup `MeshBuild` + polygon/grid-index helpers, mirrors
 awning/cornice/roof primitives), `archetypes.py` (per-archetype building
 generators), `classify.py` (tag+location → archetype), `infill.py` (residential
 block filling), `palette.py` (material catalog + tint weights).
+
+## Templates
+
+`pipeline/buildings/templates.py` decides a record per footprint: form, storeys, roof, ridge axis, ell wing, porch, material family, dressing. `build_building_plan.py` resolves one record per footprint and Press **B** in play, click a wall, and correct that footprint (form, storeys, roof, dressing, material, or flip inside-out walls). Enter rebuilds only its 200 m chunk. A shader or texture bug on every surface of one material is still an F11 ticket.
+
+`build_residential_house` builds the seven house forms from it (side-gable, front-gable, gabled ell with a real wing, foursquare, bungalow, ranch, cross-gable). Commercial blocks use the template's storey count (two by default, never a random third floor) and leave shared walls blank. Churches are a steep front-gable nave; a tower is added only when the record asks. Mills are a low brick volume. Run the counts with:
+
+```
+cd pipeline/buildings && ../../.venv/bin/python templates.py
+```
+
+Checks: `../../.venv/bin/python test_templates.py`.
+
+Height counts only when it was measured or tagged (Microsoft `source: ms`, a curated height, or an OSM `height` / `building:levels`). The 5.5 m and 10 m guesses from `estimate_height_m` are ignored. A user record in `game/data/building_overrides.json` (`{"buildings": {"<id>": {"form": "ranch"}}}`) replaces the automatic choice. The nomination PDF is at `data/raw/references/dixon_downtown_historic_district_12000059.pdf` and is not read yet.
 
 ## Archetypes
 
@@ -312,3 +329,7 @@ exactly why downtown blocks read as black slabs and the residential house reads 
 **Next step:** fix the facade area budget so brick/siding dominates (a real commercial block is ~60-75%
 masonry, ~20-30% glazing, the rest trim), and check the window-band UV/scale that lets glazing span whole
 walls. This is a facade-composition bug, not a winding, normal, lighting or material-library bug.
+
+## Composer buildings (`composed.py`)
+
+`game/data/composed/<id>.json` (written by Building Composer's Send to game through `game/tools/composer_server.py`) replaces the generated mesh for that id in `_build_one`, unless the building's override has `composed: false`. The file's `near` groups are copied into the chunk with the ground height added; the far LOD is a `far_box` over the design's hull tinted by its largest wall material; collision uses the hull and y range. Composer orients every triangle for Godot itself, so `MeshBuild`'s outward logic (and `flip_normals`) is not applied. Tests: `pipeline/buildings/test_composed.py`. See `docs/player_notes.md` for the I / R keys.
