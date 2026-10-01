@@ -20,3 +20,7 @@ game/*/*.scn
 # game/buildings/tools/build_buildings.gd); too large for GitHub
 game/roads/roads.tscn
 game/buildings/buildings.tscn
+
+# Python bytecode (rebuilt on every run)
+__pycache__/
+*.pyc

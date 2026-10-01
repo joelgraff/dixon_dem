@@ -1,0 +1,10 @@
+# The pipeline's Python packages (pipeline/, game/tools/composer_server.py).
+# game/tools/run_checks.sh installs these into .venv/ when it is missing or
+# this file has changed since.
+numpy
+scipy
+shapely
+pyproj
+pillow
+rasterio
+requests
