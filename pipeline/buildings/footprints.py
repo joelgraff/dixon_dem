@@ -134,6 +134,50 @@ def apply_overrides(records, overrides, warn=print):
     return out
 
 
+def override_records(records, source, overrides, warn=print):
+    """The building plan's own records (footprints as {"x", "z"} rings) with
+    Composer's corrections over them, in place, by the same rules as
+    apply_overrides: an overridden record gets the override's outline (a
+    closed ring), `footprint_override: True`, and its porches as
+    `override_porches`. Returns `records`."""
+    for record in records:
+        bid = str(record.get("id"))
+        override = overrides.get(bid)
+        if not override:
+            continue
+        source_record = {"id": bid, "source": source, "footprint": points(record.get("footprint"))}
+        if len(source_record["footprint"]) < 3:
+            continue
+        [applied] = apply_overrides([source_record], {bid: override}, warn)
+        if not applied.get("override"):
+            continue
+        ring = applied["footprint"]
+        record["footprint"] = [{"x": x, "z": z} for x, z in ring + ring[:1]]
+        record["footprint_override"] = True
+        record["override_porches"] = applied["porches"]
+    return records
+
+
+def apply_override_porches(records, template_of, explicit):
+    """Porches a footprint override brought (made with Turn into a porch in
+    Composer): the template's porch is the first one's kind, unless
+    building_overrides.json names one for the building, and every porch's
+    legs go in `porch_legs`, built exactly where they are (archetypes.py
+    _place_porch) instead of the kind's default edge and size."""
+    for record in records:
+        porches = record.get("override_porches") or []
+        legs = [{**leg, "kind": porch.get("kind")} for porch in porches for leg in porch.get("legs") or []]
+        if not legs:
+            continue
+        bid = record.get("id")
+        named = (explicit.get(bid) or explicit.get(str(bid)) or {}).get("porch")
+        template = dict(template_of.get(bid) or {})
+        template["porch"] = named or porches[0].get("kind") or "shed_full"
+        template["porch_legs"] = legs
+        template_of[bid] = template
+    return template_of
+
+
 def all_outlines(game_data=GAME_DATA, overrides_dir=OVERRIDES_DIR, warn=print):
     return apply_overrides(load_sources(game_data), load_overrides(overrides_dir), warn)
 

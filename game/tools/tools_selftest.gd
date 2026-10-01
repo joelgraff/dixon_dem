@@ -16,6 +16,7 @@ func _run() -> void:
 	_test_front(fails)
 	_test_hints(fails)
 	_test_composed(fails)
+	_test_footprint_override(fails)
 	if fails.is_empty():
 		print("SELFTEST OK")
 		get_tree().quit(0)
@@ -152,6 +153,31 @@ func _test_composed(fails: PackedStringArray) -> void:
 	if edit.composed_state("8") != "none":
 		fails.append("a building nothing was sent for has no design")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir.path_join("7.json")))
+	edit.queue_free()
+
+func _test_footprint_override(fails: PackedStringArray) -> void:
+	var edit: Node = load("res://player/building_edit.gd").new()
+	add_child(edit)
+	var dir := "user://selftest_footprints"
+	DirAccess.make_dir_recursive_absolute(dir)
+	edit.footprint_overrides_dir = dir
+	edit._footprints = {"7": {"id": 7, "footprint": [{"x": 0, "z": 0}, {"x": 10, "z": 0}, {"x": 10, "z": 8}, {"x": 0, "z": 8}]}}
+	if edit._footprint("7").get("override", false):
+		fails.append("a building with no override should export its traced outline")
+	var file := FileAccess.open(dir.path_join("7.json"), FileAccess.WRITE)
+	file.store_string('{"format": "dixon-footprint-override", "id": "7", "footprint": [[0, 0], [10, 0], [10, 6], [0, 6]], "based_on": {"source": "osm", "hash": "4-441db1ba"}}')
+	file.close()
+	var corrected: Dictionary = edit._footprint("7")
+	if not corrected.get("override", false) or corrected["footprint"][2]["x"] != 10.0 or corrected["footprint"][2]["z"] != 6.0:
+		fails.append("the corrected outline should be exported: %s" % str(corrected))
+	if corrected.get("based_on", {}).get("hash") != "4-441db1ba" or corrected.get("source_footprint", []).size() != 4:
+		fails.append("the export should say what the correction replaced: %s" % str(corrected))
+	if edit._footprints["7"]["footprint"][2]["z"] != 8:
+		fails.append("the traced outline should be left as it was")
+	DirAccess.rename_absolute(ProjectSettings.globalize_path(dir.path_join("7.json")), ProjectSettings.globalize_path(dir.path_join("7.json.off")))
+	if not edit.footprint_override("7").is_empty():
+		fails.append("a set-aside override should not be used")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir.path_join("7.json.off")))
 	edit.queue_free()
 
 func _key(code: Key, shift: bool) -> InputEventKey:

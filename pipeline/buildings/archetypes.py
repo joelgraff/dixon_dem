@@ -5,7 +5,7 @@ if the footprint was too degenerate to build.
 """
 import math
 
-from shapely.geometry import Polygon
+from shapely.geometry import Point, Polygon
 
 from common_buildings import (
     ensure_ccw, dedupe_ring, min_rotated_rect, rect_from_center,
@@ -749,7 +749,7 @@ def build_residential_house(mb, mb_far, coords, ground_y, height_m, tags, rng, b
         porch_edge = (bar[0], bar[1])
     else:
         porch_edge = (main[0], main[1])
-    _place_porch(mb, template, main, wing, porch_edge, ground_y, rng, dress["posts"])
+    _place_porch(mb, template, main, wing, porch_edge, ground_y, rng, dress["posts"], coords=coords)
     if dress["eave"] == "knee":
         _knee_braces(mb, main[0], main[1], eave_y)
     if dress["chimney"] and template["form"] != "ranch":
@@ -773,9 +773,20 @@ def corners_of(coords, road_vec, template):
     return _face_street(ext, road_vec), None
 
 
-def _place_porch(mb, template, main, wing, porch_edge, ground_y, rng, post_style="plain"):
+def _place_porch(mb, template, main, wing, porch_edge, ground_y, rng, post_style="plain", coords=None):
     porch = template.get("porch") or "none"
     if porch == "none":
+        return
+    legs = template.get("porch_legs")
+    if legs:
+        # where a footprint override puts them: along each leg's edge, its whole length, its depth out
+        for leg in legs:
+            a, b = (float(leg["a"][0]), float(leg["a"][1])), (float(leg["b"][0]), float(leg["b"][1]))
+            if coords and _faces_inward(a, b, coords):
+                a, b = b, a
+            length = math.hypot(b[0] - a[0], b[1] - a[1])
+            build_porch(mb, a, b, ground_y, rng, width_frac=1.0, max_width=length, depth=float(leg["depth"]),
+                        post_style=post_style)
         return
     if porch == "ell_corner" and wing is not None:
         edge = _inner_porch_edge(main, wing)
@@ -793,6 +804,15 @@ def _place_porch(mb, template, main, wing, porch_edge, ground_y, rng, post_style
         build_porch(mb, c0, c1, ground_y, rng, width_frac=0.94, max_width=14.0, depth=2.2, post_style=post_style)
     else:
         build_porch(mb, c0, c1, ground_y, rng, post_style=post_style)
+
+
+def _faces_inward(a, b, coords):
+    """Whether build_porch would build a leg from a to b into the building
+    (its edge_dir_normal points inside): a leg is written counter-clockwise,
+    but a ring wound the other way is put right rather than built inside."""
+    _d, n, _length = edge_dir_normal(a, b)
+    mid = ((a[0] + b[0]) / 2 + n[0] * 0.3, (a[1] + b[1]) / 2 + n[1] * 0.3)
+    return Polygon(coords).contains(Point(mid))
 
 
 def build_garage(mb, mb_far, coords, ground_y, rng, bid, road_index=None):

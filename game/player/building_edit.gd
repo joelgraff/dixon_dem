@@ -10,6 +10,7 @@ extends CanvasLayer
 ##   X            open this building's footprint in Building Composer (and save it to exports/composer)
 ##   I            use the design Composer sent back for this building (Send to game)
 ##   R            revert this building to the one the game generates (I brings the design back)
+##   O            put back the outline the game traced, in place of one corrected in Composer
 ##   Enter        write the override and rebuild the chunk
 ##   Esc          close
 ##
@@ -27,6 +28,9 @@ const FOOTPRINT_PATHS := ["res://data/buildings.json", "res://data/buildings_ms.
 const COMPOSER_EXPORT_DIR := "res://../exports/composer"
 ## Where Building Composer's "Send to game" leaves each building (pipeline/buildings/composed.py reads it).
 const COMPOSED_DIR := "res://data/composed"
+## Outlines corrected in Composer's footprint editor (its "Save footprint to game";
+## pipeline/buildings/footprints.py applies them). O turns one off by renaming it <id>.json.off.
+const FOOTPRINT_OVERRIDES_DIR := "res://data/footprint_overrides"
 ## Streets a building can face. Alleys, paths and the like only count when no street is near.
 const ROADS_PATH := "res://data/roads.json"
 const STREET_CLASSES := ["primary", "primary_link", "secondary", "tertiary", "tertiary_link", "residential", "unclassified", "pedestrian"]
@@ -56,6 +60,7 @@ const CHOICES := {
 ## Overridable so the self-test can write a throwaway file instead of the real overrides.
 var override_path: String = OVERRIDE_PATH
 var composed_dir: String = COMPOSED_DIR
+var footprint_overrides_dir: String = FOOTPRINT_OVERRIDES_DIR
 var _open := false
 var _index: Dictionary = {}
 var _record: Dictionary = {}
@@ -140,6 +145,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_use_composed(true)
 		KEY_R:
 			_use_composed(false)
+		KEY_O:
+			_revert_footprint()
 		KEY_ENTER, KEY_KP_ENTER:
 			_apply()
 
@@ -271,8 +278,10 @@ func _refresh() -> void:
 				lines.append("  Composer design in use (R reverts to the generated building)")
 			"reverted":
 				lines.append("  Composer design available, generated building in use (I brings it back)")
+		if not footprint_override(str(_record["id"])).is_empty():
+			lines.append("  Outline corrected in Composer (O puts back the traced one)")
 		lines.append(_status)
-		lines.append("C composes. Tab field, arrows change, N flip walls, X opens in Composer, I / R use / revert its design, Enter saves, Esc closes")
+		lines.append("C composes. Tab field, arrows change, N flip walls, X opens in Composer, I / R use / revert its design, O traced outline, Enter saves, Esc closes")
 	_panel.text = "\n".join(lines)
 	_fit_plate()
 
@@ -613,6 +622,11 @@ func _export_composer() -> void:
 		"height_m": building.get("height_m"),
 		"tags": building.get("tags", {}),
 	}
+	if building.get("override") == true:
+		# the outline corrected in Composer, what it replaced, and the outline it was drawn over
+		payload["override"] = true
+		payload["based_on"] = building.get("based_on", {})
+		payload["source_footprint"] = building.get("source_footprint", [])
 	var front := street_front(points)
 	if not front.is_empty():
 		payload["front"] = front
@@ -748,7 +762,9 @@ func _load_roads() -> void:
 				Vector2(float(vertices[i + 1]["x"]), float(vertices[i + 1]["z"])),
 			])
 
-## A building's record from the footprint files, by id (loaded once).
+## A building's record from the footprint files, by id (loaded once), with
+## the outline corrected in Composer in place of the traced one when there is
+## one (marked `override`, with its `based_on` and the traced `source_footprint`).
 func _footprint(bid: String) -> Dictionary:
 	if _footprints.is_empty():
 		for path in FOOTPRINT_PATHS:
@@ -758,7 +774,51 @@ func _footprint(bid: String) -> Dictionary:
 					if building is Dictionary and building.has("id"):
 						_footprints[str(int(building["id"]))] = building
 	var found: Variant = _footprints.get(bid, {})
-	return found if found is Dictionary else {}
+	if not (found is Dictionary) or found.is_empty():
+		return {}
+	var override := footprint_override(bid)
+	if override.is_empty():
+		return found
+	var corrected: Dictionary = found.duplicate()
+	var ring: Array = []
+	for p in override["footprint"]:
+		ring.append({"x": float(p[0]), "z": float(p[1])})
+	var traced: Array = []
+	for p in found.get("footprint", []):
+		traced.append([float(p["x"]), float(p["z"])])
+	corrected["footprint"] = ring
+	corrected["override"] = true
+	corrected["based_on"] = override.get("based_on", {})
+	corrected["source_footprint"] = traced
+	return corrected
+
+## The footprint override Composer saved for a building (read fresh: Composer
+## writes them while the game runs), or {} when there is none.
+func footprint_override(bid: String) -> Dictionary:
+	var data: Variant = _read_json(footprint_overrides_dir.path_join("%s.json" % bid))
+	if data is Dictionary and data.get("format") == "dixon-footprint-override" and data.get("footprint") is Array and data["footprint"].size() >= 3:
+		return data
+	return {}
+
+## O: back to the outline the game traced. The override is renamed
+## <id>.json.off (kept, not deleted; rename it back to use it again) and the
+## chunk rebuilt, which also drops the porches it brought.
+func _revert_footprint() -> void:
+	if _record.is_empty():
+		_status = "Click a building first."
+		_refresh()
+		return
+	var bid := str(_record["id"])
+	if footprint_override(bid).is_empty():
+		_status = "Building %s has no outline corrected in Composer." % bid
+		_refresh()
+		return
+	var path := ProjectSettings.globalize_path(footprint_overrides_dir.path_join("%s.json" % bid))
+	if DirAccess.rename_absolute(path, path + ".off") != OK:
+		_status = "Could not set aside %s." % path
+		_refresh()
+		return
+	_apply()
 
 func _read_json(path: String):
 	if path.begins_with("res://"):
