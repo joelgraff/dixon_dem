@@ -182,6 +182,49 @@ def test_server_serves_the_aerial_and_outlines():
         server.server_close()
 
 
+def _post(url, body, headers=None):
+    request = urllib.request.Request(url, data=body, method="POST",
+                                     headers={"Content-Type": "application/json", **(headers if headers is not None else {"X-Composer": "1"})})
+    try:
+        with urllib.request.urlopen(request) as reply:
+            return reply.status
+    except urllib.error.HTTPError as error:
+        return error.code
+
+
+def test_server_saves_a_footprint_override():
+    root, overrides = _game_data()
+    server, base = _serve(outlines=composer_server.Outlines(str(root), str(overrides)))
+    try:
+        override = {**_override(1, [[0, 0], [11, 0], [11, 8], [0, 8]]),
+                    "porches": [{"kind": "shed_full", "legs": [{"a": [11, 8], "b": [0, 8], "depth": 2.4}]}]}
+        assert _post(f"{base}/game-footprint/1", json.dumps(override).encode()) == 200
+        saved = json.loads((overrides / "1.json").read_text())
+        assert saved["porches"][0]["legs"][0]["depth"] == 2.4
+        # the saved outline is what the footprint editor and the build see from then on
+        with urllib.request.urlopen(f"{base}/game-footprints?x0=-1&z0=-1&x1=1&z1=1") as reply:
+            assert json.load(reply)["buildings"][0]["footprint"][1] == [11, 0]
+        # not from Composer, for another building, or not an outline: refused, and nothing written
+        assert _post(f"{base}/game-footprint/1", json.dumps(override).encode(), headers={}) == 403
+        assert _post(f"{base}/game-footprint/2", json.dumps(override).encode()) == 400
+        for bad in (
+            {**override, "footprint": [[0, 0], [1, 0]]},
+            {**override, "footprint": [[0, 0], [1, 0], [2, 0]]},
+            {**override, "footprint": [[0, 0], [10, 0], [10, None]]},
+            {**override, "porches": [{"kind": "veranda", "legs": override["porches"][0]["legs"]}]},
+            {**override, "porches": [{"kind": "stoop", "legs": [{"a": [0, 0], "b": [0, 0], "depth": 1}]}]},
+            {**override, "porches": [{"kind": "stoop", "legs": [{"a": [0, 0], "b": [1, 0], "depth": -1}]}]},
+            {**override, "format": "dixon-composed"},
+        ):
+            assert _post(f"{base}/game-footprint/1", json.dumps(bad).encode()) == 400, bad
+        assert _post(f"{base}/game-footprint/..%2Fx", json.dumps(override).encode()) == 400
+        assert json.loads((overrides / "1.json").read_text())["footprint"][1] == [11, 0]
+        assert sorted(p.name for p in overrides.iterdir()) == ["1.json"]
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
 def test_server_without_imagery_says_so():
     server, base = _serve(aerial=Aerial(tempfile.mkdtemp()))
     try:
@@ -205,4 +248,5 @@ if __name__ == "__main__":
     test_aerial_crop_places_a_tile_by_its_mapping()
     test_server_serves_the_aerial_and_outlines()
     test_server_without_imagery_says_so()
+    test_server_saves_a_footprint_override()
     print("footprints ok")
