@@ -31,6 +31,9 @@ const COMPOSED_DIR := "res://data/composed"
 ## Outlines corrected in Composer's footprint editor (its "Save footprint to game";
 ## pipeline/buildings/footprints.py applies them). O turns one off by renaming it <id>.json.off.
 const FOOTPRINT_OVERRIDES_DIR := "res://data/footprint_overrides"
+## The game's material list (pipeline/buildings/palette.py manifest()); X sends its hash
+## so Composer can tell when its own copy is another version.
+const MATERIALS_MANIFEST := "res://data/materials_manifest.json"
 ## Streets a building can face. Alleys, paths and the like only count when no street is near.
 const ROADS_PATH := "res://data/roads.json"
 const STREET_CLASSES := ["primary", "primary_link", "secondary", "tertiary", "tertiary_link", "residential", "unclassified", "pedestrian"]
@@ -631,6 +634,9 @@ func _export_composer() -> void:
 	if not front.is_empty():
 		payload["front"] = front
 	payload["hints"] = composer_hints(_record)
+	var version := materials_version()
+	if version != "":
+		payload["materials_version"] = version
 	var sent: Variant = _read_json(composed_dir.path_join("%s.json" % bid))
 	if sent is Dictionary and sent.get("project") is Dictionary:
 		payload["project"] = sent["project"]
@@ -648,6 +654,14 @@ func _export_composer() -> void:
 	_refresh()
 	_status = await _open_in_composer(JSON.stringify(payload))
 	_refresh()
+
+## The hash of the game's material list (its manifest's `hash`), or "" when it can't be read.
+static func materials_version() -> String:
+	var path := ProjectSettings.globalize_path(MATERIALS_MANIFEST)
+	if not FileAccess.file_exists(path):
+		return ""
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return str(data.get("hash", "")) if data is Dictionary else ""
 
 ## The building editor's choices for this building, for Composer to start
 ## from (its settingsFromHints): the resolved template with this session's

@@ -134,6 +134,9 @@ func _test_hints(fails: PackedStringArray) -> void:
 		fails.append("Composer hints carry more than the editor's fields: %s" % str(hints))
 	if script.composer_hints({"color": "auto"}).has("color"):
 		fails.append("an automatic color is not a hint")
+	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://data/materials_manifest.json")))
+	if not (manifest is Dictionary) or script.materials_version() != str(manifest.get("hash")) or script.materials_version() == "":
+		fails.append("X should send the material list's hash: got '%s'" % script.materials_version())
 
 func _test_composed(fails: PackedStringArray) -> void:
 	var edit: Node = load("res://player/building_edit.gd").new()
