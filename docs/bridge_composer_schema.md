@@ -97,7 +97,7 @@ asserts this for every triangle, because the old generated deck was single-sided
 and read as invisible from above.
 
 ## Server (`game/tools/composer_server.py`)
-- `GET /game-bridges` — `{"bridges": [{id, name, highway, width_m, centerline, deck_y, ground, ground_profile, composed}]}`; `ground` is the terrain height at the two ends, `ground_profile` is `[[station, y], ...]` about every 5 m
+- `GET /game-bridges` — `{"bridges": [{id, name, highway, width_m, centerline, deck_y, ground, ground_profile, composed}]}`; `ground` is the terrain height at the two ends, `ground_profile` is `[[station, y], ...]` about every 5 m, from -`approach_m` to length + `approach_m` (50 ft either side)
 - `GET /game-bridge/<id>` — the saved design, 404 if none
 - `POST /game-save-bridge/<id>` — body is the file; same-origin + `X-Composer: 1`, validated, written atomically
 
