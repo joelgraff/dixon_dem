@@ -170,18 +170,188 @@ def ground_profile(vertices, sampler, step=5.0, limit=400):
     return out
 
 
+# ---------------------------------------------------------------------------
+# Naming: "what the bridge carries over what it crosses"
+# ---------------------------------------------------------------------------
+# The water reaches carry no names in the data; the only river in the play area is the Rock.
+WATER_NAMES = {"river": "Rock River", "pond": "pond", "stream": "creek"}
+# Short OSM names that read badly as a place (docs/references).
+FEATURE_NAMES = {"IC (abnd)": "former Illinois Central line"}
+CARRIES = {"footway": "Footbridge", "pedestrian": "Footbridge", "steps": "Footbridge",
+           "cycleway": "Bike path", "path": "Trail", "track": "Track"}
+CLASS_NAMES = {"motorway": "highway", "trunk": "highway", "primary": "street", "secondary": "street",
+               "tertiary": "street", "residential": "street", "service": "service road",
+               "unclassified": "street", "footway": "footpath", "cycleway": "bike path",
+               "path": "trail", "pedestrian": "footpath"}
+
+
+def _in_polygon(x, z, poly):
+    inside = False
+    j = len(poly) - 1
+    for i in range(len(poly)):
+        xi, zi, xj, zj = poly[i]["x"], poly[i]["z"], poly[j]["x"], poly[j]["z"]
+        if (zi > z) != (zj > z) and x < (xj - xi) * (z - zi) / (zj - zi) + xi:
+            inside = not inside
+        j = i
+    return inside
+
+
+def _segments_cross(a, b, c, d):
+    def orient(p, q, r):
+        return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+    o1, o2, o3, o4 = orient(a, b, c), orient(a, b, d), orient(c, d, a), orient(c, d, b)
+    return o1 * o2 < 0 and o3 * o4 < 0
+
+
+def _point_segment(p, a, b):
+    dx, dz = b[0] - a[0], b[1] - a[1]
+    length2 = dx * dx + dz * dz
+    t = 0.0 if length2 == 0 else max(0.0, min(1.0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / length2))
+    return math.hypot(p[0] - (a[0] + dx * t), p[1] - (a[1] + dz * t))
+
+
+def feature_name(tags, fallback):
+    name = tags.get("name")
+    if name:
+        return FEATURE_NAMES.get(name, name)
+    return fallback
+
+
+def crossings(way, roads, rails, water):
+    """What a bridge goes over, in order along it: water first, then roads and railways.
+
+    `roads` and `rails` are lists of ways ({id, vertices, tags}); `water` is water.json.
+    A way with a layer above the bridge's, the bridge's own way, and ways that only touch
+    its ends (the roads it connects to) are not crossed."""
+    pts = [(v["x"], v["z"]) for v in way["vertices"]]
+    if len(pts) < 2:
+        return []
+    samples = []
+    for a, b in zip(pts, pts[1:]):
+        n = max(1, int(math.hypot(b[0] - a[0], b[1] - a[1]) // 2.0))
+        samples += [(a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n) for k in range(n)]
+    samples.append(pts[-1])
+    found = []
+
+    def add(name):
+        if name and name not in found:
+            found.append(name)
+
+    for reach in water.get("reaches", []):
+        poly = reach["polygon"]
+        xs = [p["x"] for p in poly]
+        zs = [p["z"] for p in poly]
+        if any(min(xs) <= x <= max(xs) and min(zs) <= z <= max(zs) and _in_polygon(x, z, poly) for x, z in samples):
+            add(WATER_NAMES.get(reach.get("kind"), "water"))
+    for stream in water.get("streams", []):
+        sv = [(v["x"], v["z"]) for v in stream["vertices"]]
+        if any(_point_segment(p, a, b) < 4.0 for p in samples for a, b in zip(sv, sv[1:])):
+            add(stream.get("name") or WATER_NAMES["stream"])
+    mine = way["id"]
+    my_layer = way["tags"].get("layer") or 0
+    box = (min(p[0] for p in pts) - 5, min(p[1] for p in pts) - 5, max(p[0] for p in pts) + 5, max(p[1] for p in pts) + 5)
+    for other, kind in [(w, "road") for w in roads] + [(w, "rail") for w in rails]:
+        if other["id"] == mine:
+            continue
+        tags = other["tags"]
+        if (tags.get("layer") or 0) >= max(my_layer, 1) and tags.get("bridge"):
+            continue
+        ov = [(v["x"], v["z"]) for v in other["vertices"]]
+        if (max(p[0] for p in ov) < box[0] or min(p[0] for p in ov) > box[2]
+                or max(p[1] for p in ov) < box[1] or min(p[1] for p in ov) > box[3]):
+            continue   # its extent misses the bridge's
+        hit = False
+        for a, b in zip(pts, pts[1:]):
+            for c, d in zip(ov, ov[1:]):
+                if _segments_cross(a, b, c, d):
+                    hit = True
+        if hit:
+            if kind == "road":
+                add(feature_name(tags, CLASS_NAMES.get(tags.get("highway"), "road")))
+            else:
+                add(feature_name(tags, "railroad"))
+    if found:
+        return found
+    # Nothing crossed outright. A bridge can span something its centreline only runs beside
+    # (the deck is wide; the data is a line), so look for water or ways close to its middle.
+    # The ends are skipped: the roads it joins touch there.
+    ends = (pts[0], pts[-1])
+    middle = [p for p in samples if min(math.hypot(p[0] - e[0], p[1] - e[1]) for e in ends) > 10.0]
+    for reach in water.get("reaches", []):
+        poly = reach["polygon"]
+        edge = [(v["x"], v["z"]) for v in poly]
+        if any(_point_segment(p, a, b) < 8.0 for p in middle for a, b in zip(edge, edge[1:] + edge[:1])):
+            add(WATER_NAMES.get(reach.get("kind"), "water"))
+    for other, kind in [(w, "road") for w in roads] + [(w, "rail") for w in rails]:
+        if other["id"] == mine:
+            continue
+        ov = [(v["x"], v["z"]) for v in other["vertices"]]
+        if len(ov) > 1 and not (max(p[0] for p in ov) < box[0] or min(p[0] for p in ov) > box[2]
+                                or max(p[1] for p in ov) < box[1] or min(p[1] for p in ov) > box[3]) and any(
+                _point_segment(p, a, b) < 6.0 for p in middle for a, b in zip(ov, ov[1:])):
+            tags = other["tags"]
+            add(feature_name(tags, CLASS_NAMES.get(tags.get("highway"), "road") if kind == "road" else "railroad"))
+    return found
+
+
+def carries(tags):
+    name = tags.get("name")
+    if tags.get("kind") == "railway":
+        return FEATURE_NAMES.get(name, name) or "Railroad"
+    return name or CARRIES.get(tags.get("highway"), "Bridge")
+
+
+def bridge_title(tags, crosses):
+    """"Peoria Ave over Rock River": what it carries over what it crosses (two at most)."""
+    base = carries(tags)
+    if not crosses:
+        return base
+    return f"{base} over {' and '.join(crosses[:2])}"
+
+
+_NAMING = {}
+
+
+def _naming_data():
+    """roads, rails and water, reloaded when a file changes."""
+    paths = [os.path.join(os.path.dirname(BRIDGES_JSON), n) for n in ("roads.json", "rails.json", "water.json")]
+    stamp = tuple(os.path.getmtime(p) if os.path.exists(p) else None for p in paths)
+    if _NAMING.get("stamp") != stamp:
+        def load(path, key=None):
+            try:
+                with open(path) as handle:
+                    data = json.load(handle)
+                return data[key] if key else data
+            except (OSError, ValueError, KeyError):
+                return [] if key else {}
+        _NAMING.update(stamp=stamp, roads=load(paths[0], "ways"), rails=load(paths[1], "ways"), water=load(paths[2]))
+    return _NAMING["roads"], _NAMING["rails"], _NAMING["water"]
+
+
 def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
     """Every road/path bridge way the game has, with whether it has a composed design."""
     sampler = sampler or ground()
     with open(bridges_json) as handle:
         ways = json.load(handle)["bridges"]
     out = []
+    roads, rails, water = _naming_data()
     for way in ways:
         tags = way["tags"]
         if tags.get("kind") == "railway":
             continue
+        crosses = crossings(way, roads, rails, water)
+        title = bridge_title(tags, crosses)
+        derived = title
+        design = os.path.join(directory, f"{way['id']}.json")
+        if os.path.exists(design):
+            try:
+                with open(design) as handle:
+                    title = json.load(handle).get("name") or title   # a name given in the editor wins
+            except (OSError, ValueError):
+                pass
         out.append({
             "id": str(way["id"]), "name": tags.get("name"), "highway": tags.get("highway"),
+            "title": title, "carries": carries(tags), "crosses": crosses, "derived_title": derived,
             "width_m": tags.get("width_m"),
             "centerline": [[round(v["x"], 2), round(v["z"], 2)] for v in way["vertices"]],
             "deck_y": [v["y"] for v in way["vertices"]],
@@ -194,6 +364,25 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
                        if sampler else None),
             "composed": os.path.exists(os.path.join(directory, f"{way['id']}.json")),
         })
+    # The two carriageways of a divided road are one structure: a deck whose own centreline
+    # crosses nothing in the data takes what its twin crosses.
+    def middle(b):
+        c = b["centerline"]
+        return ((c[0][0] + c[-1][0]) / 2.0, (c[0][1] + c[-1][1]) / 2.0)
+
+    for b in out:
+        if b["crosses"]:
+            continue
+        for twin in out:
+            if (twin is not b and twin["crosses"] and twin["name"] and twin["name"] == b["name"]
+                    and twin["highway"] == b["highway"]
+                    and math.hypot(middle(twin)[0] - middle(b)[0], middle(twin)[1] - middle(b)[1]) < 60.0):
+                b["crosses"] = list(twin["crosses"])
+                if b["derived_title"] == b["carries"]:
+                    b["derived_title"] = bridge_title({"name": b["name"], "highway": b["highway"]}, b["crosses"])
+                    if b["title"] == b["carries"]:
+                        b["title"] = b["derived_title"]
+                break
     return out
 
 

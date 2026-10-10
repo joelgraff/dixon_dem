@@ -161,6 +161,32 @@ def test_the_server_reports_terrain_along_a_bridge():
     assert composer_server.ground_profile([{"x": 1.0, "z": 1.0}, {"x": 1.0, "z": 1.0}], Slope()) == []
 
 
+def test_bridges_are_named_for_what_they_carry_over_what_they_cross():
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "game", "tools"))
+    import composer_server as cs
+
+    def way(i, pts, **tags):
+        return {"id": i, "vertices": [{"x": x, "z": z} for x, z in pts], "tags": tags}
+
+    river = {"id": "river_a", "kind": "river",
+             "polygon": [{"x": 0, "z": 20}, {"x": 100, "z": 20}, {"x": 100, "z": 40}, {"x": 0, "z": 40}]}
+    water = {"reaches": [river], "streams": []}
+    peoria = way(1, [(50, 0), (50, 60)], name="Peoria Avenue", highway="tertiary", bridge=True, layer=1)
+    street = way(2, [(40, 10), (60, 10)], name="2nd Street", highway="residential")
+    rail = way(3, [(40, 50), (60, 50)], name="UP Line", railway="rail")
+    found = cs.crossings(peoria, [street], [rail], water)
+    assert found == ["Rock River", "2nd Street", "UP Line"], found
+    assert cs.bridge_title(peoria["tags"], found) == "Peoria Avenue over Rock River and 2nd Street"
+    foot = way(4, [(10, 0), (10, 60)], highway="footway", bridge=True, layer=1)
+    assert cs.bridge_title(foot["tags"], ["Rock River"]) == "Footbridge over Rock River"
+    assert cs.bridge_title(foot["tags"], []) == "Footbridge"
+    # its own way and the road it joins at an end are not crossed
+    approach = way(5, [(50, 60), (50, 120)], name="Peoria Avenue", highway="tertiary")
+    assert cs.crossings(peoria, [approach, peoria], [], {"reaches": [], "streams": []}) == []
+
+
 if __name__ == "__main__":
     test_every_triangle_is_wound_to_face_its_normal()
     test_deck_top_faces_up_and_sits_at_the_profile()
@@ -173,4 +199,5 @@ if __name__ == "__main__":
     test_load_reads_only_a_composed_bridge()
     test_the_save_server_takes_only_a_design_for_that_way()
     test_the_server_reports_terrain_along_a_bridge()
+    test_bridges_are_named_for_what_they_carry_over_what_they_cross()
     print("bridges_composed ok")

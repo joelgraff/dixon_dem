@@ -53,7 +53,7 @@ def seed(way_id):
     tags = way["tags"]
     return {
         "format": bc.FORMAT, "version": bc.VERSION, "id": str(way_id),
-        "name": tags.get("name"),
+        "name": None,   # a name given in Bridge Composer; otherwise the server derives one
         "centerline": pts,
         "deck": {"width": float(tags.get("width_m") or 8.0), "thickness": 0.3, "elevation": elevation},
         "supports": supports,
