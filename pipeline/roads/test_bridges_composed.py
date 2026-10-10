@@ -143,6 +143,24 @@ def test_the_save_server_takes_only_a_design_for_that_way():
         raise AssertionError(f"saved {bid}")
 
 
+def test_the_server_reports_terrain_along_a_bridge():
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "game", "tools"))
+    import composer_server
+
+    class Slope:
+        def at(self, x, z):
+            return 10.0 - abs(x - 30.0) * 0.1   # a valley's mirror: highest mid-span
+
+    way = [{"x": 0.0, "z": 0.0}, {"x": 60.0, "z": 0.0}]
+    profile = composer_server.ground_profile(way, Slope(), step=10.0)
+    assert profile[0] == [0.0, 7.0] and profile[-1] == [60.0, 7.0]
+    assert [row[0] for row in profile] == [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0]
+    assert profile[3][1] == 10.0
+    assert composer_server.ground_profile([{"x": 1.0, "z": 1.0}, {"x": 1.0, "z": 1.0}], Slope()) == []
+
+
 if __name__ == "__main__":
     test_every_triangle_is_wound_to_face_its_normal()
     test_deck_top_faces_up_and_sits_at_the_profile()
@@ -154,4 +172,5 @@ if __name__ == "__main__":
     test_a_bad_file_is_refused()
     test_load_reads_only_a_composed_bridge()
     test_the_save_server_takes_only_a_design_for_that_way()
+    test_the_server_reports_terrain_along_a_bridge()
     print("bridges_composed ok")

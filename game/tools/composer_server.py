@@ -31,6 +31,7 @@ For Composer's footprint editor (both read-only, boxes in game meters):
 """
 import argparse
 import json
+import math
 import os
 import re
 import sys
@@ -145,6 +146,30 @@ def ground():
     return _GROUND[0]
 
 
+def ground_profile(vertices, sampler, step=5.0, limit=400):
+    """[[station, terrain y], ...] along a way's vertices, about every `step` metres."""
+    pts = [(v["x"], v["z"]) for v in vertices]
+    cum = [0.0]
+    for a, b in zip(pts, pts[1:]):
+        cum.append(cum[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
+    total = cum[-1]
+    if total <= 0.0:
+        return []
+    n = max(1, min(limit, int(math.ceil(total / step))))
+    out = []
+    i = 0
+    for k in range(n + 1):
+        d = total * k / n
+        while i < len(pts) - 2 and cum[i + 1] < d:
+            i += 1
+        seg = cum[i + 1] - cum[i]
+        t = (d - cum[i]) / seg if seg > 1e-9 else 0.0
+        x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t
+        z = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t
+        out.append([round(d, 2), round(sampler.at(x, z), 2)])
+    return out
+
+
 def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
     """Every road/path bridge way the game has, with whether it has a composed design."""
     sampler = sampler or ground()
@@ -160,7 +185,10 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
             "width_m": tags.get("width_m"),
             "centerline": [[round(v["x"], 2), round(v["z"], 2)] for v in way["vertices"]],
             "deck_y": [v["y"] for v in way["vertices"]],
-            # terrain at the two ends: where the approach roads are, so the deck can meet them
+            # terrain along the centreline (station, y) every few metres: where the approach
+            # roads are at the ends, and what a pier stands on between them
+            "ground_profile": ground_profile(way["vertices"], sampler) if sampler else None,
+            # the same at just the two ends
             "ground": ([round(sampler.at(way["vertices"][0]["x"], way["vertices"][0]["z"]), 2),
                         round(sampler.at(way["vertices"][-1]["x"], way["vertices"][-1]["z"]), 2)]
                        if sampler else None),
