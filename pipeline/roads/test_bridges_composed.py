@@ -159,6 +159,10 @@ def test_the_server_reports_terrain_along_a_bridge():
     assert [row[0] for row in profile] == [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0]
     assert profile[3][1] == 10.0
     assert composer_server.ground_profile([{"x": 1.0, "z": 1.0}, {"x": 1.0, "z": 1.0}], Slope()) == []
+    # with an approach: stations run from -extend to length + extend; station 0 is still the first vertex
+    wide = composer_server.ground_profile(way, Slope(), step=10.0, extend=10.0)
+    assert wide[0] == [-10.0, 6.0] and wide[-1] == [70.0, 6.0]
+    assert [row[1] for row in wide if row[0] == 0.0] == [7.0]
 
 
 def test_bridges_are_named_for_what_they_carry_over_what_they_cross():

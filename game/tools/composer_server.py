@@ -146,27 +146,44 @@ def ground():
     return _GROUND[0]
 
 
-def ground_profile(vertices, sampler, step=5.0, limit=400):
-    """[[station, terrain y], ...] along a way's vertices, about every `step` metres."""
+APPROACH_M = 15.24    # 50 ft of approach shown either side of a bridge in Bridge Composer
+
+
+def ground_profile(vertices, sampler, step=5.0, limit=400, extend=0.0):
+    """[[station, terrain y], ...] along a way's vertices, about every `step` metres.
+
+    With `extend`, the line continues that far past each end along its end tangent, and the
+    stations run from -extend to length + extend (station 0 is still the first vertex)."""
     pts = [(v["x"], v["z"]) for v in vertices]
+    if len(pts) < 2:
+        return []
     cum = [0.0]
     for a, b in zip(pts, pts[1:]):
         cum.append(cum[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
     total = cum[-1]
     if total <= 0.0:
         return []
-    n = max(1, min(limit, int(math.ceil(total / step))))
+    if extend > 0.0:
+        def tangent(a, b):
+            d = math.hypot(b[0] - a[0], b[1] - a[1]) or 1.0
+            return (b[0] - a[0]) / d, (b[1] - a[1]) / d
+        t0, t1 = tangent(pts[0], pts[1]), tangent(pts[-2], pts[-1])
+        pts = [(pts[0][0] - t0[0] * extend, pts[0][1] - t0[1] * extend)] + pts + \
+              [(pts[-1][0] + t1[0] * extend, pts[-1][1] + t1[1] * extend)]
+        cum = [0.0] + [c + extend for c in cum] + [total + 2 * extend]
+    whole = cum[-1]
+    n = max(1, min(limit, int(math.ceil(whole / step))))
     out = []
     i = 0
     for k in range(n + 1):
-        d = total * k / n
+        d = whole * k / n
         while i < len(pts) - 2 and cum[i + 1] < d:
             i += 1
         seg = cum[i + 1] - cum[i]
         t = (d - cum[i]) / seg if seg > 1e-9 else 0.0
         x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t
         z = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t
-        out.append([round(d, 2), round(sampler.at(x, z), 2)])
+        out.append([round(d - (extend if extend > 0.0 else 0.0), 2), round(sampler.at(x, z), 2)])
     return out
 
 
@@ -357,7 +374,8 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
             "deck_y": [v["y"] for v in way["vertices"]],
             # terrain along the centreline (station, y) every few metres: where the approach
             # roads are at the ends, and what a pier stands on between them
-            "ground_profile": ground_profile(way["vertices"], sampler) if sampler else None,
+            "ground_profile": ground_profile(way["vertices"], sampler, extend=APPROACH_M) if sampler else None,
+            "approach_m": APPROACH_M,
             # the same at just the two ends
             "ground": ([round(sampler.at(way["vertices"][0]["x"], way["vertices"][0]["z"]), 2),
                         round(sampler.at(way["vertices"][-1]["x"], way["vertices"][-1]["z"]), 2)]
