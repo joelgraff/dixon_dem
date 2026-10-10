@@ -5,6 +5,7 @@ game/roads/roads.tscn. See docs/roads_notes.md.
 
 Run: cd pipeline/roads && ../../.venv/bin/python build_road_plan.py
 """
+import bisect
 import json
 import math
 import os
@@ -19,6 +20,7 @@ from common_roads import (
 )
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import common as pc
+import bridges_composed
 
 OUT_DIR = os.path.join(pc.ROOT, "game", "roads", "_build")
 CHUNK_SIZE = 200.0
@@ -441,15 +443,30 @@ def split_loop_outside_carriageway(loop_in, loop_out, segs, margin=0.2):
         return []
     runs = []
     cur_in, cur_out = [], []
+    prev_mid = None
     for a, b in zip(loop_in, loop_out):
         mx, mz = (a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5
+        # Testing the ring's points alone is not enough: across a street mouth the ring
+        # is often just two points, one on each footpath, both outside the carriageway,
+        # joined by a straight span through it. That span rendered as two raised strips
+        # across the road (tickets 20260921_002438, 20260921_003127, "supposed to be
+        # fixed twice"), so the span between consecutive points is tested too.
+        spans_road = (segs and prev_mid is not None and
+                      any(_in_carriageway(prev_mid[0] + (mx - prev_mid[0]) * t,
+                                          prev_mid[1] + (mz - prev_mid[1]) * t, segs, margin=margin)
+                          for t in (0.2, 0.35, 0.5, 0.65, 0.8)))
         if segs and _in_carriageway(mx, mz, segs, margin=margin):
             if len(cur_in) >= 2:
                 runs.append((cur_in, cur_out))
             cur_in, cur_out = [], []
         else:
+            if spans_road:
+                if len(cur_in) >= 2:
+                    runs.append((cur_in, cur_out))
+                cur_in, cur_out = [], []
             cur_in.append(a)
             cur_out.append(b)
+        prev_mid = (mx, mz)
     if len(cur_in) >= 2:
         runs.append((cur_in, cur_out))
     return runs
@@ -779,8 +796,40 @@ def _carriageway_index(drivable_plans):
     return segs
 
 
+_CARRIAGEWAY_GRID = {}
+_GRID_CELL = 20.0
+
+
+def _carriageway_grid(segs):
+    """Bucket the carriageway segments into a coarse grid, once per segment list.
+
+    _in_carriageway is called for every ring/path point against every segment in
+    the map; the brute-force scan made the road plan take a quarter of an hour.
+    """
+    key = id(segs)
+    entry = _CARRIAGEWAY_GRID.get(key)
+    if entry is not None and entry[0] is segs:
+        return entry[1]
+    grid = {}
+    for seg in segs:
+        x1, z1, x2, z2, hw = seg
+        reach = hw + 1.0  # covers any margin the callers use
+        i0 = int(math.floor((min(x1, x2) - reach) / _GRID_CELL))
+        i1 = int(math.floor((max(x1, x2) + reach) / _GRID_CELL))
+        j0 = int(math.floor((min(z1, z2) - reach) / _GRID_CELL))
+        j1 = int(math.floor((max(z1, z2) + reach) / _GRID_CELL))
+        for i in range(i0, i1 + 1):
+            for j in range(j0, j1 + 1):
+                grid.setdefault((i, j), []).append(seg)
+    _CARRIAGEWAY_GRID[key] = (segs, grid)
+    return grid
+
+
 def _in_carriageway(px, pz, segs, margin=0.35):
-    for x1, z1, x2, z2, hw in segs:
+    cell = _carriageway_grid(segs).get((int(math.floor(px / _GRID_CELL)), int(math.floor(pz / _GRID_CELL))))
+    if not cell:
+        return False
+    for x1, z1, x2, z2, hw in cell:
         dx, dz = x2 - x1, z2 - z1
         L = dx * dx + dz * dz
         t = 0.0 if L == 0.0 else max(0.0, min(1.0, ((px - x1) * dx + (pz - z1) * dz) / L))
@@ -843,7 +892,62 @@ def _emit_path_ribbon(resampled, w, hm, mb_by_mat):
 # ---------------------------------------------------------------------------
 # Bridges (deck + parapets), Y from bridges.json (pre-computed, not heightmap).
 # ---------------------------------------------------------------------------
+BRIDGE_MAX_GRADE = 0.08      # approach-ramp grade used to meet the terrain at each deck end
+BRIDGE_RAMP_MAX_FRAC = 0.45  # a ramp never takes more than this share of the span
+BRIDGE_STEP_M = 4.0
+
+
+def _smoothstep(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3.0 - 2.0 * t)
+
+
+def bridge_profile(pts2d, ys, end_ground):
+    """Resample a bridge centreline and ramp its deck down to the ground at both ends.
+
+    bridges.json carries one flat deck height (pool level + clearance), but the
+    approach roads on either bank are built at terrain height, so a flat deck left a
+    several-metre step at each end ("deck sits above road and is unconnected",
+    ticket 20260921_002558). The deck now blends from the ground height at each end
+    to its design height over the shortest run that keeps the grade under
+    BRIDGE_MAX_GRADE, never using more than BRIDGE_RAMP_MAX_FRAC of the span.
+
+    Returns (points, ys, arclengths) for the resampled centreline.
+    """
+    seg = [math.hypot(pts2d[i + 1][0] - pts2d[i][0], pts2d[i + 1][1] - pts2d[i][1])
+           for i in range(len(pts2d) - 1)]
+    total = sum(seg)
+    if total < 1e-6:
+        return list(pts2d), list(ys), [0.0] * len(pts2d)
+    cum = [0.0]
+    for s_ in seg:
+        cum.append(cum[-1] + s_)
+    n = max(2, int(math.ceil(total / BRIDGE_STEP_M)) + 1)
+    pts, out_y, arcs = [], [], []
+    for k in range(n):
+        d = total * k / (n - 1)
+        i = min(bisect.bisect_right(cum, d) - 1, len(seg) - 1)
+        t = (d - cum[i]) / seg[i] if seg[i] > 1e-9 else 0.0
+        pts.append((pts2d[i][0] + (pts2d[i + 1][0] - pts2d[i][0]) * t,
+                    pts2d[i][1] + (pts2d[i + 1][1] - pts2d[i][1]) * t))
+        out_y.append(ys[i] + (ys[i + 1] - ys[i]) * t)
+        arcs.append(d)
+    for end, ground in ((0, end_ground[0]), (1, end_ground[1])):
+        rise = out_y[0 if end == 0 else -1] - ground
+        ramp = min(abs(rise) / BRIDGE_MAX_GRADE, total * BRIDGE_RAMP_MAX_FRAC)
+        if ramp < 1e-6:
+            continue
+        for k in range(n):
+            dist = arcs[k] if end == 0 else total - arcs[k]
+            if dist >= ramp:
+                continue
+            w = _smoothstep(dist / ramp)  # 0 at the end (ground), 1 at the ramp's top
+            out_y[k] = ground + (out_y[k] - ground) * w
+    return pts, out_y, arcs
+
+
 def build_bridges(bridges, hm, mb_by_mat, furniture):
+    profiles = {}
     for b in bridges:
         tags = b["tags"]
         if tags.get("kind") == "railway":
@@ -851,32 +955,41 @@ def build_bridges(bridges, hm, mb_by_mat, furniture):
         vs = b["vertices"]
         if len(vs) < 2:
             continue
-        pts2d = [(v["x"], v["z"]) for v in vs]
-        ys = [v["y"] for v in vs]
+        composed = bridges_composed.load(str(b["id"]))
+        if composed is not None:
+            # Designed in Bridge Composer: its geometry replaces the generated deck.
+            result = bridges_composed.build(mb_by_mat, furniture, composed, ground=hm.sample)
+            profiles[str(b["id"])] = result["profile"]
+            for message in result["warnings"]:
+                print(f"  bridge {b['id']}: {message}")
+            continue
+        raw_pts = [(v["x"], v["z"]) for v in vs]
+        ground = [hm.sample(*raw_pts[0]) + ROAD_Y_BIAS, hm.sample(*raw_pts[-1]) + ROAD_Y_BIAS]
+        pts2d, ys, arcs = bridge_profile(raw_pts, [v["y"] for v in vs], ground)
+        profiles[str(b["id"])] = [[round(a, 2), round(y, 3)] for a, y in zip(arcs, ys)]
         width = max(tags.get("width_m") or 8.0, 3.0)
         hw = width * 0.5
         left = offset_polyline(pts2d, hw)
         right = offset_polyline(pts2d, -hw)
 
-        def deck_ribbon(l, r, ybase, mat, ybias=0.0):
-            sub = MeshBuild()
-            n = len(l)
-            li, ri = [], []
-            vlen = 0.0
-            for i in range(n):
-                ly = ybase[i] + ybias
-                ry = ybase[i] + ybias
-                ln = [0.0, 1.0, 0.0]
-                li.append(sub.add_vertex(l[i][0], ly, l[i][1], ln))
-                ri.append(sub.add_vertex(r[i][0], ry, r[i][1], ln))
-            for i in range(n - 1):
-                sub.add_quad(li[i], li[i + 1], ri[i + 1], ri[i])
-            if not sub.is_empty():
-                mb_by_mat.setdefault(mat, MeshBuild()).extend(sub)
+        # The deck is walkable from above and seen from below, so both faces are
+        # emitted: a single-sided ribbon from add_quad winds away from the sky
+        # (see the note on the asphalt ribbon), which read as a deck with its
+        # normal flipped (ticket 20260921_002533).
+        sub = MeshBuild()
+        li, ri = [], []
+        for i in range(len(pts2d)):
+            up = [0.0, 1.0, 0.0]
+            li.append(sub.add_vertex(left[i][0], ys[i], left[i][1], up))
+            ri.append(sub.add_vertex(right[i][0], ys[i], right[i][1], up))
+        for i in range(len(pts2d) - 1):
+            sub.add_quad(li[i], li[i + 1], ri[i + 1], ri[i])
+            sub.add_quad(ri[i], ri[i + 1], li[i + 1], li[i])
+        if not sub.is_empty():
+            mb_by_mat.setdefault("bridge_deck", MeshBuild()).extend(sub)
 
-        deck_ribbon(left, right, ys, "bridge_deck", 0.0)
-
-        # Parapets: simple raised wall + pipe-rail look along both edges.
+        # Parapets: concrete barrier along both edges (the green steel rail on top is
+        # landmark dressing; see docs/references/galena_bridge.md).
         parapet_h = 0.9
         for side_pts in (left, right):
             sub = MeshBuild()
@@ -892,11 +1005,16 @@ def build_bridges(bridges, hm, mb_by_mat, furniture):
                 sub.add_quad(bi[i], bi[i + 1], ti[i + 1], ti[i])
                 sub.add_quad(ti[i], ti[i + 1], bi[i + 1], bi[i])
             if not sub.is_empty():
-                mb_by_mat.setdefault("steel_rusted", MeshBuild()).extend(sub)
+                mb_by_mat.setdefault("curb_concrete", MeshBuild()).extend(sub)
 
         # A couple of ornate lamp posts per bridge end (galena_bridge.md: cobra/acorn lights).
         for pt in (pts2d[0], pts2d[-1]):
             furniture.setdefault("lamp_downtown", []).append([pt[0], hm.sample(*pt), pt[1], 0.0])
+
+    # Deck height by distance along each bridge's centreline, for dressing that is
+    # built outside this plan (landmarks' Galena Ave bridge piers and railings).
+    with open(os.path.join(pc.ROOT, "game", "data", "bridge_profiles.json"), "w") as f:
+        json.dump({"profiles": profiles}, f)
 
 
 # ---------------------------------------------------------------------------
@@ -908,7 +1026,6 @@ BALLAST_WIDTH = 3.0
 BALLAST_TOP = 0.20
 TIE_TOP = 0.35
 RAIL_TOP = 0.50
-
 
 def build_rails(rail_ways, all_road_ways, hm, mb_by_mat, furniture):
     # crossing detection: sample points where a rail polyline passes within

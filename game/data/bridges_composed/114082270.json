@@ -1,0 +1,179 @@
+{
+ "format": "dixon-bridge",
+ "version": 1,
+ "id": "114082270",
+ "name": "North Galena Avenue",
+ "centerline": [
+  [
+   1541.41,
+   -1526.81
+  ],
+  [
+   1518.49,
+   -1600.73
+  ],
+  [
+   1482.96,
+   -1725.52
+  ]
+ ],
+ "deck": {
+  "width": 16.4,
+  "thickness": 0.3,
+  "elevation": [
+   [
+    0.0,
+    6.664
+   ],
+   [
+    17.2,
+    8.04
+   ],
+   [
+    188.74,
+    8.04
+   ],
+   [
+    207.14,
+    6.568
+   ]
+  ]
+ },
+ "supports": [
+  {
+   "kind": "abutment",
+   "station": 0.0,
+   "length": 1.5
+  },
+  {
+   "kind": "pier",
+   "station": 20.71,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 41.43,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 62.14,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 82.86,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 103.57,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 124.28,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 145.0,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 165.71,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "pier",
+   "station": 186.43,
+   "length": 1.4,
+   "width": 6.0,
+   "shape": "bullnose"
+  },
+  {
+   "kind": "abutment",
+   "station": 207.14,
+   "length": 1.5
+  }
+ ],
+ "spans": [
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  },
+  {
+   "type": "girder",
+   "depth": 0.9,
+   "haunch": 0.5
+  }
+ ],
+ "cross_section": {
+  "barrier_h": 0.9,
+  "barrier_w": 0.4,
+  "sidewalk_w": 0.0,
+  "rail_h": 0.0
+ },
+ "lamps": {
+  "spacing": 25.0
+ },
+ "materials": {}
+}

@@ -37,7 +37,7 @@ const SPAWNS := {
 		"desc": "Reagan Boyhood Home street, 816 S Hennepin Ave.",
 	},
 	"bridge": {
-		"x": 1512.0, "y": 13.4, "z": -1626.0, "yaw_deg": 90.0,
+		"x": 1512.0, "y": 10.4, "z": -1626.0, "yaw_deg": 90.0,
 		"desc": "Galena Ave bridge deck (US-52/IL-26) over the Rock River -- y hardcoded to the deck height since it's above the terrain heightmap's surface at this x/z, not on it.",
 	},
 	"bluff_vista": {

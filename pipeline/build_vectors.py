@@ -243,7 +243,10 @@ BRIDGE_CLEARANCE_M = {
     # bridges that actually cross a water reach. Galena Ave (US-52/IL-26) is
     # the major crossing and targets ~6-10m per the brief; lesser roads/foot
     # bridges over minor water get less.
-    "motorway": 7.5, "trunk": 7.5, "primary": 7.5, "secondary": 6.5,
+    # primary: Galena Ave is a low-clearance urban crossing -- the Nov 2025 photos
+    # show the deck level with the street at both banks and the soffit only ~3 m
+    # over the pool (docs/references/galena_bridge.md), so 4.5 m, not 7.5.
+    "motorway": 7.5, "trunk": 7.5, "primary": 4.5, "secondary": 6.5,
     "tertiary": 5.5, "unclassified": 5.0, "residential": 5.0,
     "footway": 6.5, "cycleway": 6.5, "pedestrian": 6.0, "steps": 5.0,
 }

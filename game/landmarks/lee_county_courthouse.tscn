@@ -58,6 +58,7 @@ shader_parameter/snow_noise_scale = 0.2
 shader_parameter/porosity = 0.5
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
+shader_parameter/sheltered = null
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3fuba"]
 resource_name = "limestone"
@@ -98,6 +99,7 @@ shader_parameter/snow_noise_scale = 0.2
 shader_parameter/porosity = 0.5
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
+shader_parameter/sheltered = null
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ekl38"]
 transparency = 1
@@ -144,6 +146,7 @@ shader_parameter/snow_noise_scale = 0.2
 shader_parameter/porosity = 0.5
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
+shader_parameter/sheltered = null
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1per5"]
 albedo_color = Color(0.95, 0.92, 0.8, 1)
@@ -188,6 +191,7 @@ shader_parameter/snow_noise_scale = 0.15
 shader_parameter/porosity = 0.05
 shader_parameter/allow_puddles = false
 shader_parameter/puddle_scale = 0.05
+shader_parameter/sheltered = null
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_6idhf"]
 resource_name = "window_glass"
@@ -286,17 +290,17 @@ size = Vector3(36, 17, 25.3)
 [sub_resource type="BoxShape3D" id="BoxShape3D_o31h5"]
 size = Vector3(15, 18, 3.6)
 
-[node name="LeeCountyCourthouse" type="Node3D" unique_id=396715461]
+[node name="LeeCountyCourthouse" type="Node3D" unique_id=1950753007]
 
-[node name="Mesh" type="MeshInstance3D" parent="." unique_id=1946501058]
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=1598964022]
 mesh = SubResource("ArrayMesh_gs0mn")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=362895188]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1284481756]
 
-[node name="Shape0" type="CollisionShape3D" parent="Collision" unique_id=838682885]
+[node name="Shape0" type="CollisionShape3D" parent="Collision" unique_id=1819487512]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
 shape = SubResource("BoxShape3D_n2r3p")
 
-[node name="Shape1" type="CollisionShape3D" parent="Collision" unique_id=231325988]
+[node name="Shape1" type="CollisionShape3D" parent="Collision" unique_id=96311967]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, -13.95)
 shape = SubResource("BoxShape3D_o31h5")

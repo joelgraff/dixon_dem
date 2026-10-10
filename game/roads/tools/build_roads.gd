@@ -32,6 +32,9 @@ const MATERIAL_PATHS := {
 	"marking_yellow": "res://roads/materials/marking_yellow.tres",
 	"marking_white": "res://roads/materials/marking_white.tres",
 	"bridge_deck": "res://roads/materials/bridge_deck.tres",
+	# Bridge Composer structure: arch rings, piers (pipeline/roads/bridges_composed.py MATERIALS)
+	"stone_foundation": "res://materials/lib/stone_foundation.tres",
+	"limestone": "res://materials/lib/limestone.tres",
 }
 const WALKABLE := ["asphalt_road", "asphalt_patched", "asphalt_road_plowed", "asphalt_patched_plowed",
 	"curb_concrete", "sidewalk_concrete", "bridge_deck", "gravel_ballast"]

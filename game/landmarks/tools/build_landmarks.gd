@@ -302,17 +302,22 @@ func _build_dixon_arch() -> Node3D:
 ## posts, and "Lincoln Highway" stamped into the sidewalk. Built directly in
 ## world space along the real deck centerline from game/data/bridges.json
 ## (way 114082270): (1541.4,-1526.8) -> (1518.5,-1600.7) -> (1483.0,-1725.5),
-## deck Y=11.04, width_m=16.4 (half-width 8.2).
+## deck Y=8.04 (pool + 4.5 m clearance), width_m=16.4 (half-width 8.2).
 func _build_galena_bridge_dressing() -> Node3D:
 	var wrap := Node3D.new()
 	wrap.name = "GalenaBridgeDressing"
+	# A bridge designed in Bridge Composer carries its own piers, barriers, rails and
+	# lamps (pipeline/roads/bridges_composed.py); the hand-built dressing would double them.
+	if FileAccess.file_exists("res://data/bridges_composed/114082270.json"):
+		return wrap
 	var mb := MB.new()
-	var deck_y := 11.04
+	var deck_y := 8.04  # design level; the real height per sample comes from bridge_profiles.json
 	var half_w := 8.2
 	var concrete := LM.flat_color("sidewalk_concrete", Color(1.05, 1.0, 0.9), deck_y, 0.9, {"uv_scale": Vector2(0.5, 0.5)})
 	var pier_mat := LM.flat_color("curb_concrete", Color(1.0, 0.96, 0.86), deck_y - 5.0, 0.85, {"uv_scale": Vector2(0.4, 0.4)})
 	var stain_mat := LM.flat_color("curb_concrete", Color(0.55, 0.6, 0.53), deck_y - 5.0, 0.55, {"uv_scale": Vector2(0.4, 0.4)})
-	var steel := LM.flat_color("steel_rusted", Color(0.75, 0.76, 0.78), deck_y, 0.55, {"uv_scale": Vector2(0.6, 0.6)})
+	# dark green painted railings per the Nov 2025 photos (docs/references/galena_bridge.md)
+	var steel := LM.flat_color("steel_rusted", Color(0.13, 0.24, 0.22), deck_y, 0.5, {"uv_scale": Vector2(0.6, 0.6)})
 	var iron := LM.flat_color("stone_foundation", Color(0.08, 0.08, 0.08), deck_y, 0.4)
 	var glow := LM.flat_unshaded(Color(0.95, 0.92, 0.8), 0.3)
 	var stamp_mat := LM.signage("lincoln_highway_stamp.png")
@@ -325,6 +330,7 @@ func _build_galena_bridge_dressing() -> Node3D:
 		seg_len += pts[i].distance_to(pts[i + 1])
 	var step: float = seg_len / round(seg_len / 20.0)
 	var accum := 0.0
+	var sample_arc: Array[float] = [0.0]
 	samples.append(pts[0])
 	while accum + step < seg_len - 0.01:
 		accum += step
@@ -340,7 +346,14 @@ func _build_galena_bridge_dressing() -> Node3D:
 		var seglen2 := segv.length()
 		var p: Vector2 = pts[i2] + segv * (d / max(seglen2, 0.001))
 		samples.append(p)
+		sample_arc.append(accum)
 	samples.append(pts[pts.size() - 1])
+	sample_arc.append(seg_len)
+	# The road plan ramps the deck to meet the banks (bridge_profiles.json), so
+	# piers, rails and lamps follow that height rather than the flat design level.
+	var deck_ys: Array[float] = []
+	for i in range(samples.size()):
+		deck_ys.append(_bridge_deck_y("114082270", sample_arc[i], deck_y))
 
 	for i in range(samples.size()):
 		var p2: Vector2 = samples[i]
@@ -351,9 +364,10 @@ func _build_galena_bridge_dressing() -> Node3D:
 			dir = (p2 - samples[i - 1]).normalized()
 		var perp := Vector2(-dir.y, dir.x) # points to one side of travel, used for pier width axis
 		var wx := p2.x; var wz := p2.y
+		var dy: float = deck_ys[i]
 		# interior points only get pier haunches (skip the very ends, which sit on the bank)
 		if i > 0 and i < samples.size() - 1:
-			var pier_top_y := deck_y - 1.0
+			var pier_top_y := dy - 1.0
 			var haunch_h := 2.0
 			# wide-at-top, narrow-at-bottom flare (negative inset widens upward)
 			mb.add_mansard(pier_mat, Vector3(wx, pier_top_y - haunch_h, wz), 3.0, 1.6, haunch_h, -2.6)
@@ -364,9 +378,9 @@ func _build_galena_bridge_dressing() -> Node3D:
 			var rx := wx + perp.x * half_w * side
 			var rz := wz + perp.y * half_w * side
 			if i % 2 == 0:
-				mb.add_cylinder(steel, Vector3(rx, deck_y, rz), 1.0, 0.04, 0.04, 6, false, false)
+				mb.add_cylinder(steel, Vector3(rx, dy, rz), 1.0, 0.04, 0.04, 6, false, false)
 			if i % 3 == 0:
-				add_lamp_post(mb, iron, glow, Vector3(rx, deck_y, rz), 4.3)
+				add_lamp_post(mb, iron, glow, Vector3(rx, dy, rz), 4.3)
 
 	# continuous top/mid pipe rails along both edges (approximate as straight
 	# segments between consecutive samples -- close enough for the gentle curve)
@@ -375,8 +389,8 @@ func _build_galena_bridge_dressing() -> Node3D:
 		var dir2 := (b2 - a2).normalized()
 		var perp2 := Vector2(-dir2.y, dir2.x)
 		for side: float in [-1.0, 1.0]:
-			var a3 := Vector3(a2.x + perp2.x * half_w * side, deck_y + 0.75, a2.y + perp2.y * half_w * side)
-			var b3 := Vector3(b2.x + perp2.x * half_w * side, deck_y + 0.75, b2.y + perp2.y * half_w * side)
+			var a3 := Vector3(a2.x + perp2.x * half_w * side, deck_ys[i] + 0.75, a2.y + perp2.y * half_w * side)
+			var b3 := Vector3(b2.x + perp2.x * half_w * side, deck_ys[i + 1] + 0.75, b2.y + perp2.y * half_w * side)
 			var mid := (a3 + b3) * 0.5
 			var len3 := a3.distance_to(b3)
 			var ang := atan2(b3.x - a3.x, b3.z - a3.z)
@@ -387,7 +401,7 @@ func _build_galena_bridge_dressing() -> Node3D:
 	for frac: float in [0.25, 0.5, 0.75]:
 		var idx := int(frac * float(samples.size() - 1))
 		var sp: Vector2 = samples[idx]
-		mb.add_panel(stamp_mat, Vector3(sp.x, deck_y + 0.02, sp.y), Vector3(0, 1, 0), 3.0, 0.8, Vector3(1, 0, 0))
+		mb.add_panel(stamp_mat, Vector3(sp.x, deck_ys[idx] + 0.02, sp.y), Vector3(0, 1, 0), 3.0, 0.8, Vector3(1, 0, 0))
 
 	var mesh := mb.finalize()
 	var mi := MeshInstance3D.new()
@@ -395,6 +409,28 @@ func _build_galena_bridge_dressing() -> Node3D:
 	mi.mesh = mesh
 	wrap.add_child(mi)
 	return wrap
+
+
+## Deck height `arc` metres along bridge `way_id`'s centreline, from the
+## profile the road plan writes to game/data/bridge_profiles.json; `fallback`
+## when the profile is missing (older data) so the dressing still builds.
+static func _bridge_deck_y(way_id: String, arc: float, fallback: float) -> float:
+	var f := FileAccess.open("res://data/bridge_profiles.json", FileAccess.READ)
+	if f == null:
+		return fallback
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	if not (parsed is Dictionary) or not parsed.get("profiles", {}).has(way_id):
+		return fallback
+	var prof: Array = parsed["profiles"][way_id]
+	if prof.is_empty():
+		return fallback
+	for i in range(1, prof.size()):
+		var a: Array = prof[i - 1]
+		var b: Array = prof[i]
+		if arc <= float(b[0]):
+			var span: float = maxf(float(b[0]) - float(a[0]), 0.0001)
+			return lerpf(float(a[1]), float(b[1]), clampf((arc - float(a[0])) / span, 0.0, 1.0))
+	return float(prof[prof.size() - 1][1])
 
 
 ## Rock River Dam / Dixon Dam per docs/references/dixon_dam.md (explicitly
