@@ -115,6 +115,15 @@ checks that grass follows the graded collision and cannot spawn on asphalt.
 The road baker writes both `roads.tscn` and the live world's `roads.scn`, so
 rebuilding no longer leaves the world using a stale packed road scene.
 
+## Horizontal control (alignments)
+
+`pipeline/roads/build_alignments.py` chains roads.json's drivable ways into routes, fits each a
+tangent-and-curve alignment, places junction control points, and measures widths from the 2025
+aerial. It writes `game/data/alignments.json` and `game/roads/_build/alignment_report.json`.
+`--overlay` draws review images into `captures/roads/alignments/`; `alignment_overlay.py X Z [half]`
+draws one window. No game consumer reads alignments yet. Tests: `test_alignment.py`. See
+`docs/roadway_control_plan.md`, phase 1.
+
 ## Build bounds
 
 Roads and rails are built only over the 1 m play heightmap (`VALID_BOUNDS` in

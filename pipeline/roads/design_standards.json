@@ -68,7 +68,21 @@
     "osm_deviation_max": 1.0,
     "osm_deviation_max_downtown": 0.5,
     "bearing_snap_deg": 1.5,
-    "_source": "Proposed tolerances for fitting design alignments to OSM centrelines.",
+    "radius_rounding": [
+      [
+        100,
+        5
+      ],
+      [
+        300,
+        10
+      ],
+      [
+        1000000000,
+        25
+      ]
+    ],
+    "_source": "Proposed tolerances for fitting design alignments to OSM centrelines. radius_rounding: [[up to radius m, round to m], ...], applied only where the rounded curve stays within the tolerance.",
     "_decision": "2026-10-18: use these defaults for now."
   },
   "cross_section": {

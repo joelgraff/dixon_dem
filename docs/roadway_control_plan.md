@@ -1,6 +1,6 @@
 # Roadway horizontal and vertical control: plan
 
-Status: proposal, 2026-10-18. Phase 0 is built (see Phase 0 results); the rest is not.
+Status: proposal, 2026-10-18. Phases 0 and 1 are built (see their results sections); the rest is not.
 
 ## The problem
 
@@ -247,7 +247,7 @@ Each phase ships on its own and shows improvement against the baseline metrics.
 | phase | delivers | visible change |
 | --- | --- | --- |
 | 0 (done) | `design_standards.json`; `road_metrics.py` with a ratchet test; breaklines located | none |
-| 1 | Routes, stationing, horizontal fit, OSM-deviation report; aerial curb-to-curb width survey per route | none (data only); review deviations in a debug overlay |
+| 1 (done) | Routes, stationing, horizontal fit, OSM-deviation report; aerial curb-to-curb width survey per route | none (data only); review images over the aerial |
 | 2 | Network vertical solve with shared junction elevations and fixed controls; `road_conform` reads design profiles instead of per-way moving averages | junction steps gone, grades smooth; the biggest win for the smallest change |
 | 3 | Cross-section templates on station ranges; crown warping at junctions; TIN-based conformed heightmap with daylighting | real lane, parking and gutter widths; clean curb lines |
 | 4 | Linear and node module library replacing the polygon pipeline and fan fills; curated-module escape hatch | regular sidewalk panels and joints, consistent curb returns and ramps |
@@ -306,6 +306,73 @@ already eases them):
 
 Each is a case for a fixed vertical control in phase 2: the top of rail at the crossing, a culvert
 or embankment profile on West 9th, and a pinned alley grade downtown.
+
+## Phase 1 results
+
+`pipeline/roads/build_alignments.py` (about 3 minutes; `--overlay` also draws the review
+images, `--no-width` skips the aerial survey) writes `game/data/alignments.json` and
+`game/roads/_build/alignment_report.json`. Nothing in the game reads them yet.
+
+**Routes** (`routes.py`):
+- The 537 drivable OSM ways inside the play area chain into **281 routes**, 94 km in all.
+- A route follows a street through OSM's splits, and across a junction where the same street
+  carries on. Names are matched without the direction word, so West and East 1st Street are one
+  route.
+- Stationing runs west to east, or south to north.
+- Galena Avenue is one route except where it is a one-way pair, whose second carriageway is a
+  route of its own.
+- Every route records the station range of each of its OSM ways and bridges.
+
+**Horizontal fit** (`alignment.py`):
+- Each route is tangents and circular curves through PIs. The two street grids, at 343.5° and
+  1.8° (mod 90°), are found from the data, and 192 of 697 tangents snap to them.
+- That gives 546 curves and 251 angle points. The angle points are mostly parking-aisle
+  corners and short stubs at route ends.
+- Merging straight runs, removing OSM's sub-metre jogs, snapping to the grid and rounding radii
+  are each allowed only within the deviation tolerance.
+- Lateral deviation from OSM per route: median 0.51 m, 90th percentile 0.91 m, worst 1.00 m.
+  One route is over tolerance: a 0.55 m stretch of West 1st Street downtown, left for review.
+
+**Junctions:**
+- 562 junction control points, each where the route alignments actually meet. A control point
+  sits a median 0.39 m from its OSM node, at most 3.7 m.
+- 319 route ends that stop on another street were moved onto that street's alignment.
+- Each junction records its legs, their stations and headings, and its skew.
+
+**Width survey** (`aerial_width.py`):
+- Measured a block at a time on the 2025 aerial. 361 of 503 blocks give a confident edge pair.
+- **88 routes have a measured width.** The other 84 surveyed routes fall back to the OSM
+  width tag, because too few blocks counted or the counted blocks disagreed by more than 2 m.
+  Downtown mostly falls back: cars along whole blocks and sidewalks running straight to the
+  curb defeat the edge finder.
+- Medians: local streets 10.2 m of asphalt (about 33 ft), collectors 12.5 m, arterials 17.9 m.
+  Widths are rounded to the foot.
+- The concrete gutter flag was not seen on any route, so the gutter is recorded as `not_seen`
+  and curb-to-curb is the asphalt width. The detector cannot tell an overlaid gutter from one
+  it missed.
+- Block centres sit a median 1.0 m from the alignment. Sixty blocks are more than 2 m off;
+  they are listed for review in `off_centre_blocks`. Nothing is recentred automatically.
+- The review images in `captures/roads/alignments/` are 0.25 m per pixel. They show:
+  - OSM in red
+  - tangents in cyan and curves in magenta
+  - PIs as yellow dots and angle points as orange crosses
+  - junction control points as white rings
+  - each counted block's edges in green
+
+**Aerial georeferencing fix.** `pipeline/aerial/georef_affine.py` was misplacing the 2025 imagery
+north–south by up to about 14 m near tile edges:
+- The tiles are requested as a non-square Web Mercator box but a square image. The image
+  server widens the short side about its centre (checked against its returned extent), and the
+  affine assumed it did not.
+- Fixed, with `test_georef_affine.py`; the tiles' `pixel_from_world` were regenerated. Building
+  footprints now land on their roofs and OSM centrelines down the middle of the streets.
+- Two consumers worked from the bad placement:
+  - Building Composer's aerial backdrop (`aerial_crop.py`), so footprints traced or nudged
+    against it may be off north–south.
+  - `extract_paved_il.py`, which ignores the affine entirely and places tiles by their requested
+    boxes, so the parking lots in `aerial_paved.json` may be off by up to 15 m.
+
+  Both need a follow-up.
 
 ## Decisions (answered 2026-10-18, recorded in `design_standards.json`)
 
