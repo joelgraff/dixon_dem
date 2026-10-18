@@ -1,0 +1,132 @@
+{
+  "format": "dixon-design-standards",
+  "version": 1,
+  "_about": "Roadway design controls (docs/roadway_control_plan.md). Provisional starting values: AASHTO Green Book where cited, otherwise a proposed default to confirm against the IDOT BLRS Manual's urban tables. Lengths in metres unless a key says _ft; grades and slopes are fractions (0.02 = 2%); K is length per 1% of algebraic grade difference.",
+  "policy": {
+    "class_limits": "advisory",
+    "_decision": "2026-10-18: class limits are values for new designs and cannot account for existing conditions. Fits report violations; they never fail a build or force a profile off the ground."
+  },
+  "classes": {
+    "arterial": {
+      "osm_highway": [
+        "motorway",
+        "trunk",
+        "primary",
+        "primary_link"
+      ],
+      "design_speed_mph": 35,
+      "max_grade": 0.07,
+      "k_crest_ft": 29,
+      "k_sag_ft": 49,
+      "_source": "K: AASHTO stopping sight distance, 35 mph. Max grade: proposed, urban arterial rolling terrain."
+    },
+    "collector": {
+      "osm_highway": [
+        "secondary",
+        "secondary_link",
+        "tertiary",
+        "tertiary_link"
+      ],
+      "design_speed_mph": 30,
+      "max_grade": 0.09,
+      "k_crest_ft": 19,
+      "k_sag_ft": 37,
+      "_source": "K: AASHTO SSD, 30 mph. Max grade: proposed."
+    },
+    "local": {
+      "osm_highway": [
+        "residential",
+        "unclassified",
+        "living_street"
+      ],
+      "design_speed_mph": 25,
+      "max_grade": 0.12,
+      "k_crest_ft": 12,
+      "k_sag_ft": 26,
+      "_source": "K: AASHTO SSD, 25 mph. Max grade: proposed, terrain-limited local street."
+    },
+    "service": {
+      "osm_highway": [
+        "service",
+        "alley",
+        "track"
+      ],
+      "design_speed_mph": 15,
+      "max_grade": 0.15,
+      "k_crest_ft": 3,
+      "k_sag_ft": 10,
+      "_source": "Proposed; alleys and drives have no SSD-governed curves."
+    }
+  },
+  "profile": {
+    "min_gutter_grade": 0.003,
+    "desirable_gutter_grade": 0.005,
+    "min_vertical_curve_ft": 50,
+    "_source": "Proposed drainage minimums for curbed streets; flatter runs get a sawtooth gutter profile."
+  },
+  "horizontal": {
+    "osm_deviation_max": 1.0,
+    "osm_deviation_max_downtown": 0.5,
+    "bearing_snap_deg": 1.5,
+    "_source": "Proposed tolerances for fitting design alignments to OSM centrelines.",
+    "_decision": "2026-10-18: use these defaults for now."
+  },
+  "cross_section": {
+    "lane_width": {
+      "arterial": 3.66,
+      "collector": 3.35,
+      "local": 3.05,
+      "service": 3.05
+    },
+    "parking_lane_width": 2.44,
+    "crown": 0.02,
+    "crown_range": [
+      0.015,
+      0.025
+    ],
+    "gutter_width": 0.61,
+    "gutter_overlaid_visible_width": 0.0,
+    "curb_reveal": 0.152,
+    "curb_reveal_older": 0.102,
+    "curb_width": 0.152,
+    "sidewalk_width": {
+      "residential": 1.52,
+      "typical": 1.83
+    },
+    "sidewalk_max_cross_slope": 0.02,
+    "parkway_width_range": [
+      0.0,
+      3.0
+    ],
+    "fill_slope": 0.25,
+    "cut_slope": 0.333,
+    "width_source": "aerial_curb_to_curb",
+    "width_rounding": 0.3048,
+    "_decision": "2026-10-18: measure curb-to-curb from the aerial per route, rounded to the nearest foot (class default where it cannot be measured). The gutter flag is 2 ft, new or old, but many have been overlaid with asphalt and show no gutter (a per-route 'overlaid' flag, visible width 0). Older curb may be only 4 in, new curb is 6 in.",
+    "_source": "Lanes 12/11/10 ft; gutter and curb per IDOT combination curb and gutter B-6.24 (6 in curb, 24 in gutter); sidewalk cross slope per ADA/PROWAG; daylight slopes 1:4 fill, 1:3 cut. All proposed defaults; real widths to be measured per route from the 6-inch aerial."
+  },
+  "modules": {
+    "sidewalk_panel": 1.524,
+    "curb_return_radii": [
+      3.0,
+      4.5,
+      6.0,
+      7.5,
+      9.0
+    ],
+    "curb_ramp_max_running_slope": 0.0833,
+    "junction_types": [
+      "T",
+      "4-leg"
+    ],
+    "_decision": "2026-10-18: the node library starts with orthogonal T and 4-leg junctions; others are curated modules.",
+    "_source": "5 ft panel module; return radii about 10/15/20/25/30 ft; ramp slope per ADA."
+  },
+  "clearance": {
+    "over_road": 4.42,
+    "over_road_desirable": 4.88,
+    "over_rail": 7.01,
+    "river_freeboard": 0.6,
+    "_source": "14.5 ft / 16 ft over roads, 23 ft over railroads (AREMA); freeboard proposed."
+  }
+}

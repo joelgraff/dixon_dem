@@ -27,11 +27,20 @@ OUT_DIR = os.path.join(pc.ROOT, "game", "roads", "_build")
 # (build_bridges_only.py) without redoing the road layout.
 BRIDGE_OUT_DIR = os.path.join(pc.ROOT, "game", "roads", "_build_bridges")
 CHUNK_SIZE = 200.0
-# Play area is x:[0,2700] z:[-2700,0] (see world_origin.json); some source ways
-# (notably rails.json -- long real-world rail lines fetched without geometry
-# clipping) extend far beyond it. Drop anything outside a generous margin
-# rather than trust every input file to be pre-clipped.
-VALID_BOUNDS = (-400.0, -3100.0, 3100.0, 400.0)  # x0,z0,x1,z1
+# Roads and rails are built only over the 1 m play heightmap, x:[0,2699] z:[-2700,-1] (see
+# world_origin.json). Source ways run past it (rails.json's mainlines for many km), and past its
+# edge the heightmap sampler clamps to the edge row, so roads there took the edge's heights
+# instead of the ground's: up to 18 m under the horizon terrain (docs/roadway_control_plan.md,
+# phase 0). Ways are cut at the edge itself (clip_ways_to_bounds), not at their last vertex inside.
+def _play_bounds():
+    hm = pc.load_world_origin()["heightmaps"]["play"]
+    x0 = hm["origin_easting"] - pc.ORIGIN_EASTING
+    z0 = -(hm["origin_northing_top"] - pc.ORIGIN_NORTHING)
+    # sample i sits at x0 + i * spacing (common_roads.Heightmap), so the last one is width - 1 in
+    return (x0, z0, x0 + (hm["width"] - 1) * hm["spacing_m"], z0 + (hm["height"] - 1) * hm["spacing_m"])
+
+
+VALID_BOUNDS = _play_bounds()  # x0,z0,x1,z1
 
 
 def in_bounds(x, z):
@@ -62,30 +71,62 @@ ROAD_Y_BIAS = 0.085  # was 0.025 (too tight against terrain's own +-20mm toleran
                     # 8.5 cm clears terrain in 99.6% of samples and stays well under CURB_HEIGHT.
 
 
+def _cut(a, b):
+    """The part of segment a->b inside VALID_BOUNDS, as (start, end) vertices, or None."""
+    x0, z0, x1, z1 = VALID_BOUNDS
+    dx, dz = b["x"] - a["x"], b["z"] - a["z"]
+    t0, t1 = 0.0, 1.0
+    for d, p, lo, hi in ((dx, a["x"], x0, x1), (dz, a["z"], z0, z1)):
+        if abs(d) < 1e-12:
+            if p < lo or p > hi:
+                return None
+            continue
+        u, v = sorted(((lo - p) / d, (hi - p) / d))
+        t0, t1 = max(t0, u), min(t1, v)
+    if t1 - t0 < 1e-9:
+        return None
+    at = lambda t: {"x": min(max(a["x"] + dx * t, x0), x1), "y": a["y"] + (b["y"] - a["y"]) * t,
+                    "z": min(max(a["z"] + dz * t, z0), z1), "node_id": None}
+    return (a if t0 == 0.0 else at(t0)), (b if t1 == 1.0 else at(t1))
+
+
 def clip_ways_to_bounds(ways):
-    """Splits each way into contiguous in-bounds vertex runs (see VALID_BOUNDS);
-    drops the out-of-bounds portions entirely (real OSM lines can run for
-    many km past the play area, e.g. rails.json's mainline railways)."""
+    """Splits each way into the runs inside VALID_BOUNDS, cut exactly at the edge.
+
+    A run that leaves or enters the bounds gets a vertex on the edge (no node id, so it is a
+    dead end there); the out-of-bounds portions are dropped (real OSM lines can run for many km
+    past the play area, e.g. rails.json's mainline railways)."""
     out = []
     for w in ways:
         vs = w["vertices"]
-        run = []
-        piece_n = 0
-        for v in vs:
-            if in_bounds(v["x"], v["z"]):
-                run.append(v)
-            else:
-                if len(run) >= 2:
-                    piece = dict(w)
-                    piece["vertices"] = run
-                    piece["id"] = w["id"] * 100 + piece_n
-                    piece_n += 1
-                    out.append(piece)
+        runs, run = [], []
+        for a, b in zip(vs, vs[1:]):
+            part = _cut(a, b)
+            if part is None:
+                if run:
+                    runs.append(run)
+                    run = []
+                continue
+            start, end = part
+            if not run:
+                run = [start]
+            elif start is not a:          # re-entered within this segment (cannot follow an inside run)
+                runs.append(run)
+                run = [start]
+            run.append(end)
+            if end is not b:               # left the bounds within this segment
+                runs.append(run)
                 run = []
-        if len(run) >= 2:
+        if run:
+            runs.append(run)
+        piece_n = 0
+        for run in runs:
+            if len(run) < 2 or math.hypot(run[-1]["x"] - run[0]["x"], run[-1]["z"] - run[0]["z"]) < 1e-6:
+                continue
             piece = dict(w)
             piece["vertices"] = run
             piece["id"] = w["id"] * 100 + piece_n
+            piece_n += 1
             out.append(piece)
     return out
 

@@ -34,6 +34,13 @@
   (additive edit, one `ext_resource` + one `[node]` line) and into
   `game/roads/test_roads.tscn` (roads + `atmosphere.tscn`, no player needed).
 
+## Build bounds
+
+Roads and rails are built only over the 1 m play heightmap (`VALID_BOUNDS` in
+`build_road_plan.py`, read from `world_origin.json`). Ways are cut exactly at its edge. Until
+2026-10-18 the bounds ran 400 m past the heightmap, where `Heightmap.sample` clamps to the edge
+row. 38.6 km of road there took the edge's heights, as much as 18 m under the horizon terrain.
+
 ## Perf
 
 `game/roads/tools/perf_probe.gd`/`.tscn` (same pattern as terrain's own
@@ -166,6 +173,12 @@ game/roads/tools/build_roads.sh
 ```
 Both steps are idempotent and safe to re-run after terrain re-bakes its
 heightmap or the data pipeline re-exports `game/data/*.json`.
+
+Road profile metrics: `pipeline/roads/test_road_metrics.py` is a ratchet on the road-conformed
+surface. It covers junction steps, grade change, implied K, cross slope and breaklines, checked
+against `road_metrics_baseline.json` and the limits in `design_standards.json`. After changing the
+heightmap or road conform, run `pipeline/roads/road_metrics.py` for the full report. Run it with
+`--update-baseline` only when the numbers improve. See `docs/roadway_control_plan.md`.
 
 ## Geometry approach
 
