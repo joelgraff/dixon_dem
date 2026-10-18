@@ -428,6 +428,16 @@ def build(mb_by_mat, furniture, data, ground=None):
             top = elev.at(s) - 0.02   # the back wall carries the deck's end and the approach fill
         if sup.get("bottom") is not None:
             bottom = sup["bottom"]
+        elif ground is not None and sup["kind"] == "abutment":
+            # An abutment is a retaining wall at the top of the bank, so it goes down to the lowest
+            # ground under the first 9 m of the span it carries, not just the ground at its own face.
+            inward = 1.0 if k == 0 else -1.0
+            low = ground(x, z)
+            for reach in (3.0, 6.0, 9.0):
+                if 0.0 <= s + inward * reach <= line.length:
+                    (px_, pz_), _tt, _nn = line.at(s + inward * reach)
+                    low = min(low, ground(px_, pz_))
+            bottom = low - 0.5
         elif ground is not None:
             bottom = ground(x, z) - 0.5
         else:
