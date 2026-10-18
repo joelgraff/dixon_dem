@@ -1,6 +1,8 @@
 .venv/
 .locks/
 dems/
+__pycache__/
+*.py[cod]
 /*.png
 /*.tif
 data/raw/
@@ -9,6 +11,7 @@ captures/
 *.import
 !game/**/*.png.import
 game/roads/_build/
+game/roads/_build_bridges/
 game/buildings/_build/
 game/terrain/cache/
 screenshots/
@@ -19,4 +22,5 @@ game/*/*.scn
 # baked scenes, rebuilt by the pipeline (game/roads/tools/build_roads.gd,
 # game/buildings/tools/build_buildings.gd); too large for GitHub
 game/roads/roads.tscn
+game/roads/bridges.tscn
 game/buildings/buildings.tscn
