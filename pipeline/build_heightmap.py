@@ -28,7 +28,7 @@ from rasterio.vrt import WarpedVRT
 from scipy.ndimage import distance_transform_edt, map_coordinates
 from scipy.spatial import cKDTree
 from shapely.geometry import LineString
-from shapely.ops import linemerge, unary_union
+from shapely.ops import linemerge, substring, unary_union
 
 sys.path.insert(0, os.path.dirname(__file__))
 from common import (
@@ -278,6 +278,8 @@ def load_road_lines(min_e, min_n, max_e, max_n):
 from roads.bridges_composed import ROAD_SURFACE_M   # noqa: E402
 
 BRIDGE_ANCHOR_SNAP_M = 6.0     # a road ends 'at' a bridge when its end is within this of the deck's
+BRIDGE_ANCHOR_WIDE_M = 6.0     # within the blend of a bridge end, the conformed ground reaches this far beyond the road's edge
+                               # (to the sidewalks), and is level across, so the sidewalks meet the walkways
 BRIDGE_ANCHOR_BLEND_M = 40.0   # how far back along an approach road the deck's end height is blended in
 
 
@@ -368,6 +370,7 @@ def road_conform(arr, transform, width, height, roads, anchors=()):
     all_hw = []    # half-width at that sample
     corridor_polys = []
     anchored = []
+    zone_pts, zone_elev, zone_hw, zone_polys = [], [], [], []   # the ground beside an approach to a bridge
 
     for line, wid in roads:
         # A road that ends at a bridge's end rises (or falls) to the deck's height there. Only a
@@ -397,6 +400,20 @@ def road_conform(arr, transform, width, height, roads, anchors=()):
             all_elev.append(el)
             all_hw.append(half_w)
         corridor_polys.append((line.buffer(half_w + 1.5, cap_style=2), 1))
+        # Within the blend of a bridge end the ground is also levelled out to the sidewalks, so the
+        # walkway on the bridge meets them. These samples get a pass of their own after the main one,
+        # because nearest-sample conforming lets a neighbouring road's lower samples win at a junction.
+        for key, lo, hi in (("start", 0.0, BRIDGE_ANCHOR_BLEND_M),
+                            ("end", line.length - BRIDGE_ANCHOR_BLEND_M, line.length)):
+            if ends[key] is None:
+                continue
+            for e, n_, el, dist_along in zip(es, ns, elevs_smooth, dists):
+                if lo <= dist_along <= hi:
+                    zone_pts.append((e, n_))
+                    zone_elev.append(el)
+                    zone_hw.append(half_w + BRIDGE_ANCHOR_WIDE_M)
+            zone_polys.append((substring(line, max(0.0, lo), min(line.length, hi)).buffer(
+                half_w + BRIDGE_ANCHOR_WIDE_M + 1.5, cap_style=2), 1))
 
     if not all_pts:
         return out
@@ -424,6 +441,21 @@ def road_conform(arr, transform, width, height, roads, anchors=()):
     blended = alpha * conformed + (1 - alpha) * raw_here
 
     out[rows, cols] = blended.astype(np.float32)
+
+    if zone_pts:
+        # the second pass: level ground out to the sidewalks beside each bridge approach
+        zmask = rasterize(zone_polys, out_shape=(height, width), transform=transform, fill=0, dtype=np.uint8).astype(bool)
+        zrows, zcols = np.nonzero(zmask)
+        if zrows.size:
+            zx, zy = transform * (zcols + 0.5, zrows + 0.5)
+            ztree = cKDTree(np.array(zone_pts))
+            zdist, zidx = ztree.query(np.column_stack([zx, zy]), k=1)
+            zhw = np.array(zone_hw)[zidx]
+            zbuf = zhw + 1.5
+            zstart = np.maximum(zbuf - 2.0, zhw - BRIDGE_ANCHOR_WIDE_M)
+            zt = np.clip((zdist - zstart) / np.maximum(zbuf - zstart, 0.01), 0.0, 1.0)
+            zalpha = 1.0 - (3 * zt ** 2 - 2 * zt ** 3)
+            out[zrows, zcols] = (zalpha * np.array(zone_elev)[zidx] + (1 - zalpha) * out[zrows, zcols]).astype(np.float32)
     if anchors:
         print(f"  {len(anchored)} road ends conformed to a composed bridge's deck height")
     return out

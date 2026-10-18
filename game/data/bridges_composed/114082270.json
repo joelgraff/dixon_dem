@@ -18,11 +18,11 @@
   ]
  ],
  "deck": {
-  "width": 16.4,
+  "width": 16.888,
   "thickness": 0.3,
   "elevation": [
    [
-    0.0,
+    0,
     8.58
    ],
    [
@@ -204,70 +204,70 @@
  "supports": [
   {
    "kind": "abutment",
-   "station": 0.0,
+   "station": 0,
    "length": 1.5
   },
   {
    "kind": "pier",
    "station": 20.71,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
    "station": 41.43,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
    "station": 62.14,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
    "station": 82.86,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
    "station": 103.57,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
    "station": 124.28,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
-   "station": 145.0,
+   "station": 145,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
    "station": 165.71,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
    "kind": "pier",
    "station": 186.43,
    "length": 1.4,
-   "width": 6.0,
+   "width": 6,
    "shape": "bullnose"
   },
   {
@@ -332,19 +332,19 @@
   "barrier_h": 0.9,
   "barrier_w": 0.4,
   "barrier_rail_h": 0.35,
-  "barrier_rail_style": "pipe",
-  "walkway_w": 2.5,
+  "walkway_w": 3.048,
   "walkway_sides": "both",
   "walkway_rise": -0.035,
-  "outer_type": "metal",
   "parapet_w": 0.3,
-  "parapet_h": 0.6,
-  "curb_h": 0.2,
-  "rail_h": 1.05,
-  "rail_style": "picket"
+  "parapet_h": 0.9144000000000001,
+  "rail_h": 1.2192,
+  "barrier_rail_style": "pipe",
+  "rail_style": "picket",
+  "outer_type": "metal",
+  "curb_h": 0.2
  },
  "lamps": {
-  "spacing": 25.0
+  "spacing": 25
  },
  "materials": {}
 }

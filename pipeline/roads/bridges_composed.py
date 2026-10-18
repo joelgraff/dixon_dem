@@ -184,7 +184,7 @@ def validate(data):
     if section.get("outer_type", "parapet") not in OUTER_TYPES:
         raise BridgeError(f"cross_section.outer_type must be one of {OUTER_TYPES}")
     for key in ("rail_style", "barrier_rail_style"):
-        if section.get(key, "ribbon") not in RAIL_STYLES:
+        if section.get(key, "pipe") not in RAIL_STYLES:
             raise BridgeError(f"cross_section.{key} must be one of {RAIL_STYLES}")
     lamps = data.get("lamps")
     if lamps is not None:
@@ -366,8 +366,8 @@ def build(mb_by_mat, furniture, data, ground=None):
     rail_h = section.get("rail_h", 0.0)
     curb_h = section.get("curb_h", 0.15)
     outer_type = section.get("outer_type", "parapet")
-    rail_style = section.get("rail_style", "ribbon")
-    barrier_rail_style = section.get("barrier_rail_style", "ribbon")
+    rail_style = section.get("rail_style", "pipe")
+    barrier_rail_style = section.get("barrier_rail_style", "pipe")
 
     def side_info(side):
         """Across the deck, outward from the roadway: barrier, then (with a walkway) the walkway and
