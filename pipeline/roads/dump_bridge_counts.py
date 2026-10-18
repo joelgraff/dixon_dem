@@ -31,7 +31,8 @@ def straight(**over):
         "spans": [{"type": "girder", "depth": 0.9, "haunch": 0.5}, {"type": "arch", "rise": 5.0, "ring": 0.6},
                   {"type": "slab", "depth": 0.5}],
         "cross_section": {"barrier_h": 0.9, "barrier_w": 0.4, "barrier_rail_h": 0.35, "walkway_w": 2.4,
-                          "walkway_sides": "both", "parapet_w": 0.35, "parapet_h": 0.6, "rail_h": 0.55},
+                          "walkway_sides": "both", "parapet_w": 0.35, "parapet_h": 0.6, "rail_h": 1.05,
+                          "barrier_rail_style": "pipe", "outer_type": "metal", "curb_h": 0.2, "rail_style": "picket"},
         "lamps": {"spacing": 22.0},
         "materials": {"arch": "stone_foundation"},
     }
@@ -42,7 +43,7 @@ def straight(**over):
 FIXTURES = [
     ("straight, mixed spans, valley ground", straight(), {"kind": "vee", "y0": 9.0, "slope": 0.12, "center": 45.0}),
     ("straight, no sidewalk or rail, flat ground", straight(
-        cross_section={"barrier_h": 0.9, "barrier_w": 0.4, "rail_h": 0.5}, lamps=None), {"kind": "flat", "y": 0.0}),
+        cross_section={"barrier_h": 0.9, "barrier_w": 0.4, "rail_h": 0.5, "rail_style": "panel"}, lamps=None), {"kind": "flat", "y": 0.0}),
     ("bent centreline, girders", straight(
         centerline=[[0.0, 0.0], [40.0, 0.0], [70.0, 30.0], [70.0, 80.0]],
         deck={"width": 9.0, "thickness": 0.3, "elevation": [[0.0, 5.0], [120.0, 5.0]]},
@@ -51,7 +52,8 @@ FIXTURES = [
                   {"kind": "abutment", "station": 120.0}],
         spans=[{"type": "girder"}, {"type": "girder", "depth": 1.2}, {"type": "slab"}],
         cross_section={"barrier_h": 1.0, "barrier_w": 0.5, "walkway_w": 3.0, "walkway_sides": "left",
-                       "walkway_rise": 0.12, "parapet_w": 0.4, "parapet_h": 0.5, "rail_h": 0.4},
+                       "walkway_rise": 0.12, "parapet_w": 0.4, "parapet_h": 0.5, "rail_h": 0.4, "rail_style": "pipe",
+                       "barrier_rail_h": 0.3, "barrier_rail_style": "picket"},
         lamps={"spacing": 30.0}), {"kind": "flat", "y": -1.0}),
     ("a pier that is skipped (ground above the deck)", straight(), {"kind": "flat", "y": 20.0}),
 ]

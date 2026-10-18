@@ -221,6 +221,30 @@ def test_a_crest_profile_is_one_smooth_curve_between_the_street_heights():
     assert all(x > y for x, y in zip(steps, steps[1:])) or all(x >= y for x, y in zip(steps, steps[1:]))   # one crest: the grade only falls
 
 
+def test_rail_styles_build_and_face_their_normals():
+    for outer in ("parapet", "metal"):
+        for style in bc.RAIL_STYLES:
+            data = design(cross_section={"barrier_h": 0.9, "barrier_w": 0.4, "barrier_rail_h": 0.4,
+                                         "barrier_rail_style": style, "walkway_w": 2.0, "parapet_w": 0.3,
+                                         "parapet_h": 0.6, "curb_h": 0.2, "outer_type": outer,
+                                         "rail_h": 1.0, "rail_style": style})
+            meshes, _f, _r = built(data, ground=lambda x, z: 0.0)
+            assert meshes["steel_rusted"].indices, (outer, style)
+            for a, b, c in triangles(meshes["steel_rusted"]):
+                u = [b[k] - a[k] for k in range(3)]
+                v = [c[k] - a[k] for k in range(3)]
+                rh = (u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0])
+                assert rh[0] * a[3] + rh[1] * a[4] + rh[2] * a[5] < 1e-9, (outer, style)
+    # an all-metal outer edge has a low curb, not a parapet wall
+    tall = built(design(cross_section={"walkway_w": 2.0, "parapet_h": 0.6, "outer_type": "parapet"}))[0]
+    low = built(design(cross_section={"walkway_w": 2.0, "parapet_h": 0.6, "curb_h": 0.1, "outer_type": "metal"}))[0]
+    assert max(v[1] for v in tall["curb_concrete"].verts) > max(v[1] for v in low["curb_concrete"].verts) - 1e-9
+    # pickets are many thin stakes: that style has far more triangles than a pipe rail
+    count = lambda st: len(built(design(cross_section={"walkway_w": 2.0, "outer_type": "metal", "rail_h": 1.0,
+                                                       "rail_style": st}))[0]["steel_rusted"].indices)
+    assert count("picket") > 3 * count("pipe") > 0
+
+
 def test_road_surface_height_matches_the_road_plan():
     # a deck's end is the road surface, and the heightmap anchor subtracts this: they must agree
     import build_road_plan
@@ -240,6 +264,7 @@ if __name__ == "__main__":
     test_load_reads_only_a_composed_bridge()
     test_the_save_server_takes_only_a_design_for_that_way()
     test_a_crest_profile_is_one_smooth_curve_between_the_street_heights()
+    test_rail_styles_build_and_face_their_normals()
     test_road_surface_height_matches_the_road_plan()
     test_the_server_reports_terrain_along_a_bridge()
     test_bridges_are_named_for_what_they_carry_over_what_they_cross()

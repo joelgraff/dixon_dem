@@ -50,12 +50,16 @@ centreline's length.
     "barrier_h": 0.9,              // concrete safety barrier between roadway and walkway
     "barrier_w": 0.4,              //   (the edge element where there is no walkway)
     "barrier_rail_h": 0.35,        // steel rail on the barrier when there is a walkway; 0 = none
+    "barrier_rail_style": "pipe",  // railing styles: "ribbon" | "panel" | "pipe" | "picket" (see Railings)
     "walkway_w": 2.5,              // each side; 0 = no walkways
     "walkway_sides": "both",       // "both" | "left" | "right" (left of travel is +)
     "walkway_rise": -0.035,        // surface above the deck top; -0.035 is level with the approach sidewalk
-    "parapet_w": 0.35,             // outer concrete parapet, walkway side only
-    "parapet_h": 0.6,              // above the walkway surface
-    "rail_h": 0.55                 // steel railing above the parapet (above the barrier with no walkway)
+    "outer_type": "metal",         // outer edge: "parapet" (concrete wall, rail on top) | "metal" (low curb, all-metal railing)
+    "parapet_w": 0.3,              // width of the parapet wall or the curb
+    "parapet_h": 0.6,              // parapet wall height above the walkway surface ("parapet" only)
+    "curb_h": 0.2,                 // curb height under the railing ("metal" only)
+    "rail_h": 1.05,                // railing height above the parapet/curb (above the barrier with no walkway)
+    "rail_style": "picket"         // style of the outer railing
   },
 
   "lamps": { "spacing": 25.0 },    // optional: lamp_downtown furniture on both edges
@@ -78,6 +82,20 @@ lateral offsets from the centreline, measured by cutting the transportation layo
 4, 8 and 12 m beyond the abutment -- and Bridge Composer's **Match approach sidewalks** sets the barrier
 gap and walkway width from them. The two ends of a bridge can differ (downtown 3.6 m, residential
 1.7 m behind a 2 m parkway); a bridge has one cross-section, so the match is a compromise.
+
+### Railings
+Each railing is `rail_h` (or `barrier_rail_h`) tall above its base and has a style:
+
+| style | what is built |
+| --- | --- |
+| `ribbon` | one thin steel band at the top (the cheap default for files without a style) |
+| `panel` | a solid steel fence, full height |
+| `pipe` | posts every 2.4 m, a top rail and a mid rail |
+| `picket` | posts every 2.4 m, top and bottom rails, and 25 mm pickets every 0.25 m |
+
+The Galena Ave Bridge (photos): a concrete safety barrier with a `pipe` rail on it between roadway and
+walkway, and an all-metal `picket` railing on a low curb at the outer edge (`outer_type: "metal"`), not a
+concrete parapet. Railings are `rail` material, not collidable.
 
 ### Vertical profile
 Highway practice prefers a long, smooth vertical curve to a short steep ramp. Bridge Composer's

@@ -42,6 +42,10 @@ ROAD_SURFACE_M = 0.085
 # with the sidewalk it continues.
 WALKWAY_RISE_M = -0.035
 WALKWAY_SIDES = ("both", "left", "right")
+OUTER_TYPES = ("parapet", "metal")           # a concrete parapet wall with a rail on it, or an all-metal railing
+RAIL_STYLES = ("ribbon", "panel", "pipe", "picket")
+POST_SPACING_M = 2.4
+PICKET_SPACING_M = 0.25
 STEP_M = 3.0          # longest deck/edge sample interval along the centreline
 ARCH_STEP_M = 1.5
 EPS = 1e-6
@@ -176,6 +180,12 @@ def validate(data):
     _num(section.get("parapet_w", 0.35), "cross_section.parapet_w", 0.05, 2.0)
     _num(section.get("parapet_h", 0.6), "cross_section.parapet_h", 0.0, 3.0)
     _num(section.get("rail_h", 0.0), "cross_section.rail_h", 0.0, 3.0)
+    _num(section.get("curb_h", 0.15), "cross_section.curb_h", 0.0, 1.0)
+    if section.get("outer_type", "parapet") not in OUTER_TYPES:
+        raise BridgeError(f"cross_section.outer_type must be one of {OUTER_TYPES}")
+    for key in ("rail_style", "barrier_rail_style"):
+        if section.get(key, "ribbon") not in RAIL_STYLES:
+            raise BridgeError(f"cross_section.{key} must be one of {RAIL_STYLES}")
     lamps = data.get("lamps")
     if lamps is not None:
         if not isinstance(lamps, dict):
@@ -354,6 +364,10 @@ def build(mb_by_mat, furniture, data, ground=None):
     parapet_w = section.get("parapet_w", 0.35)
     parapet_h = section.get("parapet_h", 0.6)
     rail_h = section.get("rail_h", 0.0)
+    curb_h = section.get("curb_h", 0.15)
+    outer_type = section.get("outer_type", "parapet")
+    rail_style = section.get("rail_style", "ribbon")
+    barrier_rail_style = section.get("barrier_rail_style", "ribbon")
 
     def side_info(side):
         """Across the deck, outward from the roadway: barrier, then (with a walkway) the walkway and
@@ -467,16 +481,59 @@ def build(mb_by_mat, furniture, data, ground=None):
     out.strip(mats["deck"], [pt(s, -road_half, elev.at(s)) for s in ss],
               [pt(s, road_half, elev.at(s)) for s in ss], (0.0, 1.0, 0.0))
 
+    material_rail = mats["rail"]
+
     def band(material, side, o_a, o_b, y_fn):
         out.strip(material, [pt(s, side * o_a, y_fn(s)) for s in ss], [pt(s, side * o_b, y_fn(s)) for s in ss],
                   (0.0, 1.0, 0.0))
 
-    def rail(side, offset, y_fn, height):
-        """A thin steel rail `height` above y_fn, drawn as a ribbon facing both ways."""
-        low = lambda s: y_fn(s) + height  # noqa: E731
-        high = lambda s: low(s) + 0.08  # noqa: E731
-        vstrip(mats["rail"], ss, side * offset, high, low, side)
-        vstrip(mats["rail"], ss, side * offset, high, low, -side)
+    def bar(side, offset, y_fn, size):
+        """A continuous square bar, `size` across, centred on y_fn, along the whole deck."""
+        h = size / 2.0
+        for i in range(len(ss) - 1):
+            s0, s1 = ss[i], ss[i + 1]
+            (_x, _z), _t, n = line.at((s0 + s1) * 0.5)
+            ring = []
+            for s_ in (s0, s1):
+                ring.append([pt(s_, side * offset + dy, y_fn(s_) + dz) for dy, dz in ((-h, -h), (h, -h), (h, h), (-h, h))])
+            a, b = ring
+            out.quad(material_rail, a[3], a[2], b[2], b[3], (0.0, 1.0, 0.0))
+            out.quad(material_rail, a[0], a[1], b[1], b[0], (0.0, -1.0, 0.0))
+            out.quad(material_rail, a[1], a[2], b[2], b[1], (n[0], 0.0, n[1]))
+            out.quad(material_rail, a[0], a[3], b[3], b[0], (-n[0], 0.0, -n[1]))
+
+    def stakes(side, offset, y_fn, y0, y1, thickness, spacing):
+        """Vertical square stakes (posts, pickets) from y_fn+y0 to y_fn+y1, evenly along the deck."""
+        count = max(1, int(line.length // spacing))
+        for k in range(count + 1):
+            s_ = min(line.length, k * line.length / count)
+            (x, z), t, n = line.at(s_)
+            centre = (x + n[0] * side * offset, z + n[1] * side * offset)
+            out.box(material_rail, _oriented_box(centre, t, n, thickness / 2.0, thickness / 2.0,
+                                                 y_fn(s_) + y0, y_fn(s_) + y1))
+
+    def rail(side, offset, y_fn, height, style):
+        """A steel railing `height` above y_fn at lateral `offset`, in one of RAIL_STYLES."""
+        if height <= 0.0 or style == "none":
+            return
+        if style == "ribbon":      # one thin band at the top, facing both ways
+            low = lambda s: y_fn(s) + height  # noqa: E731
+            high = lambda s: low(s) + 0.08  # noqa: E731
+            vstrip(mats["rail"], ss, side * offset, high, low, side)
+            vstrip(mats["rail"], ss, side * offset, high, low, -side)
+        elif style == "panel":     # a solid steel fence
+            top = lambda s: y_fn(s) + height  # noqa: E731
+            vstrip(mats["rail"], ss, side * offset, top, y_fn, side)
+            vstrip(mats["rail"], ss, side * offset, top, y_fn, -side)
+        elif style == "pipe":      # posts, a top rail and a mid rail
+            stakes(side, offset, y_fn, 0.0, height, 0.08, POST_SPACING_M)
+            bar(side, offset, lambda s: y_fn(s) + height - 0.04, 0.07)
+            bar(side, offset, lambda s: y_fn(s) + height * 0.5, 0.05)
+        elif style == "picket":    # posts, top and bottom rails, and pickets between
+            stakes(side, offset, y_fn, 0.0, height, 0.10, POST_SPACING_M)
+            bar(side, offset, lambda s: y_fn(s) + height - 0.04, 0.08)
+            bar(side, offset, lambda s: y_fn(s) + 0.14, 0.06)
+            stakes(side, offset, y_fn, 0.14, height - 0.04, 0.025, PICKET_SPACING_M)
 
     for side, info in ((1, left), (-1, right)):
         base = elev.at
@@ -487,18 +544,21 @@ def build(mb_by_mat, furniture, data, ground=None):
             vstrip(mats["barrier"], ss, side * info["b_out"], barrier_top, walk_y if info["walk"] else base, side)
             band(mats["barrier"], side, road_half, info["b_out"], barrier_top)
             if info["walk"] and barrier_rail_h > 0.0:
-                rail(side, road_half + barrier_w / 2.0, barrier_top, barrier_rail_h)
+                rail(side, road_half + barrier_w / 2.0, barrier_top, barrier_rail_h, barrier_rail_style)
         if info["walk"]:
             band(mats["sidewalk"], side, info["b_out"], info["w_out"], walk_y)
-            if parapet_h > 0.0:
-                parapet_top = lambda s: walk_y(s) + parapet_h  # noqa: E731
-                vstrip(mats["barrier"], ss, side * info["w_out"], parapet_top, walk_y, -side)   # faces the walkway
-                vstrip(mats["barrier"], ss, side * info["edge"], parapet_top, walk_y, side)     # the outer face
-                band(mats["barrier"], side, info["w_out"], info["edge"], parapet_top)
-                if rail_h > 0.0:
-                    rail(side, info["w_out"] + parapet_w / 2.0, parapet_top, rail_h)
+            # the outer edge: a concrete parapet wall with a rail on it, or a low curb under an
+            # all-metal railing
+            wall_h = parapet_h if outer_type == "parapet" else curb_h
+            wall_top = lambda s: walk_y(s) + wall_h  # noqa: E731
+            if wall_h > 0.0:
+                vstrip(mats["barrier"], ss, side * info["w_out"], wall_top, walk_y, -side)   # faces the walkway
+                vstrip(mats["barrier"], ss, side * info["edge"], wall_top, walk_y, side)     # the outer face
+                band(mats["barrier"], side, info["w_out"], info["edge"], wall_top)
+            if rail_h > 0.0:
+                rail(side, info["w_out"] + parapet_w / 2.0, wall_top if wall_h > 0.0 else walk_y, rail_h, rail_style)
         elif rail_h > 0.0 and barrier_h > 0.0:
-            rail(side, road_half + barrier_w / 2.0, barrier_top, rail_h)
+            rail(side, road_half + barrier_w / 2.0, barrier_top, rail_h, rail_style)
 
     lamps = data.get("lamps")
     if lamps:

@@ -28,11 +28,13 @@ SPAN_M = 20.0
 
 def street_section():
     """The Galena Ave Bridge's cross-section from the photographs: a concrete safety barrier with a
-    steel rail on it, a walkway outside it, and an outer concrete parapet with a railing on top.
+    steel rail on it, a walkway outside it, and an all-metal railing (pickets between top and bottom
+    rails) on a low curb at the outer edge.
     The walkway is as wide as the approach sidewalk it continues."""
-    return {"barrier_h": 0.9, "barrier_w": 0.4, "barrier_rail_h": 0.35, "walkway_w": 2.5,
-            "walkway_sides": "both", "walkway_rise": bc.WALKWAY_RISE_M, "parapet_w": 0.35,
-            "parapet_h": 0.6, "rail_h": 0.55}
+    return {"barrier_h": 0.9, "barrier_w": 0.4, "barrier_rail_h": 0.35, "barrier_rail_style": "pipe",
+            "walkway_w": 2.5, "walkway_sides": "both", "walkway_rise": bc.WALKWAY_RISE_M,
+            "outer_type": "metal", "parapet_w": 0.3, "parapet_h": 0.6, "curb_h": 0.2,
+            "rail_h": 1.05, "rail_style": "picket"}
 
 
 def approach_ends(vertices, approach=15.24):

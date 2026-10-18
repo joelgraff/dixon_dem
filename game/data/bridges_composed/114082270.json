@@ -332,12 +332,16 @@
   "barrier_h": 0.9,
   "barrier_w": 0.4,
   "barrier_rail_h": 0.35,
+  "barrier_rail_style": "pipe",
   "walkway_w": 2.5,
   "walkway_sides": "both",
   "walkway_rise": -0.035,
-  "parapet_w": 0.35,
+  "outer_type": "metal",
+  "parapet_w": 0.3,
   "parapet_h": 0.6,
-  "rail_h": 0.55
+  "curb_h": 0.2,
+  "rail_h": 1.05,
+  "rail_style": "picket"
  },
  "lamps": {
   "spacing": 25.0
