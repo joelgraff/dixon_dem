@@ -20,6 +20,8 @@ Bridge Composer (docs/bridge_composer_schema.md) uses the same server:
                                 (game/data/bridge_registry.json) that the road plan leaves out
   POST /game-delete-bridge/<id>    removes a design: a drawn bridge disappears, an OSM bridge goes
                                 back to the generated deck
+  POST /game-rebuild            runs pipeline/roads/rebuild_bridges.sh in the background (heightmap, road
+                                plan, road bake); GET /game-rebuild-status reports its stage and progress
   POST /game-save-bridge/<id>   writes game/data/bridges_composed/<id>.json, which
                                 pipeline/roads/bridges_composed.py builds in place
                                 of the generated deck; same checks as /game-save
@@ -438,6 +440,45 @@ def approach_sidewalks(vertices, half_width):
     return out
 
 
+REBUILD_SCRIPT = os.path.join(ROOT, "pipeline", "roads", "rebuild_bridges.sh")
+_REBUILD = {"proc": None, "log": None, "started": None, "finished": None}
+
+
+def rebuild_start(script=REBUILD_SCRIPT, log_path=None):
+    """Starts pipeline/roads/rebuild_bridges.sh in the background. Raises ValueError if one is running."""
+    import subprocess
+    import time
+    proc = _REBUILD["proc"]
+    if proc is not None and proc.poll() is None:
+        raise ValueError("a rebuild is already running")
+    log_path = log_path or os.path.join(tempfile.gettempdir(), "bridge-composer-rebuild.log")
+    log = open(log_path, "w")
+    _REBUILD.update(proc=subprocess.Popen(["bash", script], stdout=log, stderr=subprocess.STDOUT,
+                                          cwd=os.path.dirname(script)),
+                    log=log_path, started=time.time(), finished=None)
+
+
+def rebuild_status():
+    """{state: idle|running|done|failed, stage, seconds, tail} for the editor's Rebuild game button."""
+    import time
+    proc = _REBUILD["proc"]
+    if proc is None:
+        return {"state": "idle"}
+    code = proc.poll()
+    if code is not None and _REBUILD["finished"] is None:
+        _REBUILD["finished"] = time.time()
+    try:
+        with open(_REBUILD["log"]) as handle:
+            lines = handle.read().splitlines()
+    except OSError:
+        lines = []
+    stages = [line for line in lines if line.startswith("== ")]
+    end = _REBUILD["finished"] or time.time()
+    return {"state": "running" if code is None else ("done" if code == 0 else "failed"),
+            "stage": stages[-1][3:] if stages else "starting", "seconds": round(end - _REBUILD["started"]),
+            "tail": [line for line in lines[-6:] if line.strip()]}
+
+
 def raw_ground():
     """Terrain before road-conforming (stable under a composed bridge's own changes), or None."""
     if not _RAW:
@@ -705,6 +746,8 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                     return self._reply(400, str(error))
                 except ImportError:
                     return self._reply(503, "the server's Python has no Pillow")
+            if path == "/game-rebuild-status":
+                return self._send(json.dumps(rebuild_status()).encode(), "application/json")
             if path == "/game-bridges":
                 try:
                     return self._send(json.dumps({"bridges": bridge_list(directory=bridges_dir)}).encode(),
@@ -736,6 +779,7 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                 "/game-suppress-bridge/": (lambda bid, body: suppress_bridge(bid, body)),
                 "/game-delete-bridge/": (lambda bid, body: delete_bridge(bid, bridges_dir)),
                 "/game-new-bridge": None,
+                "/game-rebuild": None,
             }
             route = next((r for r in routes if self.path == r or (r.endswith("/") and self.path.startswith(r))), None)
             if route is None:
@@ -752,6 +796,9 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                 return self._reply(413, "too large")
             body = self.rfile.read(length) if length else b""
             try:
+                if route == "/game-rebuild":
+                    rebuild_start()
+                    return self._reply(200, "started")
                 if route == "/game-new-bridge":
                     design = new_bridge(body, bridges_dir)
                     return self._send(json.dumps(design).encode(), "application/json")

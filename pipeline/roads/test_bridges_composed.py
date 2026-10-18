@@ -291,6 +291,38 @@ def test_bridges_can_be_added_and_removed():
         raise AssertionError("accepted a bad bridge")
 
 
+def test_the_editor_can_start_a_rebuild_and_follow_it():
+    import os
+    import sys
+    import time
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "game", "tools"))
+    import composer_server as cs
+    tmp = tempfile.mkdtemp()
+    script = os.path.join(tmp, "s.sh")
+    with open(script, "w") as handle:
+        handle.write('echo "== 1/2 first"\nsleep 1\necho "== 2/2 second"\necho finished\n')
+    cs.rebuild_start(script, os.path.join(tmp, "log"))
+    try:
+        cs.rebuild_start(script, os.path.join(tmp, "log"))
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("started a second rebuild while one ran")
+    time.sleep(0.4)
+    assert cs.rebuild_status()["state"] == "running" and cs.rebuild_status()["stage"] == "1/2 first"
+    for _ in range(40):
+        if cs.rebuild_status()["state"] != "running":
+            break
+        time.sleep(0.1)
+    done = cs.rebuild_status()
+    assert done["state"] == "done" and done["stage"] == "2/2 second" and done["tail"][-1] == "finished"
+    with open(script, "w") as handle:
+        handle.write('echo "== 1/1 boom"\nexit 3\n')
+    cs.rebuild_start(script, os.path.join(tmp, "log"))
+    time.sleep(0.8)
+    assert cs.rebuild_status()["state"] == "failed"
+
+
 def test_road_surface_height_matches_the_road_plan():
     # a deck's end is the road surface, and the heightmap anchor subtracts this: they must agree
     import build_road_plan
@@ -312,6 +344,7 @@ if __name__ == "__main__":
     test_a_crest_profile_is_one_smooth_curve_between_the_street_heights()
     test_rail_styles_build_and_face_their_normals()
     test_bridges_can_be_added_and_removed()
+    test_the_editor_can_start_a_rebuild_and_follow_it()
     test_road_surface_height_matches_the_road_plan()
     test_the_server_reports_terrain_along_a_bridge()
     test_bridges_are_named_for_what_they_carry_over_what_they_cross()
