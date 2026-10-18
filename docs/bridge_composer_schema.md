@@ -25,10 +25,13 @@ centreline's length.
   "centerline": [[x, z], ...],     // 2..500 points, game metres, in travel order
 
   "deck": {
-    "width": 16.4,                 // out to out, metres
+    "width": 16.4,                 // the ROADWAY, between the barriers, metres; walkways and parapets are outside it
     "thickness": 0.3,              // slab thickness; girder/slab spans use their own depth
-    "elevation": [[station, y], ...]   // deck top, absolute game Y, increasing stations;
+    "elevation": [[station, y], ...],  // deck top, absolute game Y, increasing stations;
                                        // linear between rows, held flat beyond the ends
+    "profile": { "kind": "crest", "start": 8.51, "end": 8.0, "crest": 0.5 }
+        // optional, editor-only: how the rows were made, so the crest can be changed later.
+        // The reader uses only `elevation`. See "Vertical profile" below.
   },
 
   "supports": [                    // at least two, increasing station;
@@ -43,11 +46,16 @@ centreline's length.
     { "type": "arch", "rise": 4.0, "ring": 0.6, "springing": 8.2 }
   ],
 
-  "cross_section": {
-    "barrier_h": 0.9,              // concrete barrier at each edge
-    "barrier_w": 0.4,
-    "sidewalk_w": 2.5,             // each side; 0 = none. Raised 0.15 m with a kerb
-    "rail_h": 0.9                  // steel rail above the barrier; 0 = none
+  "cross_section": {              // outward from the roadway, each side: barrier, walkway, parapet
+    "barrier_h": 0.9,              // concrete safety barrier between roadway and walkway
+    "barrier_w": 0.4,              //   (the edge element where there is no walkway)
+    "barrier_rail_h": 0.35,        // steel rail on the barrier when there is a walkway; 0 = none
+    "walkway_w": 2.5,              // each side; 0 = no walkways
+    "walkway_sides": "both",       // "both" | "left" | "right" (left of travel is +)
+    "walkway_rise": -0.035,        // surface above the deck top; -0.035 is level with the approach sidewalk
+    "parapet_w": 0.35,             // outer concrete parapet, walkway side only
+    "parapet_h": 0.6,              // above the walkway surface
+    "rail_h": 0.55                 // steel railing above the parapet (above the barrier with no walkway)
   },
 
   "lamps": { "spacing": 25.0 },    // optional: lamp_downtown furniture on both edges
@@ -55,6 +63,34 @@ centreline's length.
   "materials": { "deck": "bridge_deck" }   // optional role -> road material name
 }
 ```
+
+### Cross-section
+From the centreline out, each side: roadway (`deck.width / 2`), a barrier (`barrier_w`), a walkway
+(`walkway_w`, when enabled for that side) and a parapet (`parapet_w`) carrying the outer railing.
+The overall width is the roadway plus those, so the girders, soffit, fascia and abutments span all of
+it. The roadway surface is `deck` material, the walkways `sidewalk`, the barriers and parapets
+`barrier`, the structure underneath `structure` (or `arch`), the rails `rail`. Lamps stand on the
+walkway 0.35 m inside the parapet (on the barrier with no walkway).
+
+A walkway has to meet the sidewalks the road plan lays up to each end. `GET /game-bridges` reports
+them as `approach_sidewalks` -- `[start, end]`, each `{"left": [inner, outer], "right": [...]}` as
+lateral offsets from the centreline, measured by cutting the transportation layout's sidewalk polygons
+4, 8 and 12 m beyond the abutment -- and Bridge Composer's **Match approach sidewalks** sets the barrier
+gap and walkway width from them. The two ends of a bridge can differ (downtown 3.6 m, residential
+1.7 m behind a 2 m parkway); a bridge has one cross-section, so the match is a compromise.
+
+### Vertical profile
+Highway practice prefers a long, smooth vertical curve to a short steep ramp. Bridge Composer's
+**Match approaches** sets the two end heights to the street heights 50 ft out from each abutment
+(`approach_y` from `GET /game-bridges`, the road surface heights read before roads are conformed) and builds the rows as
+the straight line between them plus a parabola `crest` high at midspan
+(`bridges_composed.crest_profile`, mirrored by `crestProfile` in the editor). The grade eases
+continuously end to end: on Galena (207 m, ends 8.51 / 8.0, 0.5 m crest) the steepest run is 1.2%,
+where ramping to a flat design height used 8% over 6 m. The crest is the deck's camber; the
+default 0.5 m is an estimate (the real rise at the Galena Ave Bridge is not documented) and is
+meant to be adjusted. `pipeline/build_heightmap.py` raises the approach roads that end at a
+composed bridge to the deck's end heights (the terrain under them is `ROAD_SURFACE_M` = 0.085 m lower,
+as roads sit above terrain), blending back to the ground over 40 m, so the roads meet the deck.
 
 ### Supports
 | field | meaning | default |

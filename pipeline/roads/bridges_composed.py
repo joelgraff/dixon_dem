@@ -33,6 +33,15 @@ DEFAULT_MATERIALS = {
 SPAN_TYPES = ("girder", "slab", "arch")
 SUPPORT_KINDS = ("abutment", "pier")
 PIER_SHAPES = ("rect", "bullnose")
+# Roads sit this far above the terrain they are built on (build_road_plan.ROAD_Y_BIAS; the road plan's
+# tests keep the two equal). A deck's end heights are the road surface, so the terrain under the
+# approach is conformed this far below them.
+ROAD_SURFACE_M = 0.085
+# The approach sidewalk is laid this far below the road surface beside it (the road plan puts roads at
+# +0.085 and sidewalks at +0.05), so a walkway on the bridge is this far below the deck top to be level
+# with the sidewalk it continues.
+WALKWAY_RISE_M = -0.035
+WALKWAY_SIDES = ("both", "left", "right")
 STEP_M = 3.0          # longest deck/edge sample interval along the centreline
 ARCH_STEP_M = 1.5
 EPS = 1e-6
@@ -158,8 +167,14 @@ def validate(data):
     if not isinstance(section, dict):
         raise BridgeError("cross_section must be an object")
     _num(section.get("barrier_h", 0.9), "cross_section.barrier_h", 0.0, 3.0)
-    _num(section.get("barrier_w", 0.4), "cross_section.barrier_w", 0.05, 2.0)
-    _num(section.get("sidewalk_w", 0.0), "cross_section.sidewalk_w", 0.0, 10.0)
+    _num(section.get("barrier_w", 0.4), "cross_section.barrier_w", 0.05, 4.0)
+    _num(section.get("barrier_rail_h", 0.0), "cross_section.barrier_rail_h", 0.0, 3.0)
+    _num(section.get("walkway_w", 0.0), "cross_section.walkway_w", 0.0, 10.0)
+    _num(section.get("walkway_rise", WALKWAY_RISE_M), "cross_section.walkway_rise", -0.5, 1.0)
+    if section.get("walkway_sides", "both") not in WALKWAY_SIDES:
+        raise BridgeError(f"cross_section.walkway_sides must be one of {WALKWAY_SIDES}")
+    _num(section.get("parapet_w", 0.35), "cross_section.parapet_w", 0.05, 2.0)
+    _num(section.get("parapet_h", 0.6), "cross_section.parapet_h", 0.0, 3.0)
     _num(section.get("rail_h", 0.0), "cross_section.rail_h", 0.0, 3.0)
     lamps = data.get("lamps")
     if lamps is not None:
@@ -176,6 +191,23 @@ def validate(data):
         if name not in MATERIALS:
             raise BridgeError(f"no road material {name!r}; known: {', '.join(MATERIALS)}")
     return data
+
+
+def crest_profile(length, start_y, end_y, crest, step=5.0):
+    """Deck elevation rows [[station, y], ...] for a smooth vertical curve: the straight line
+    between the two end heights plus a parabola `crest` metres high at midspan.
+
+    One long parabolic crest is how a bridge deck is cambered: the grade eases continuously
+    from end to end (steepest, 4 * crest / length plus the line's own slope, at the abutments)
+    instead of ramping up quickly and running flat. The same rows come from Bridge
+    Composer's js/model.js crestProfile, which the editor shows."""
+    n = max(2, int(math.ceil(length / step)))
+    rows = []
+    for k in range(n + 1):
+        t = k / n
+        y = start_y + (end_y - start_y) * t + 4.0 * crest * t * (1.0 - t)
+        rows.append([round(length * t, 2), round(y, 3)])
+    return rows
 
 
 # ---------------------------------------------------------------------------
@@ -308,15 +340,35 @@ def build(mb_by_mat, furniture, data, ground=None):
     line = _Line(data["centerline"])
     deck = data["deck"]
     elev = _Elevation(deck["elevation"])
-    half_w = deck["width"] / 2.0
+    road_half = deck["width"] / 2.0
     thick = deck.get("thickness", 0.3)
     mats = dict(DEFAULT_MATERIALS)
     mats.update(data.get("materials", {}))
     section = data.get("cross_section", {})
     barrier_h = section.get("barrier_h", 0.9)
     barrier_w = section.get("barrier_w", 0.4)
-    walk_w = section.get("sidewalk_w", 0.0)
+    barrier_rail_h = section.get("barrier_rail_h", 0.0)
+    walk_w = section.get("walkway_w", 0.0)
+    walk_sides = section.get("walkway_sides", "both")
+    walk_rise = section.get("walkway_rise", WALKWAY_RISE_M)
+    parapet_w = section.get("parapet_w", 0.35)
+    parapet_h = section.get("parapet_h", 0.6)
     rail_h = section.get("rail_h", 0.0)
+
+    def side_info(side):
+        """Across the deck, outward from the roadway: barrier, then (with a walkway) the walkway and
+        a parapet. Offsets are from the centreline, positive to the left of travel."""
+        walk = walk_w > 0.0 and walk_sides in ("both", "left" if side > 0 else "right")
+        b_out = road_half + barrier_w
+        w_out = b_out + walk_w if walk else b_out
+        return {"walk": walk, "b_out": b_out, "w_out": w_out, "edge": w_out + parapet_w if walk else b_out}
+
+    left, right = side_info(1), side_info(-1)
+    overall = left["edge"] + right["edge"]
+
+    def edge_top(info):
+        """Where the structure's fascia ends at an outer edge: the walkway surface, or the deck."""
+        return walk_rise if info["walk"] else 0.0
     supports = data["supports"]
     spans = data["spans"]
     warnings = []
@@ -347,24 +399,24 @@ def build(mb_by_mat, furniture, data, ground=None):
                 t = (s - a) / max(b - a, EPS)
                 return elev.at(s) - depth - haunch * math.cos(math.pi * t) ** 2
             soffit[i] = under
-            out.strip(mats["structure"], [pt(s, -half_w, under(s)) for s in ss],
-                      [pt(s, half_w, under(s)) for s in ss], (0.0, -1.0, 0.0))
-            vstrip(mats["structure"], ss, half_w, elev.at, under, 1)
-            vstrip(mats["structure"], ss, -half_w, elev.at, under, -1)
+            out.strip(mats["structure"], [pt(s, -right["edge"], under(s)) for s in ss],
+                      [pt(s, left["edge"], under(s)) for s in ss], (0.0, -1.0, 0.0))
+            vstrip(mats["structure"], ss, left["edge"], lambda s: elev.at(s) + edge_top(left), under, 1)
+            vstrip(mats["structure"], ss, -right["edge"], lambda s: elev.at(s) + edge_top(right), under, -1)
         else:
             crown = elev.at((a + b) * 0.5) - span.get("ring", 0.6) - 0.3
             intrados = _arch_profile(a, b, crown, span["rise"])
             soffit[i] = intrados
-            out.strip(mats["arch"], [pt(s, -half_w, intrados(s)) for s in ss],
-                      [pt(s, half_w, intrados(s)) for s in ss], (0.0, -1.0, 0.0))
-            vstrip(mats["arch"], ss, half_w, elev.at, intrados, 1)
-            vstrip(mats["arch"], ss, -half_w, elev.at, intrados, -1)
+            out.strip(mats["arch"], [pt(s, -right["edge"], intrados(s)) for s in ss],
+                      [pt(s, left["edge"], intrados(s)) for s in ss], (0.0, -1.0, 0.0))
+            vstrip(mats["arch"], ss, left["edge"], lambda s: elev.at(s) + edge_top(left), intrados, 1)
+            vstrip(mats["arch"], ss, -right["edge"], lambda s: elev.at(s) + edge_top(right), intrados, -1)
 
     for k, sup in enumerate(supports):
         s = sup["station"]
         (x, z), t, n = line.at(s)
         length = sup.get("length", 1.5)
-        width = sup.get("width") or (deck["width"] if sup["kind"] == "abutment" else deck["width"] * 0.7)
+        width = sup.get("width") or (overall if sup["kind"] == "abutment" else overall * 0.7)
         # top of the support meets the underside of the span(s) it carries
         tops = []
         if k > 0 and (k - 1) in soffit:
@@ -399,36 +451,44 @@ def build(mb_by_mat, furniture, data, ground=None):
                     f"deck is {elev.at(s):.2f} at the {'start' if k == 0 else 'end'} but the ground "
                     f"there is {gy:.2f}: the approach road will not meet it")
 
-    # --- deck surface, sidewalks, barriers -------------------------------
+    # --- deck surface, barriers, walkways, parapets, rails ---------------
     ss = line.stations(0.0, line.length, STEP_M)
     ss = sorted(set(ss + [round(sup["station"], 4) for sup in supports]))
-    out.strip(mats["deck"], [pt(s, -half_w, elev.at(s)) for s in ss],
-              [pt(s, half_w, elev.at(s)) for s in ss], (0.0, 1.0, 0.0))
-    if walk_w > 0.0:
-        for side in (-1, 1):
-            inner = half_w - walk_w
-            lo, hi = (inner, half_w) if side > 0 else (-half_w, -inner)
-            rise = 0.15
-            out.strip(mats["sidewalk"], [pt(s, lo, elev.at(s) + rise) for s in ss],
-                      [pt(s, hi, elev.at(s) + rise) for s in ss], (0.0, 1.0, 0.0))
-            # the kerb between roadway and sidewalk
-            vstrip(mats["barrier"], ss, inner * side, lambda s: elev.at(s) + rise, elev.at,
-                   -side)
-    for side in (-1, 1):
-        o_in = (half_w - barrier_w) * side
-        o_out = half_w * side
+    out.strip(mats["deck"], [pt(s, -road_half, elev.at(s)) for s in ss],
+              [pt(s, road_half, elev.at(s)) for s in ss], (0.0, 1.0, 0.0))
+
+    def band(material, side, o_a, o_b, y_fn):
+        out.strip(material, [pt(s, side * o_a, y_fn(s)) for s in ss], [pt(s, side * o_b, y_fn(s)) for s in ss],
+                  (0.0, 1.0, 0.0))
+
+    def rail(side, offset, y_fn, height):
+        """A thin steel rail `height` above y_fn, drawn as a ribbon facing both ways."""
+        low = lambda s: y_fn(s) + height  # noqa: E731
+        high = lambda s: low(s) + 0.08  # noqa: E731
+        vstrip(mats["rail"], ss, side * offset, high, low, side)
+        vstrip(mats["rail"], ss, side * offset, high, low, -side)
+
+    for side, info in ((1, left), (-1, right)):
+        base = elev.at
+        barrier_top = lambda s: elev.at(s) + barrier_h  # noqa: E731
+        walk_y = lambda s: elev.at(s) + walk_rise  # noqa: E731
         if barrier_h > 0.0:
-            top = lambda s: elev.at(s) + barrier_h + (0.15 if walk_w > 0.0 else 0.0)  # noqa: E731
-            base = lambda s: elev.at(s)  # noqa: E731
-            vstrip(mats["barrier"], ss, o_out, top, base, side)
-            vstrip(mats["barrier"], ss, o_in, top, base, -side)
-            out.strip(mats["barrier"], [pt(s, o_in, top(s)) for s in ss],
-                      [pt(s, o_out, top(s)) for s in ss], (0.0, 1.0, 0.0))
-        if rail_h > 0.0:
-            rail_y = lambda s: elev.at(s) + barrier_h + rail_h + (0.15 if walk_w > 0.0 else 0.0)  # noqa: E731
-            top_y = lambda s: rail_y(s) + 0.08  # noqa: E731
-            vstrip(mats["rail"], ss, o_out - barrier_w / 2.0 * side, top_y, rail_y, side)
-            vstrip(mats["rail"], ss, o_out - barrier_w / 2.0 * side, top_y, rail_y, -side)
+            vstrip(mats["barrier"], ss, side * road_half, barrier_top, base, -side)          # faces the roadway
+            vstrip(mats["barrier"], ss, side * info["b_out"], barrier_top, walk_y if info["walk"] else base, side)
+            band(mats["barrier"], side, road_half, info["b_out"], barrier_top)
+            if info["walk"] and barrier_rail_h > 0.0:
+                rail(side, road_half + barrier_w / 2.0, barrier_top, barrier_rail_h)
+        if info["walk"]:
+            band(mats["sidewalk"], side, info["b_out"], info["w_out"], walk_y)
+            if parapet_h > 0.0:
+                parapet_top = lambda s: walk_y(s) + parapet_h  # noqa: E731
+                vstrip(mats["barrier"], ss, side * info["w_out"], parapet_top, walk_y, -side)   # faces the walkway
+                vstrip(mats["barrier"], ss, side * info["edge"], parapet_top, walk_y, side)     # the outer face
+                band(mats["barrier"], side, info["w_out"], info["edge"], parapet_top)
+                if rail_h > 0.0:
+                    rail(side, info["w_out"] + parapet_w / 2.0, parapet_top, rail_h)
+        elif rail_h > 0.0 and barrier_h > 0.0:
+            rail(side, road_half + barrier_w / 2.0, barrier_top, rail_h)
 
     lamps = data.get("lamps")
     if lamps:
@@ -437,10 +497,12 @@ def build(mb_by_mat, furniture, data, ground=None):
         for k in range(count + 1):
             s = min(line.length, k * line.length / count)
             (x, z), _t, n = line.at(s)
-            for side in (-1, 1):
-                off = (half_w - barrier_w * 0.5) * side
-                furniture.setdefault("lamp_downtown", []).append(
-                    [x + n[0] * off, elev.at(s) + barrier_h, z + n[1] * off, 0.0])
+            for side, info in ((-1, right), (1, left)):
+                if info["walk"]:
+                    off, y = (info["w_out"] - 0.35) * side, elev.at(s) + walk_rise
+                else:
+                    off, y = (road_half + barrier_w * 0.5) * side, elev.at(s) + barrier_h
+                furniture.setdefault("lamp_downtown", []).append([x + n[0] * off, y, z + n[1] * off, 0.0])
 
     profile = [[round(s, 2), round(elev.at(s), 3)] for s in ss]
     return {"profile": profile, "warnings": warnings}

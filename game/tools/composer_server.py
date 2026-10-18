@@ -106,15 +106,17 @@ class Ground:
     The same bilinear sample as pipeline/roads/common_roads.Heightmap; the server's Python
     need not have numpy, so it is not imported from there."""
 
-    def __init__(self):
+    def __init__(self, raw=False):
         import array
         import common as pc
         hm = pc.load_world_origin()["heightmaps"]["play"]
+        # raw: the play heightmap before roads are conformed to it, which is where the deck
+        # heights are read from -- the conformed one is what a composed bridge changes
         self.w, self.h, self.spacing = hm["width"], hm["height"], hm["spacing_m"]
         self.x0 = hm["origin_easting"] - pc.ORIGIN_EASTING
         self.z0 = -(hm["origin_northing_top"] - pc.ORIGIN_NORTHING)
         values = array.array("f")
-        with open(os.path.join(pc.GAME_DATA, hm["road_conformed_file"]), "rb") as handle:
+        with open(os.path.join(pc.GAME_DATA, hm["file"] if raw else hm["road_conformed_file"]), "rb") as handle:
             values.frombytes(handle.read())
         if sys.byteorder == "big":
             values.byteswap()
@@ -134,6 +136,7 @@ class Ground:
 
 
 _GROUND = []
+_RAW = []
 
 
 def ground():
@@ -345,6 +348,113 @@ def _naming_data():
     return _NAMING["roads"], _NAMING["rails"], _NAMING["water"]
 
 
+LAYOUT_JSON = os.path.join(ROOT, "game", "roads", "_build", "transport_layout.json")
+_LAYOUT = {}
+
+
+def _sidewalk_rings():
+    """The sidewalk polygons' rings (lists of (x, z)) from the road plan's transportation layout,
+    reloaded when the file changes; [] when it has not been built."""
+    try:
+        stamp = os.path.getmtime(LAYOUT_JSON)
+    except OSError:
+        return []
+    if _LAYOUT.get("stamp") != stamp:
+        try:
+            with open(LAYOUT_JSON) as handle:
+                geometry = json.load(handle)["surfaces"]["sidewalk"]
+        except (OSError, ValueError, KeyError):
+            return []
+        polygons = geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
+        _LAYOUT.update(stamp=stamp, rings=[[(p[0], p[1]) for p in ring] for poly in polygons for ring in poly])
+    return _LAYOUT["rings"]
+
+
+def _intervals_along(rings, a, b):
+    """Parts of the segment a-b (as fractions 0..1) that lie inside the rings (even-odd)."""
+    hits = []
+    ax, az, bx, bz = a[0], a[1], b[0], b[1]
+    for ring in rings:
+        if (max(p[0] for p in ring) < min(ax, bx) or min(p[0] for p in ring) > max(ax, bx)
+                or max(p[1] for p in ring) < min(az, bz) or min(p[1] for p in ring) > max(az, bz)):
+            continue
+        for (cx, cz), (dx, dz) in zip(ring, ring[1:]):
+            den = (bx - ax) * (dz - cz) - (bz - az) * (dx - cx)
+            if abs(den) < 1e-12:
+                continue
+            t = ((cx - ax) * (dz - cz) - (cz - az) * (dx - cx)) / den
+            u = ((cx - ax) * (bz - az) - (cz - az) * (bx - ax)) / den
+            if 0.0 <= t <= 1.0 and 0.0 <= u < 1.0:
+                hits.append(t)
+    hits.sort()
+    return [(hits[i], hits[i + 1]) for i in range(0, len(hits) - 1, 2)]
+
+
+def approach_sidewalks(vertices, half_width):
+    """Where the approach roads' sidewalks lie, measured from the road plan's layout, at each end.
+
+    Returns [start, end]; each is {"left": [inner, outer], "right": [inner, outer]} -- lateral
+    offsets from the bridge's centreline, as magnitudes, left and right of the bridge's own travel
+    direction -- or None where no sidewalk reaches the end. Transects across the approach 4, 8
+    and 12 m beyond the abutment are crossed with the layout's sidewalk polygons, so what a
+    walkway has to meet is what the game builds, whatever rules produced it."""
+    rings = _sidewalk_rings()
+    pts = [(v["x"], v["z"]) for v in vertices]
+    if len(pts) < 2 or not rings:
+        return [None, None]
+    reach = half_width + 9.0
+    out = []
+    for k, (a, b) in enumerate(((pts[1], pts[0]), (pts[-2], pts[-1]))):
+        d = math.hypot(b[0] - a[0], b[1] - a[1]) or 1.0
+        tx, tz = (b[0] - a[0]) / d, (b[1] - a[1]) / d       # out of the bridge
+        nx, nz = -tz, tx
+        found = {}
+        for side in (1, -1):
+            samples = []
+            for along in (4.0, 8.0, 12.0):
+                o = (b[0] + tx * along, b[1] + tz * along)
+                p0 = (o[0] + nx * side * (half_width + 0.05), o[1] + nz * side * (half_width + 0.05))
+                p1 = (o[0] + nx * side * reach, o[1] + nz * side * reach)
+                span = reach - (half_width + 0.05)
+                for t0, t1 in _intervals_along(rings, p0, p1):
+                    inner, outer = half_width + 0.05 + t0 * span, half_width + 0.05 + t1 * span
+                    if inner <= half_width + 3.0 and 0.8 <= outer - inner <= 5.0:
+                        samples.append((inner, outer))
+                        break
+            if len(samples) >= 2:
+                samples.sort()
+                mid = samples[len(samples) // 2]
+                # `side` is relative to the way's direction out of the bridge; at the far end that
+                # is the bridge's own right, at the near end its left reversed
+                key = ("left" if side > 0 else "right") if k == 1 else ("right" if side > 0 else "left")
+                found[key] = [round(mid[0], 2), round(mid[1], 2)]
+        out.append(found or None)
+    return out
+
+
+def raw_ground():
+    """Terrain before road-conforming (stable under a composed bridge's own changes), or None."""
+    if not _RAW:
+        try:
+            _RAW.append(Ground(raw=True))
+        except (OSError, ValueError, KeyError, ImportError):
+            _RAW.append(None)
+    return _RAW[0]
+
+
+def approach_heights(vertices, sampler, approach=APPROACH_M):
+    """[start, end] road heights `approach` metres out from a way's ends, along its end tangents,
+    plus the height roads sit above terrain: what a deck's ends should meet."""
+    pts = [(v["x"], v["z"]) for v in vertices]
+    if len(pts) < 2 or sampler is None:
+        return None
+    out = []
+    for a, b in ((pts[1], pts[0]), (pts[-2], pts[-1])):
+        d = math.hypot(b[0] - a[0], b[1] - a[1]) or 1.0
+        out.append(round(sampler.at(b[0] + (b[0] - a[0]) / d * approach, b[1] + (b[1] - a[1]) / d * approach) + bridges_composed.ROAD_SURFACE_M, 2))
+    return out
+
+
 def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
     """Every road/path bridge way the game has, with whether it has a composed design."""
     sampler = sampler or ground()
@@ -376,6 +486,11 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
             # roads are at the ends, and what a pier stands on between them
             "ground_profile": ground_profile(way["vertices"], sampler, extend=APPROACH_M) if sampler else None,
             "approach_m": APPROACH_M,
+            # road heights 50 ft out from each end, read before conforming (so stable): the
+            # heights a deck's ends should meet
+            "approach_y": approach_heights(way["vertices"], raw_ground()),
+            # the sidewalks the road plan lays up to each end, as lateral offsets from the centreline
+            "approach_sidewalks": approach_sidewalks(way["vertices"], (tags.get("width_m") or 8.0) / 2.0),
             # the same at just the two ends
             "ground": ([round(sampler.at(way["vertices"][0]["x"], way["vertices"][0]["z"]), 2),
                         round(sampler.at(way["vertices"][-1]["x"], way["vertices"][-1]["z"]), 2)]

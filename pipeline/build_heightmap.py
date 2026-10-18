@@ -275,6 +275,80 @@ def load_road_lines(min_e, min_n, max_e, max_n):
     return out
 
 
+from roads.bridges_composed import ROAD_SURFACE_M   # noqa: E402
+
+BRIDGE_ANCHOR_SNAP_M = 6.0     # a road ends 'at' a bridge when its end is within this of the deck's
+BRIDGE_ANCHOR_BLEND_M = 40.0   # how far back along an approach road the deck's end height is blended in
+
+
+def _smoothstep(t):
+    t = np.clip(t, 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def load_bridge_anchors(base_elevation_m):
+    """Where a bridge designed in Bridge Composer ends and how high its deck is there.
+
+    Returns [(easting, northing, elevation_m), ...], one per deck end. The roads that run up
+    to those ends are conformed to the deck's height (road_conform), so the approach rises to
+    meet the deck instead of ending in the sag where the DEM drops into the river bank."""
+    folder = os.path.join(GAME_DATA, "bridges_composed")
+    out = []
+    if not os.path.isdir(folder):
+        return out
+    for name in sorted(os.listdir(folder)):
+        if not name.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(folder, name)) as handle:
+                design = json.load(handle)
+            if design.get("format") != "dixon-bridge":
+                continue
+            line = design["centerline"]
+            rows = design["deck"]["elevation"]
+            for (x, z), row in ((line[0], rows[0]), (line[-1], rows[-1])):
+                # game x = easting - origin; game z = -(northing - origin)
+                # the deck's end is the road surface; the terrain under the approach sits ROAD_SURFACE_M below it
+                out.append((ORIGIN_EASTING + x, ORIGIN_NORTHING - z, row[1] - ROAD_SURFACE_M + base_elevation_m))
+        except (OSError, ValueError, KeyError, IndexError, TypeError):
+            continue
+    return out
+
+
+BRIDGE_ANCHOR_EXTEND_M = 3.0   # a conformed road runs this far onto the bridge, so raster cells at the abutment are covered
+
+
+def _extend_line(line, ends):
+    """`line` continued BRIDGE_ANCHOR_EXTEND_M past the end(s) that meet a bridge."""
+    coords = list(line.coords)
+    def step(a, b, dist):
+        d = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5 or 1.0
+        return (b[0] + (b[0] - a[0]) / d * dist, b[1] + (b[1] - a[1]) / d * dist)
+    if ends["start"] is not None:
+        coords.insert(0, step(coords[1], coords[0], BRIDGE_ANCHOR_EXTEND_M))
+    if ends["end"] is not None:
+        coords.append(step(coords[-2], coords[-1], BRIDGE_ANCHOR_EXTEND_M))
+    return LineString(coords)
+
+
+def anchor_profile(dists, elevs, length, ends, blend_m=BRIDGE_ANCHOR_BLEND_M):
+    """Blends a road's elevation profile toward a bridge deck's height at its ends.
+
+    `ends` is {"start": y or None, "end": y or None}: the deck height to meet at the road's first
+    and last point. The profile reaches that height exactly at the end and returns to its own
+    over `blend_m`, along the road (smoothstep), so the grade is gentle and the road meets the
+    deck level."""
+    out = np.array(elevs, dtype=np.float64)
+    dists = np.asarray(dists, dtype=np.float64)
+    for key, y in ends.items():
+        if y is None:
+            continue
+        d = dists if key == "start" else length - dists
+        w = _smoothstep(1.0 - d / blend_m)
+        out = out * (1.0 - w) + y * w
+    return out
+
+
 def smooth_profile(dists, elevs, window_m=15.0):
     if len(dists) < 3:
         return elevs
@@ -287,14 +361,26 @@ def smooth_profile(dists, elevs, window_m=15.0):
     return out
 
 
-def road_conform(arr, transform, width, height, roads):
+def road_conform(arr, transform, width, height, roads, anchors=()):
     out = arr.copy()
     all_pts = []   # (e, n)
     all_elev = []
     all_hw = []    # half-width at that sample
     corridor_polys = []
+    anchored = []
 
     for line, wid in roads:
+        # A road that ends at a bridge's end rises (or falls) to the deck's height there. Only a
+        # road whose own end is at the bridge counts: one that merely passes beneath it (a
+        # riverside path) is left at the ground.
+        ends = {"start": None, "end": None}
+        if anchors:
+            for key, p in (("start", line.coords[0]), ("end", line.coords[-1])):
+                for e, n_, y in anchors:
+                    if (p[0] - e) ** 2 + (p[1] - n_) ** 2 <= BRIDGE_ANCHOR_SNAP_M ** 2:
+                        ends[key] = y
+            if ends["start"] is not None or ends["end"] is not None:
+                line = _extend_line(line, ends)
         n = max(2, int(line.length / 2.0))
         dists = np.linspace(0, line.length, n)
         pts = [line.interpolate(d) for d in dists]
@@ -302,6 +388,9 @@ def road_conform(arr, transform, width, height, roads):
         ns = np.array([p.y for p in pts])
         elevs = bilinear_sample(arr, transform, es, ns)
         elevs_smooth = smooth_profile(dists, elevs, window_m=15.0)
+        if ends["start"] is not None or ends["end"] is not None:
+            elevs_smooth = anchor_profile(dists, elevs_smooth, line.length, ends)
+            anchored.append((line.length, ends))
         half_w = wid / 2.0
         for e, n, el in zip(es, ns, elevs_smooth):
             all_pts.append((e, n))
@@ -335,6 +424,8 @@ def road_conform(arr, transform, width, height, roads):
     blended = alpha * conformed + (1 - alpha) * raw_here
 
     out[rows, cols] = blended.astype(np.float32)
+    if anchors:
+        print(f"  {len(anchored)} road ends conformed to a composed bridge's deck height")
     return out
 
 
@@ -359,7 +450,10 @@ def main():
     print("Road-conforming...")
     roads = load_road_lines(min_e, min_n, max_e, max_n)
     print(f"  {len(roads)} non-bridge road segments")
-    play_road = road_conform(play_hydro, play_transform, pw, ph, roads)
+    anchors = load_bridge_anchors(base_elevation_m)
+    if anchors:
+        print(f"  {len(anchors)} composed-bridge deck ends anchor the road profile")
+    play_road = road_conform(play_hydro, play_transform, pw, ph, roads, anchors)
 
     print("Building horizon heightmap...")
     hmin_e, hmin_n, hmax_e, hmax_n = horizon_extent()
