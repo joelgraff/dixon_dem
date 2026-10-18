@@ -46,6 +46,17 @@ def pixel_mapping(tile, merc):
     width, height = tile["size_px"]
     (ax, ay), (bx, by) = merc(wx0, wz0), merc(wx1, wz1)
     mx0, mx1, my0, my1 = min(ax, bx), max(ax, bx), min(ay, by), max(ay, by)
+    # The image server keeps pixels square: when the requested box's aspect differs from the
+    # image's, it widens the short side about its centre (checked against the server's own
+    # returned extent: a 705.7 x 668.5 m request came back 705.7 x 705.7). Without this, rows
+    # drift up to ~14 m at a tile's top and bottom edges.
+    want = width / height
+    if (mx1 - mx0) / (my1 - my0) > want:
+        half, mid = (mx1 - mx0) / want / 2, (my0 + my1) / 2
+        my0, my1 = mid - half, mid + half
+    else:
+        half, mid = (my1 - my0) * want / 2, (mx0 + mx1) / 2
+        mx0, mx1 = mid - half, mid + half
 
     def pixel(x, z):
         mx, my = merc(x, z)
