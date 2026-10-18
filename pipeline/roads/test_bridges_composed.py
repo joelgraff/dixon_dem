@@ -301,7 +301,7 @@ def test_the_editor_can_start_a_rebuild_and_follow_it():
     script = os.path.join(tmp, "s.sh")
     with open(script, "w") as handle:
         handle.write('echo "== 1/2 first"\nsleep 1\necho "== 2/2 second"\necho finished\n')
-    cs.rebuild_start(script, os.path.join(tmp, "log"))
+    cs.rebuild_start(script, os.path.join(tmp, "log"), "fast")
     try:
         cs.rebuild_start(script, os.path.join(tmp, "log"))
     except ValueError:
@@ -321,6 +321,12 @@ def test_the_editor_can_start_a_rebuild_and_follow_it():
     cs.rebuild_start(script, os.path.join(tmp, "log"))
     time.sleep(0.8)
     assert cs.rebuild_status()["state"] == "failed"
+    try:
+        cs.rebuild_start(script, os.path.join(tmp, "log"), "sideways")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("accepted a mode that is not fast or full")
 
 
 def test_road_surface_height_matches_the_road_plan():

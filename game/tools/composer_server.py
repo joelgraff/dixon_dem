@@ -20,8 +20,9 @@ Bridge Composer (docs/bridge_composer_schema.md) uses the same server:
                                 (game/data/bridge_registry.json) that the road plan leaves out
   POST /game-delete-bridge/<id>    removes a design: a drawn bridge disappears, an OSM bridge goes
                                 back to the generated deck
-  POST /game-rebuild            runs pipeline/roads/rebuild_bridges.sh in the background (heightmap, road
-                                plan, road bake); GET /game-rebuild-status reports its stage and progress
+  POST /game-rebuild            {"mode": "fast" | "full"}: runs pipeline/roads/rebuild_bridges.sh in the
+                                background -- fast: the bridge layer only, seconds; full: heightmap, road
+                                plan and both bakes, minutes. GET /game-rebuild-status reports progress
   POST /game-save-bridge/<id>   writes game/data/bridges_composed/<id>.json, which
                                 pipeline/roads/bridges_composed.py builds in place
                                 of the generated deck; same checks as /game-save
@@ -444,16 +445,19 @@ REBUILD_SCRIPT = os.path.join(ROOT, "pipeline", "roads", "rebuild_bridges.sh")
 _REBUILD = {"proc": None, "log": None, "started": None, "finished": None}
 
 
-def rebuild_start(script=REBUILD_SCRIPT, log_path=None):
-    """Starts pipeline/roads/rebuild_bridges.sh in the background. Raises ValueError if one is running."""
+def rebuild_start(script=REBUILD_SCRIPT, log_path=None, mode="full"):
+    """Starts pipeline/roads/rebuild_bridges.sh in the background, `fast` (bridges only, seconds) or
+    `full` (heightmap, road plan, bakes; minutes). Raises ValueError if one is running."""
     import subprocess
     import time
+    if mode not in ("fast", "full"):
+        raise ValueError("mode is fast or full")
     proc = _REBUILD["proc"]
     if proc is not None and proc.poll() is None:
         raise ValueError("a rebuild is already running")
     log_path = log_path or os.path.join(tempfile.gettempdir(), "bridge-composer-rebuild.log")
     log = open(log_path, "w")
-    _REBUILD.update(proc=subprocess.Popen(["bash", script], stdout=log, stderr=subprocess.STDOUT,
+    _REBUILD.update(proc=subprocess.Popen(["bash", script, mode], stdout=log, stderr=subprocess.STDOUT,
                                           cwd=os.path.dirname(script)),
                     log=log_path, started=time.time(), finished=None)
 
@@ -797,7 +801,11 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
             body = self.rfile.read(length) if length else b""
             try:
                 if route == "/game-rebuild":
-                    rebuild_start()
+                    try:
+                        mode = json.loads(body or b"{}").get("mode", "full")
+                    except (ValueError, AttributeError):
+                        mode = "full"
+                    rebuild_start(mode=mode)
                     return self._reply(200, "started")
                 if route == "/game-new-bridge":
                     design = new_bridge(body, bridges_dir)

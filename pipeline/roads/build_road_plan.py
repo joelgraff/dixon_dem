@@ -23,6 +23,9 @@ import common as pc
 import bridges_composed
 
 OUT_DIR = os.path.join(pc.ROOT, "game", "roads", "_build")
+# Bridges are their own baked layer (res://roads/bridges.scn), so a bridge edit rebuilds in seconds
+# (build_bridges_only.py) without redoing the road layout.
+BRIDGE_OUT_DIR = os.path.join(pc.ROOT, "game", "roads", "_build_bridges")
 CHUNK_SIZE = 200.0
 # Play area is x:[0,2700] z:[-2700,0] (see world_origin.json); some source ways
 # (notably rails.json -- long real-world rail lines fetched without geometry
@@ -1187,7 +1190,8 @@ def split_mesh_by_chunk(mb: MeshBuild):
     return buckets
 
 
-def write_output(mb_by_mat, furniture):
+def write_output(mb_by_mat, furniture, out_dir=None):
+    OUT_DIR = out_dir or globals()["OUT_DIR"]   # the road layer by default; the bridge layer when given
     os.makedirs(OUT_DIR, exist_ok=True)
     for f in os.listdir(OUT_DIR):
         if f.endswith(".json"):
@@ -1292,13 +1296,15 @@ def main():
     build_aerial_paved(hm, mb_by_mat, _carriageway_index(plans))
 
     print("Building bridges...")
-    build_bridges(bridges, hm, mb_by_mat, furniture)
+    bridge_mb, bridge_furniture = {}, {}
+    build_bridges(bridges, hm, bridge_mb, bridge_furniture)
 
     print("Building rails...")
     build_rails(rails, split_ways, hm, mb_by_mat, furniture)
 
     print("Chunking + writing output...")
     write_output(mb_by_mat, furniture)
+    write_output(bridge_mb, bridge_furniture, BRIDGE_OUT_DIR)
 
 
 if __name__ == "__main__":

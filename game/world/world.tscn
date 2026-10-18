@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://terrain/terrain.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://buildings/buildings.scn" id="4"]
 [ext_resource type="PackedScene" path="res://roads/roads.scn" id="5"]
+[ext_resource type="PackedScene" path="res://roads/bridges.scn" id="5_bridges"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://vegetation/vegetation.scn" id="7"]
 [ext_resource type="PackedScene" path="res://landmarks/landmarks.scn" id="8"]
@@ -23,6 +24,8 @@ script = ExtResource("1")
 [node name="Buildings" parent="." unique_id=1572677954 instance=ExtResource("4")]
 
 [node name="Roads" parent="." unique_id=118584807 instance=ExtResource("5")]
+
+[node name="Bridges" parent="." instance=ExtResource("5_bridges")]
 
 [node name="Vegetation" parent="." unique_id=1675257052 instance=ExtResource("7")]
 

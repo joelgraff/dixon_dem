@@ -182,7 +182,7 @@ func _add_tag(screen_pos: Vector2) -> void:
 
 ## Walk up to the top-level system node so a ticket says "Roads" or "Buildings".
 func _owning_system(n: Node) -> String:
-	var known := ["Terrain", "Roads", "Buildings", "Vegetation", "Landmarks", "Atmosphere", "Player"]
+	var known := ["Terrain", "Roads", "Bridges", "Buildings", "Vegetation", "Landmarks", "Atmosphere", "Player"]
 	var cur: Node = n
 	while cur:
 		if cur.name in known:

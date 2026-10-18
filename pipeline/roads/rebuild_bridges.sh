@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
-# Rebuild what a change in Bridge Composer needs, then bake the road scene the game loads:
-#   the heightmap (roads that end at a composed bridge are conformed to its deck),
-#   the road plan (builds the composed bridges, leaves out removed ones),
-#   the baked scene (roads.tscn / roads.scn).
-# The server runs this for the editor's "Rebuild game" button (game/tools/composer_server.py).
-# It does not refresh the terrain splat or vegetation: pipeline/roads/rebuild_transportation.sh does.
+# Rebuild what a change in Bridge Composer needs, so the game shows it.
+#   rebuild_bridges.sh fast   bridges only, ~15 seconds: a change to a deck, railing, pier, span,
+#                             cross-section, material, a removed or restored bridge, a drawn bridge.
+#   rebuild_bridges.sh full   (default) ~5 minutes: also the heightmap and the road plan, needed when
+#                             a deck's END heights change (the roads and the ground under the
+#                             approaches follow them), or the bridge has roads ending at it.
+# The server runs this for the editor's rebuild buttons (game/tools/composer_server.py).
+# Neither mode refreshes the terrain splat or vegetation: pipeline/roads/rebuild_transportation.sh does.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PYTHON="$ROOT/.venv/bin/python"
-echo "== 1/3 heightmap"
-(cd "$ROOT/pipeline" && "$PYTHON" -u build_heightmap.py)
-echo "== 2/3 road plan (about 3 minutes)"
-(cd "$ROOT/pipeline/roads" && "$PYTHON" -u build_road_plan.py)
-echo "== 3/3 bake roads"
-bash "$ROOT/game/roads/tools/build_roads.sh"
+MODE="${1:-full}"
+if [ "$MODE" = "fast" ]; then
+  echo "== 1/2 bridges"
+  (cd "$ROOT/pipeline/roads" && "$PYTHON" -u build_bridges_only.py)
+  echo "== 2/2 bake bridges"
+  bash "$ROOT/game/roads/tools/build_roads.sh" --bridges
+else
+  echo "== 1/4 heightmap"
+  (cd "$ROOT/pipeline" && "$PYTHON" -u build_heightmap.py)
+  echo "== 2/4 road plan (about 3 minutes)"
+  (cd "$ROOT/pipeline/roads" && "$PYTHON" -u build_road_plan.py)
+  echo "== 3/4 bake roads"
+  bash "$ROOT/game/roads/tools/build_roads.sh"
+  echo "== 4/4 bake bridges"
+  bash "$ROOT/game/roads/tools/build_roads.sh" --bridges
+fi
 echo "== done"
