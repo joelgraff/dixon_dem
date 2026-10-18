@@ -18,12 +18,18 @@
 		]
 	],
 	"format": "dixon-footprint",
+	"front": [
+		0.2782,
+		0.9605
+	],
 	"ground_y_max": null,
 	"ground_y_min": null,
 	"height_m": 7.0,
 	"hints": {
+		"awnings": "some",
 		"dressing": "plain",
 		"form": "foursquare",
+		"ground": "normal",
 		"material": "clapboard",
 		"porch": "shed_full",
 		"roof": "pyramidal",

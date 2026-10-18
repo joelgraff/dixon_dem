@@ -197,13 +197,13 @@ _surfaces = [{
 [sub_resource type="BoxShape3D" id="BoxShape3D_5u0ih"]
 size = Vector3(2, 2, 2)
 
-[node name="LincolnStatue" type="Node3D" unique_id=777465264]
+[node name="LincolnStatue" type="Node3D" unique_id=1781923645]
 
-[node name="Mesh" type="MeshInstance3D" parent="." unique_id=283927980]
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=1460710861]
 mesh = SubResource("ArrayMesh_0ve0k")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=1095113174]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=90668325]
 
-[node name="Shape0" type="CollisionShape3D" parent="Collision" unique_id=1788650040]
+[node name="Shape0" type="CollisionShape3D" parent="Collision" unique_id=11500919]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("BoxShape3D_5u0ih")
