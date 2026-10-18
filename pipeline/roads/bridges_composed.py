@@ -24,11 +24,11 @@ VERSION = 1
 # Materials the road bake knows (game/roads/tools/build_roads.gd MATERIAL_PATHS).
 MATERIALS = (
     "bridge_deck", "curb_concrete", "sidewalk_concrete", "asphalt_road", "steel_rusted",
-    "stone_foundation", "limestone", "gravel_ballast",
+    "stone_foundation", "limestone", "gravel_ballast", "steel_painted_green",
 )
 DEFAULT_MATERIALS = {
     "deck": "bridge_deck", "sidewalk": "sidewalk_concrete", "barrier": "curb_concrete",
-    "structure": "curb_concrete", "rail": "steel_rusted", "arch": "limestone",
+    "structure": "curb_concrete", "rail": "steel_painted_green", "arch": "limestone",
 }
 SPAN_TYPES = ("girder", "slab", "arch")
 SUPPORT_KINDS = ("abutment", "pier")

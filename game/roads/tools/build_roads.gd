@@ -35,9 +35,11 @@ const MATERIAL_PATHS := {
 	# Bridge Composer structure: arch rings, piers (pipeline/roads/bridges_composed.py MATERIALS)
 	"stone_foundation": "res://materials/lib/stone_foundation.tres",
 	"limestone": "res://materials/lib/limestone.tres",
+	# painted dark green steel: railings (pipeline/roads/bridges_composed.py)
+	"steel_painted_green": "res://roads/materials/steel_painted_green.tres",
 }
 const WALKABLE := ["asphalt_road", "asphalt_patched", "asphalt_road_plowed", "asphalt_patched_plowed",
-	"curb_concrete", "sidewalk_concrete", "bridge_deck", "gravel_ballast"]
+	"curb_concrete", "sidewalk_concrete", "bridge_deck", "gravel_ballast", "grass_lawn"]
 
 var _material_cache := {}
 var _prop_mesh_cache := {}

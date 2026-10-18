@@ -229,8 +229,8 @@ def test_rail_styles_build_and_face_their_normals():
                                          "parapet_h": 0.6, "curb_h": 0.2, "outer_type": outer,
                                          "rail_h": 1.0, "rail_style": style})
             meshes, _f, _r = built(data, ground=lambda x, z: 0.0)
-            assert meshes["steel_rusted"].indices, (outer, style)
-            for a, b, c in triangles(meshes["steel_rusted"]):
+            assert meshes["steel_painted_green"].indices, (outer, style)
+            for a, b, c in triangles(meshes["steel_painted_green"]):
                 u = [b[k] - a[k] for k in range(3)]
                 v = [c[k] - a[k] for k in range(3)]
                 rh = (u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0])
@@ -241,7 +241,7 @@ def test_rail_styles_build_and_face_their_normals():
     assert max(v[1] for v in tall["curb_concrete"].verts) > max(v[1] for v in low["curb_concrete"].verts) - 1e-9
     # pickets are many thin stakes: that style has far more triangles than a pipe rail
     count = lambda st: len(built(design(cross_section={"walkway_w": 2.0, "outer_type": "metal", "rail_h": 1.0,
-                                                       "rail_style": st}))[0]["steel_rusted"].indices)
+                                                       "rail_style": st}))[0]["steel_painted_green"].indices)
     assert count("picket") > 3 * count("pipe") > 0
 
 
