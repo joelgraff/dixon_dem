@@ -14,7 +14,7 @@
 //   2 forest_floor -- splat_a.g  (wooded ground / leaf litter)
 //   3 gravel_ballast-- splat_a.b (rail corridors, quarries)
 //   4 mud          -- splat_a.a + splat_b.g (riverbank + bare farmland/brownfield dirt)
-//   5 asphalt_patched-- splat_b.r (parking/retail/industrial placeholder paving)
+//   5 asphalt_patched-- splat_b.r (reserved, zero; paving uses transportation meshes)
 //   6 stone_rough  -- dynamic: steep slopes + high curvature (exposed rock/dirt on banks & bluffs)
 
 shader_type spatial;
@@ -31,7 +31,7 @@ global uniform float season_foliage; // 0 summer green -> 0.75 autumn -> 1 bare/
 
 group_uniforms SplatMasks;
 uniform sampler2D splat_a : filter_linear, repeat_disable; // R lawn, G wood, B gravel, A riverbank mud
-uniform sampler2D splat_b : filter_linear, repeat_disable; // R paved placeholder, G bare dirt
+uniform sampler2D splat_b : filter_linear, repeat_disable; // R reserved paving (zero), G bare dirt
 uniform vec2 splat_origin_m = vec2(0.0, -2700.0); // world (x,z) at splat uv (0,0)
 uniform vec2 splat_size_m = vec2(2700.0, 2700.0);
 

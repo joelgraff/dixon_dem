@@ -2,7 +2,8 @@
 """bake_splat.py -- terrain workstream helper.
 
 Reads game/data/landuse.json, rails.json, water.json (produced by the data
-pipeline -- read-only) and bakes two RGBA8 splat/mask textures that
+pipeline -- read-only), plus the authoritative transportation layout, and
+bakes two RGBA8 splat/mask textures that
 game/terrain/shaders/terrain.gdshader uses to blend ground materials:
 
   game/terrain/textures/terrain_splat_a.png
@@ -12,8 +13,7 @@ game/terrain/shaders/terrain.gdshader uses to blend ground materials:
     A = riverbank mud (buffer around water + wetland polygons)
 
   game/terrain/textures/terrain_splat_b.png
-    R = paved/parking placeholder (commercial/retail/industrial landuse --
-        until the roads workstream covers these with real pavement)
+    R = reserved paved layer (zero; real paving is transportation geometry)
     G = bare dirt (farmland, brownfield)
     B = unused (0)
     A = 255 (opaque, unused)
@@ -31,12 +31,15 @@ Usage: cd pipeline/terrain && ../../.venv/bin/python bake_splat.py
 """
 import json
 import math
+import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "pipeline"))
+from roads.transport_layout import load_layout, paint_geometry  # noqa: E402
 DATA = ROOT / "game" / "data"
 OUT = ROOT / "game" / "terrain" / "textures"
 
@@ -99,6 +102,7 @@ def main():
     landuse = load("landuse.json")["areas"]
     rails = load("rails.json")["ways"]
     water = load("water.json")
+    transportation = load_layout()
 
     lawn = new_mask()
     wood = new_mask()
@@ -113,7 +117,6 @@ def main():
     WOOD_LEISURE = {"nature_reserve"}
     GRAVEL_LANDUSE = {"quarry"}
     MUD_NATURAL = {"wetland"}
-    PAVED_LANDUSE = {"retail", "commercial", "industrial"}
     DIRT_LANDUSE = {"farmland", "brownfield"}
 
     n_lawn = n_wood = n_gravel = n_mud = n_paved = n_dirt = 0
@@ -131,8 +134,6 @@ def main():
             draw_polygon(gravel, ring); n_gravel += 1
         if na in MUD_NATURAL:
             draw_polygon(mud, ring); n_mud += 1
-        if lu in PAVED_LANDUSE:
-            draw_polygon(paved, ring); n_paved += 1
         if lu in DIRT_LANDUSE:
             draw_polygon(dirt, ring); n_dirt += 1
 
@@ -158,7 +159,10 @@ def main():
           f"rail_ways={len(rails)} water_reaches={len(water.get('reaches', []))} "
           f"streams={len(water.get('streams', []))}")
 
-    lawn, wood, gravel, mud, paved, dirt = (blur(m) for m in (lawn, wood, gravel, mud, paved, dirt))
+    for name in ("parkway", "verge"):
+        paint_geometry(lawn, transportation[name], 255, world_to_px)
+    # Paving is exclusively real transportation geometry, never a land-use tint.
+    lawn, wood, gravel, mud, dirt = (blur(m) for m in (lawn, wood, gravel, mud, dirt))
 
     tex_a = Image.merge("RGBA", (lawn, wood, gravel, mud))
     tex_b = Image.merge("RGBA", (paved, dirt, Image.new("L", (TEX_SIZE, TEX_SIZE), 0),

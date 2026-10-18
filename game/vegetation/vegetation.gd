@@ -189,6 +189,15 @@ func _xform(x: float, y: float, z: float, rot_deg: float, scale: float) -> Trans
 	var basis := Basis(Vector3.UP, deg_to_rad(rot_deg)).scaled(Vector3.ONE * scale)
 	return Transform3D(basis, Vector3(x, y, z))
 
+func _tree_xform(x: float, y: float, z: float, rot_deg: float,
+		height: float, canopy_radius: float, billboard: bool = false) -> Transform3D:
+	# Tree plans provide crown radius independently from height. The near mesh
+	# has an approximately one-unit crown radius; billboards are one unit wide.
+	var width_scale := maxf(canopy_radius, 0.1) * (2.0 if billboard else 1.0)
+	var basis := Basis(Vector3.UP, deg_to_rad(rot_deg)).scaled(
+		Vector3(width_scale, maxf(height, 0.1), width_scale))
+	return Transform3D(basis, Vector3(x, y, z))
+
 
 func _place_trees(instances: Array) -> void:
 	# near LOD: (chunk, species, variation) -> Array[Transform3D]
@@ -203,6 +212,7 @@ func _place_trees(instances: Array) -> void:
 			continue
 		var info: Dictionary = SPECIES[species]
 		var height: float = inst["height_m"]
+		var canopy_radius: float = float(inst.get("canopy_r_m", height))
 		var seed: int = inst["seed"]
 		var category: String = inst.get("category", "")
 		# iter1 critique: street trees (from the general species height table,
@@ -213,23 +223,25 @@ func _place_trees(instances: Array) -> void:
 		# brief asked for) and thin ~15% more for driveway-scale gaps.
 		if category == "street" or category == "downtown":
 			height = clamp(height * 0.60, 7.0, 15.0)
+			canopy_radius *= 0.60
 			if seed % 100 < 15:
 				continue
 		var variation: int = seed % N_VARIATIONS
 		var rot: float = inst["rot_deg"]
-		var xf := _xform(x, y, z, rot, height)
+		var near_xf := _tree_xform(x, y, z, rot, height, canopy_radius)
+		var far_xf := _tree_xform(x, y, z, rot, height, canopy_radius, true)
 
 		var ncx := int(floor(x / NEAR_CHUNK)); var ncz := int(floor(z / NEAR_CHUNK))
 		var nkey := "%d_%d_%s_%d" % [ncx, ncz, species, variation]
 		if not near_groups.has(nkey):
 			near_groups[nkey] = {"species": species, "variation": variation, "xforms": []}
-		near_groups[nkey]["xforms"].append(xf)
+		near_groups[nkey]["xforms"].append(near_xf)
 
 		var fcx := int(floor(x / FAR_CHUNK)); var fcz := int(floor(z / FAR_CHUNK))
 		var fkey := "%d_%d_%s" % [fcx, fcz, info["form"]]
 		if not far_groups.has(fkey):
 			far_groups[fkey] = {"form": info["form"], "xforms": []}
-		far_groups[fkey]["xforms"].append(xf)
+		far_groups[fkey]["xforms"].append(far_xf)
 
 	for key in near_groups:
 		var g: Dictionary = near_groups[key]

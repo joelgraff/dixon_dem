@@ -26,6 +26,7 @@ from shapely.prepared import prep
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import common as pc
 from veg_common import Heightmap, HashGrid, seeded_rng, walk_polyline, load_json
+from roads.transport_layout import load_layout, paint_geometry
 
 OUT_DIR = os.path.join(pc.ROOT, "game", "vegetation", "data")
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -122,6 +123,7 @@ print("loading game/data/*.json ...")
 landuse = load_json("landuse.json")["areas"]
 trees_osm = load_json("trees.json")["points"]
 roads = load_json("roads.json")
+transportation = load_layout()
 ways = roads["ways"]
 junction_nodes = roads["junction_nodes"]
 buildings = load_json("buildings.json")["buildings"]
@@ -375,7 +377,11 @@ for w in ways:
             pass
 
 road_row_union = unary_union(road_row_polys) if road_row_polys else Polygon()
+road_row_union = unary_union([road_row_union, *[
+    geometry for name, geometry in transportation.items() if name != "gutter"
+]])
 road_row_prep = prep(road_row_union)
+transport_parkway_prep = prep(transportation["parkway"])
 
 # Junction points (for street-tree gap-at-intersections)
 junction_pts = [(j["x"], j["z"]) for j in junction_nodes if in_play_box(j["x"], j["z"])]
@@ -495,6 +501,8 @@ for line, tags, hw in road_lines:
                    if abs(px - jx) < 8 and abs(pz - jz) < 8):
                 continue
             if buildings_tight_prep.contains(Point(px, pz)) or (water_excl_prep and water_excl_prep.contains(Point(px, pz))):
+                continue
+            if not downtown and not transport_parkway_prep.covers(Point(px, pz)):
                 continue
             species = weighted_choice(rng, mix)
             spec = SPECIES[species]
@@ -806,15 +814,7 @@ draw = ImageDraw.Draw(img)
 def draw_poly(poly, rgb):
     if poly is None or poly.is_empty:
         return
-    geoms = poly.geoms if hasattr(poly, "geoms") else [poly]
-    for g in geoms:
-        if g.is_empty or not hasattr(g, "exterior") or g.exterior is None:
-            continue
-        pts = [to_px(x, z) for x, z in g.exterior.coords]
-        draw.polygon(pts, fill=rgb)
-        for interior in g.interiors:
-            ipts = [to_px(x, z) for x, z in interior.coords]
-            draw.polygon(ipts, fill=BLACK)
+    paint_geometry(img, poly, rgb, to_px)
 
 
 # 1. Non-grass ground: downtown/commercial pavement & lots, dense wood floor
@@ -839,20 +839,14 @@ draw_poly(rails_excl, BLACK)
 # 4. Re-add the parkway ribbon (grass strip between curb and sidewalk on
 # residential/tertiary streets) that step 3 just subtracted along with the
 # rest of the ROW.
-for line, tags, hw in road_lines:
-    hwy = tags.get("highway")
-    if hwy not in STREET_TREE_HIGHWAYS:
-        continue
-    mid = line.interpolate(0.5, normalized=True)
-    if is_downtown_way(tags, (mid.x, mid.y)):
-        continue
-    center = hw + CURB_WIDTH + PARKWAY_GAP * 0.5
-    for side in (1.0, -1.0):
-        try:
-            strip = line.parallel_offset(center * side, side="left" if side > 0 else "right", join_style=2)
-            draw_poly(strip.buffer(PARKWAY_GAP * 0.5, cap_style=2), MOWN)
-        except Exception:
-            pass
+draw_poly(transportation["parkway"], MOWN)
+draw_poly(transportation["verge"], MOWN)
+hard_paving = unary_union([geometry for name, geometry in transportation.items()
+                          if name not in ("parkway", "verge")])
+draw_poly(hard_paving, BLACK)
+draw_poly(buildings_tight, BLACK)
+draw_poly(unary_union(water_reach_polys) if water_reach_polys else Polygon(), BLACK)
+draw_poly(rails_excl, BLACK)
 
 mask_path = os.path.join(OUT_DIR, "grass_mask.png")
 img.save(mask_path)

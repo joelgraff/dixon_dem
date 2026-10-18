@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "junctions": [
+    {
+      "node_id": 235322239,
+      "return_radius_m": 6.0,
+      "profile": "downtown"
+    }
+  ],
+  "lots": [],
+  "exclude_paving": []
+}

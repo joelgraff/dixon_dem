@@ -7,11 +7,13 @@ baked Image/ImageTexture assets (see "Known limitations" for why that matters).
 ## Pipeline (regenerate after any data-pipeline or buildings/roads re-export)
 
 ```
-cd pipeline/vegetation && ../../.venv/bin/python place_vegetation.py
+bash pipeline/roads/rebuild_transportation.sh
 ```
 
 Reads `game/data/{landuse,trees,roads,buildings,water,rails,world_origin}.json`
-+ the road-conformed heightmap, **and** (read-only, cross-workstream)
++ the road-conformed heightmap and the authoritative
+`game/roads/_build/transport_layout.json` (missing/stale plans fail), **and**
+(read-only, cross-workstream)
 `game/buildings/_build/chunk_*.json` for the buildings team's baked collision
 hulls — these include the ~900 procedurally-infilled houses/garages that
 `game/data/buildings.json` doesn't have (only the original 707 OSM
@@ -41,6 +43,20 @@ roads/buildings/water/rails/downtown-commercial-pavement/dense-wood-floor,
 then re-adds the parkway ribbon the road-ROW subtraction removes. Building
 it the "additive" way first (paint only tagged polygons) left almost the
 entire town black — see the fix's comment block in `place_vegetation.py`.
+
+Transportation exclusions now include the authoritative asphalt, curb,
+sidewalk, lots and paths. Parkway/verge grass is re-added from those exact
+polygons, not independently offset centerlines. Painting preserves the
+underlying mask inside polygon holes, so a connected road perimeter does
+not erase grass throughout its enclosed blocks. Runtime grass stamps
+recheck their jittered position before placement to avoid spilling onto
+pavement. A short downward ray uses graded parkway/verge collision for their
+raised ground height and rejects transportation pavement hits, so coarse
+mask texels cannot put blades across the actual pavement boundary. Grass
+collision is separate from hard-surface collision, with explicit surface
+metadata rather than relying on renderer/physics triangle ordering.
+Residential street-tree candidates must fall inside the authoritative
+parkway; a downtown override no longer leaves residential trees on its sidewalk.
 
 ## Placement rules (what goes where)
 
@@ -140,7 +156,8 @@ against buildings/water.
   materials_notes.md's own documented limitation for exactly this
   situation) plus one shared `ShaderMaterial` each for foliage/grass.
 - `grass_spawner.gd` — runtime-only, not part of the static placement plan.
-  Reads `grass_mask.png`/`.json` (R=mown density, G=tall/unmown density) and
+  Loads the imported `grass_mask.png` as a `Texture2D` (export-safe) and reads
+  its image plus `grass_mask.json` (R=mown density, G=tall/unmown density), and
   `TerrainHeight.get_height()` (`res://terrain/terrain_height.gd`, per
   `docs/terrain_notes.md` — no separate height source to drift out of sync
   with the rendered ground). Cell-based cache (10m cells, 42m radius around
@@ -170,13 +187,11 @@ near houses), `shrub_wild` (scruffier, wood-edge/rail-side), cattail
   pixel-by-pixel the way roads did (see roads_notes.md's `Pillow` mean
   technique) — a future pass could cross-check the same way if a critic
   wants tighter numbers.
-- **Canopy radius from the placement plan is not applied** — `vegetation.gd`
-  scales each tree instance uniformly by `height_m` only (`canopy_r_m` from
-  `trees.json` is generated but unused at render time) to keep the instance
-  transform simple (one scalar, not a full non-uniform basis) and because
-  the procedural builders already target a roughly-proportional
-  height:radius ratio per shape family. A real canopy-width outlier
-  (unusually wide or narrow for its height) won't show.
+- Tree instances use the placement plan's `canopy_r_m` for horizontal scale
+  and `height_m` for vertical scale; street/downtown trees retain the
+  existing 0.6 size factor. This allows crown width to vary independently of
+  height. The procedural near meshes' crown envelope is approximate, so
+  inspect eye-level captures for LOD silhouette changes.
 - **Season-transition color path is a 4-keyframe piecewise function** tuned
   for the four *static* keyframe looks (matching every capture in this
   brief), not for what a live multi-second transition passes through

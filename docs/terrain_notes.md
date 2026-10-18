@@ -88,7 +88,7 @@ multi-layer blend since `surface.gdshader` only carries one texture set):
 | wood | `forest_floor` | baked splat: `natural=wood`, nature reserves |
 | gravel | `gravel_ballast` | baked splat: rail corridors (buffered), quarries |
 | mud | `mud` | baked splat: riverbank buffer + farmland/brownfield dirt |
-| paved | `asphalt_patched` | baked splat: `landuse=retail/commercial/industrial` (placeholder until roads/buildings cover it) |
+| paved | `asphalt_patched` | reserved layer, weight zero; paving comes exclusively from transportation meshes |
 | rock | `stone_rough` | **dynamic**, not baked: slope + a screen-space-derivative curvature proxy + elevation (bluffs expose rock at a lower slope threshold than riverbank cuts) |
 
 The two splat masks (`terrain_splat_a.png` R=lawn/G=wood/B=gravel/A=mud,
@@ -96,11 +96,14 @@ The two splat masks (`terrain_splat_a.png` R=lawn/G=wood/B=gravel/A=mud,
 `pipeline/terrain/bake_splat.py` at 2m/texel (1350x1350) from
 `landuse.json`/`rails.json`/`water.json` polygon and line data (shapely
 buffers + a Gaussian blur for soft transitions), reading `game/data/*.json`
-only -- outputs go to `game/terrain/textures/` (this workstream's own
-folder), never into `game/data/`. Re-run after any data-pipeline re-export:
+and `game/roads/_build/transport_layout.json` -- outputs go to
+`game/terrain/textures/`, never into `game/data/`. The shared plan adds
+lawn blending around graded parkways/verges. Commercial/industrial land-use
+polygons no longer paint placeholder asphalt through gaps between real
+surfaces. Missing or stale transportation plans fail explicitly. Rebuild:
 
 ```
-cd pipeline/terrain && ../../.venv/bin/python bake_splat.py
+bash pipeline/roads/rebuild_transportation.sh
 ```
 
 Seasonal response: a global tint (`season_foliage`) shifts grass toward

@@ -12,6 +12,12 @@ extends Node
 
 const BUILD_DIR := "res://roads/_build/"
 const OUT_SCENE := "res://roads/roads.tscn"
+const OUT_PACKED_SCENE := "res://roads/roads.scn"
+# Bridges are baked as their own layer (build_roads.sh --bridges): the same baker, a different
+# input folder and output scene, so a bridge edit does not rebuild the roads.
+const BRIDGE_BUILD_DIR := "res://roads/_build_bridges/"
+const BRIDGE_OUT_SCENE := "res://roads/bridges.tscn"
+const BRIDGE_OUT_PACKED_SCENE := "res://roads/bridges.scn"
 const CHUNK_VIS_END := 900.0
 const CHUNK_VIS_MARGIN := 60.0
 const FURN_VIS_END := 480.0
@@ -27,6 +33,7 @@ const MATERIAL_PATHS := {
 	# Cosmetic sidewalk edge skirts: same look, deliberately NOT in WALKABLE so they
 	# never become collidable ledges standing proud of the road (see build_road_plan.py).
 	"sidewalk_edge": "res://materials/lib/sidewalk_concrete.tres",
+	"grass_lawn": "res://materials/lib/grass_lawn.tres",
 	"gravel_ballast": "res://materials/lib/gravel_ballast.tres",
 	"steel_rusted": "res://materials/lib/steel_rusted.tres",
 	"marking_yellow": "res://roads/materials/marking_yellow.tres",
@@ -56,43 +63,59 @@ func _load_json(path: String):
 		return null
 	var txt := f.get_as_text()
 	f.close()
-	return JSON.parse_string(txt)
+	var parsed: Variant = JSON.parse_string(txt)
+	if parsed == null:
+		push_error("build_roads: invalid JSON in " + path)
+	return parsed
 
 func _get_material(name: String) -> Material:
 	if _material_cache.has(name):
 		return _material_cache[name]
 	var path: String = MATERIAL_PATHS.get(name, "")
-	var mat: Material
-	if path != "" and ResourceLoader.exists(path):
-		mat = load(path)
-	else:
-		var sm := StandardMaterial3D.new()
-		sm.albedo_color = Color(0.6, 0.6, 0.6)
-		mat = sm
+	if path == "" or not ResourceLoader.exists(path):
+		push_error("build_roads: no material configured for '%s' (%s)" % [name, path])
+		return null
+	var mat := load(path) as Material
+	if mat == null:
+		push_error("build_roads: failed to load material '%s' from %s" % [name, path])
+		return null
 	_material_cache[name] = mat
 	return mat
 
 func _run() -> void:
-	print("build_roads: loading manifest...")
-	var manifest = _load_json(BUILD_DIR + "manifest.json")
-	if manifest == null:
+	var bridges := "--bridges" in OS.get_cmdline_user_args()
+	var build_dir := BRIDGE_BUILD_DIR if bridges else BUILD_DIR
+	var out_scene := BRIDGE_OUT_SCENE if bridges else OUT_SCENE
+	var out_packed := BRIDGE_OUT_PACKED_SCENE if bridges else OUT_PACKED_SCENE
+	print("build_roads: loading manifest (%s)..." % ("bridges" if bridges else "roads"))
+	var manifest = _load_json(build_dir + "manifest.json")
+	if not (manifest is Dictionary) or not (manifest.get("chunks", null) is Array):
 		push_error("build_roads: no manifest -- run pipeline/roads/build_road_plan.py first")
 		get_tree().quit(1)
 		return
 
 	var root := Node3D.new()
-	root.name = "Roads"
+	root.name = "Bridges" if bridges else "Roads"
 	root.set_script(load("res://roads/roads.gd"))
 
 	var chunks: Array = manifest["chunks"]
 	var n := 0
 	for info in chunks:
-		var data = _load_json(BUILD_DIR + str(info["file"]))
-		if data == null:
-			continue
+		if not (info is Dictionary) or not info.has("file"):
+			push_error("build_roads: manifest contains an invalid chunk entry")
+			get_tree().quit(1)
+			return
+		var data = _load_json(build_dir + str(info["file"]))
+		if not _is_valid_chunk(data):
+			push_error("build_roads: invalid or unreadable chunk %s; refusing to save an incomplete scene" % info["file"])
+			get_tree().quit(1)
+			return
 		var chunk := _build_chunk(data)
-		if chunk:
-			root.add_child(chunk)
+		if chunk == null:
+			push_error("build_roads: failed to build chunk %s; refusing to save an incomplete scene" % info["file"])
+			get_tree().quit(1)
+			return
+		root.add_child(chunk)
 		n += 1
 		if n % 50 == 0:
 			print("build_roads: %d / %d chunks" % [n, chunks.size()])
@@ -107,9 +130,30 @@ func _run() -> void:
 		push_error("build_roads: pack() failed: %d" % err)
 		get_tree().quit(1)
 		return
-	err = ResourceSaver.save(packed, OUT_SCENE)
-	print("build_roads: saved %s (err=%d)" % [OUT_SCENE, err])
+	err = ResourceSaver.save(packed, out_scene)
+	print("build_roads: saved %s (err=%d)" % [out_scene, err])
+	if err == OK:
+		err = ResourceSaver.save(packed, out_packed)
+		print("build_roads: saved %s (err=%d)" % [out_packed, err])
+	if err != OK:
+		push_error("build_roads: scene save failed: %d" % err)
+	root.free()
 	get_tree().quit(0 if err == OK else 1)
+
+func _is_valid_chunk(data: Variant) -> bool:
+	if not (data is Dictionary) or not data.has("cx") or not data.has("cz"):
+		return false
+	if not (data.get("meshes", []) is Array) or not (data.get("furniture", {}) is Dictionary):
+		return false
+	for entry in data.get("meshes", []):
+		if not (entry is Dictionary) or not entry.has("material"):
+			return false
+		if not (entry.get("verts", null) is Array) or not (entry.get("indices", null) is Array):
+			return false
+	for transforms in data.get("furniture", {}).values():
+		if not (transforms is Array):
+			return false
+	return true
 
 func _set_owner_recursive(node: Node, root: Node) -> void:
 	for child in node.get_children():
@@ -123,6 +167,7 @@ func _build_chunk(data: Dictionary) -> Node3D:
 	chunk.name = "Chunk_%d_%d" % [cx, cz]
 
 	var collision_faces := PackedVector3Array()
+	var grass_faces := PackedVector3Array()
 	var mesh_list: Array = data.get("meshes", [])
 	for entry in mesh_list:
 		var mat_name: String = entry["material"]
@@ -156,7 +201,10 @@ func _build_chunk(data: Dictionary) -> Node3D:
 
 		var arr_mesh := ArrayMesh.new()
 		arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		arr_mesh.surface_set_material(0, _get_material(mat_name))
+		var material := _get_material(mat_name)
+		if material == null:
+			return null
+		arr_mesh.surface_set_material(0, material)
 
 		var mi := MeshInstance3D.new()
 		mi.name = "Surf_" + mat_name
@@ -170,15 +218,26 @@ func _build_chunk(data: Dictionary) -> Node3D:
 
 		if mat_name in WALKABLE:
 			for i in range(0, idx.size(), 3):
-				collision_faces.push_back(positions[idx[i]])
-				collision_faces.push_back(positions[idx[i + 1]])
-				collision_faces.push_back(positions[idx[i + 2]])
+				if mat_name == "grass_lawn":
+					grass_faces.push_back(positions[idx[i]])
+					grass_faces.push_back(positions[idx[i + 1]])
+					grass_faces.push_back(positions[idx[i + 2]])
+				else:
+					collision_faces.push_back(positions[idx[i]])
+					collision_faces.push_back(positions[idx[i + 1]])
+					collision_faces.push_back(positions[idx[i + 2]])
 
-	if collision_faces.size() >= 3:
+	for surface_index in range(2):
+		var is_grass := surface_index == 1
+		var faces: PackedVector3Array = grass_faces if is_grass else collision_faces
+		if faces.size() < 3:
+			continue
 		var body := StaticBody3D.new()
-		body.name = "Collision"
+		body.name = "GrassCollision" if is_grass else "Collision"
+		body.set_meta("transportation_surface", true)
+		body.set_meta("transportation_grass", is_grass)
 		var shape := ConcavePolygonShape3D.new()
-		shape.set_faces(collision_faces)
+		shape.set_faces(faces)
 		var cs := CollisionShape3D.new()
 		cs.shape = shape
 		body.add_child(cs)

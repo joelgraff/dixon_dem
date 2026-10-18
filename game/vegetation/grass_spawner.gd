@@ -50,19 +50,23 @@ func _ready() -> void:
 		_px_per_m = 0.5
 
 	_mask_img = Image.new()
-	var err := _mask_img.load("res://vegetation/data/grass_mask.png")
-	if err != OK:
-		push_warning("[grass_spawner] could not load grass_mask.png (%d)" % err)
+	var mask_texture := load("res://vegetation/data/grass_mask.png") as Texture2D
+	if mask_texture == null:
+		push_warning("[grass_spawner] could not load grass_mask.png as a texture")
 		_mask_img = null
 	else:
-		_mask_w = _mask_img.get_width()
-		_mask_h = _mask_img.get_height()
+		_mask_img = mask_texture.get_image()
+		if _mask_img == null:
+			push_warning("[grass_spawner] could not read image data from grass_mask.png")
+		else:
+			_mask_w = _mask_img.get_width()
+			_mask_h = _mask_img.get_height()
 
 	if ResourceLoader.exists("res://terrain/terrain_height.gd"):
 		_terrain_height_script = load("res://terrain/terrain_height.gd")
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	_timer -= delta
 	if _timer > 0.0:
 		return
@@ -85,10 +89,18 @@ func _sample_mask(x: float, z: float) -> Vector2:
 	return Vector2(clampf(c.r / 0.78, 0.0, 1.0), clampf(c.g / 0.82, 0.0, 1.0))
 
 
-func _ground_y(x: float, z: float) -> float:
-	if _terrain_height_script:
-		return _terrain_height_script.get_height(x, z)
-	return 0.0
+func _ground_y(x: float, z: float) -> Variant:
+	var terrain_y: float = _terrain_height_script.get_height(x, z) if _terrain_height_script else 0.0
+	var query := PhysicsRayQueryParameters3D.create(
+		Vector3(x, terrain_y + 4.0, z), Vector3(x, terrain_y - 4.0, z))
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return terrain_y
+	var collider := hit.get("collider") as CollisionObject3D
+	if collider != null and collider.has_meta("transportation_surface"):
+		if not bool(collider.get_meta("transportation_grass", false)):
+			return null
+	return float(hit["position"].y)
 
 
 func _update_cells(cam_pos: Vector3) -> void:
@@ -139,15 +151,24 @@ func _build_cell(key: Vector2i, wx: float, wz: float) -> void:
 	mm.instance_count = count
 	var rng := RandomNumberGenerator.new()
 	rng.seed = key.x * 92821 + key.y * 68917
+	var visible_count := 0
 	for i in range(count):
 		var lx := rng.randf_range(-GRASS_CELL * 0.5, GRASS_CELL * 0.5)
 		var lz := rng.randf_range(-GRASS_CELL * 0.5, GRASS_CELL * 0.5)
 		var x := wx + lx
 		var z := wz + lz
-		var y := _ground_y(x, z)
+		var local_density := _sample_mask(x, z)
+		if maxf(local_density.x, local_density.y) < 0.05:
+			continue
+		var ground_y: Variant = _ground_y(x, z)
+		if ground_y == null:
+			continue
+		var y: float = ground_y
 		var s := rng.randf_range(0.8, 1.3)
 		var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * s)
-		mm.set_instance_transform(i, Transform3D(basis, Vector3(x, y, z)))
+		mm.set_instance_transform(visible_count, Transform3D(basis, Vector3(x, y, z)))
+		visible_count += 1
+	mm.visible_instance_count = visible_count
 
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm

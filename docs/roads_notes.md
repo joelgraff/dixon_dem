@@ -7,13 +7,13 @@
   smooth/offset/trim, triangle-soup mesh builder, curb-return fillet (quadratic
   bezier through the two edge-lines' intersection).
 - `pipeline/roads/build_road_plan.py` — the real generator. Reads
-  `game/data/{roads,bridges,rails}.json` + the heightmap, builds the whole
+  `game/data/{roads,bridges,rails,buildings,water,aerial_paved}.json` + the heightmap, builds the whole
   network as a triangle soup + furniture-transform lists, chunks everything
   into 200 m cells by triangle/instance centroid, writes JSON to
   `game/roads/_build/chunk_<cx>_<cz>.json` + `manifest.json`. **Not tracked
   in git** (gitignore it if not already) — regenerate, don't hand-edit.
   Run: `cd pipeline/roads && ../../.venv/bin/python build_road_plan.py`
-  (~70s, prints a triangle count and known-downtown-intersection count).
+  (prints surface areas, a triangle count and known-downtown-intersection count).
 - `game/roads/tools/build_roads.gd` + `.tscn` + `.sh` — headless Godot tool
   that reads that JSON and bakes `res://roads/roads.tscn`: one `MeshInstance3D`
   per material per chunk (ArrayMesh built directly from the JSON arrays), one
@@ -33,6 +33,87 @@
 - `game/roads/roads.tscn` — baked output, instanced into `world/world.tscn`
   (additive edit, one `ext_resource` + one `[node]` line) and into
   `game/roads/test_roads.tscn` (roads + `atmosphere.tscn`, no player needed).
+
+## Authoritative transportation layout
+
+`pipeline/roads/transport_layout.py` now defines the visible infrastructure.
+The older trimmed-ring helpers remain for furniture/marking planning and
+regression coverage; they no longer emit the live road or sidewalk surfaces.
+
+- Smoothed centerlines (two passes, 2.5 m sampling) produce connected
+  carriageway polygons, clipped to the existing build bounds.
+- Intersection returns are solved on that connected surface using circular
+  closing, restricted to junction neighborhoods. The default radius is 4 m.
+  Short approach segments no longer constrain individual sidewalk curves.
+- Gutter, curb, sidewalk and parkway boundaries derive from the same asphalt
+  perimeter. Curbs are 0.1524 m above asphalt, with a 0.3048 m gutter flag.
+  Sidewalk and parkway surfaces share curb-top elevation. A 1.5 m grass verge
+  blends the outer infrastructure edge back to the unchanged terrain.
+- Downtown profiles omit the parkway and use 3.6 m sidewalks; residential
+  profiles use a 2 m parkway and 1.7 m sidewalk. Profile regions are combined
+  before meshing so their surfaces cannot overlap.
+- Aerial paving is only a candidate source. Thin fingers are removed using
+  a 3 m opening. Automatic lots use a minimum-area oriented rectangle only
+  when its area is at most 1.6 times the classified footprint; ambiguous
+  non-rectilinear candidates are rejected for curation. Holes under 36 m2
+  are filled; larger holes survive only when supported by a regular outline
+  (rectangular envelope at most 1.2 times their area). Fragments below 150 m2
+  or without a 3 m-wide core are rejected. Surviving lots are clipped against
+  finished infrastructure, building footprints, and water. These conservative
+  rules can omit genuine narrow lots; explicit overrides provide the remedy.
+- Disconnected parkway remnants under 16 m2 become sidewalk, avoiding tiny
+  grass triangles at profile transitions.
+- Footpaths are polygon-clipped against the same surfaces, not sampled
+  centerline cells. They retain their concrete/asphalt/gravel materials.
+- Constrained triangulation preserves polygon holes. Mesh cells are at most
+  8 m across (triangle edges at most 8 * sqrt(2) m), limiting terrain spans.
+  All boolean overlays use a shared 1 micrometre precision grid.
+  Connected asphalt boundaries are simplified by at most 0.025 m before
+  deriving the roadside offsets, avoiding excessive sub-visible tessellation.
+
+The generated `game/roads/_build/transport_layout.json` contains named
+surface geometries, input fingerprints, and a quality report. Invalid
+polygons, unintended surface overlaps above 0.00001 m2, and incomplete
+triangulation fail the build. Gutter is intentionally contained within the
+asphalt footprint, but the mesh replaces that portion of asphalt rather than
+stacking two faces. Rejected aerial fragments are listed in the report.
+Terrain and vegetation read this same plan; stale inputs fail explicitly.
+
+### Targeted overrides
+
+Edit `pipeline/roads/layout_overrides.json`, not generated meshes:
+
+- `junctions`: `node_id`, `return_radius_m` (2-20 m), optional `profile`
+  (`downtown` or `residential`). River/Galena (`235322239`) uses a 6 m
+  return and a continuous downtown roadside profile.
+- `lots`: records with a stable `id`, a local `[x,z]` `polygon`, and optional
+  `holes` rings. Explicit lots cannot overlap protected infrastructure,
+  buildings, or water.
+- `exclude_paving`: records with `id` and `polygon` remove false aerial
+  candidates. Explicit exclusions also take precedence over explicit lots.
+
+These controls are schematic layout controls, not surveyed roadway design.
+Nearby junctions share the connected surface; complex real-world islands,
+driveways and grade transitions may still need curated geometry.
+
+Rebuild all consumers together:
+
+```sh
+bash pipeline/roads/rebuild_transportation.sh
+```
+
+This regenerates roads, terrain masks, vegetation, and finally the road bake.
+Regression tests: `python -m unittest discover -s pipeline/roads -p 'test_*.py'`.
+That suite includes `test_road_metrics.py`, a ratchet on the road-conformed surface. It covers
+junction steps, grade change, implied K, cross slope and breaklines, checked against
+`road_metrics_baseline.json` and the limits in `design_standards.json`. After changing the
+heightmap or road conform, run `pipeline/roads/road_metrics.py` for the full report. Run it with
+`--update-baseline` only when the numbers improve. See `docs/roadway_control_plan.md`.
+After baking, `godot --headless --path game res://roads/tools/test_transportation.tscn`
+checks that grass follows the graded collision and cannot spawn on asphalt.
+
+The road baker writes both `roads.tscn` and the live world's `roads.scn`, so
+rebuilding no longer leaves the world using a stale packed road scene.
 
 ## Build bounds
 
@@ -174,12 +255,6 @@ game/roads/tools/build_roads.sh
 Both steps are idempotent and safe to re-run after terrain re-bakes its
 heightmap or the data pipeline re-exports `game/data/*.json`.
 
-Road profile metrics: `pipeline/roads/test_road_metrics.py` is a ratchet on the road-conformed
-surface. It covers junction steps, grade change, implied K, cross slope and breaklines, checked
-against `road_metrics_baseline.json` and the limits in `design_standards.json`. After changing the
-heightmap or road conform, run `pipeline/roads/road_metrics.py` for the full report. Run it with
-`--update-baseline` only when the numbers improve. See `docs/roadway_control_plan.md`.
-
 ## Geometry approach
 
 `roads.json`'s 650 ways aren't split at every intersection (a minor street's
@@ -207,6 +282,9 @@ Asphalt sits +2.5 cm above it; curb faces skirt down −5 to −8 cm into the
 terrain at their outer/bottom edges so there's no floating gap if terrain's
 mesh doesn't land exactly on its own heightmap. **If terrain re-bakes its
 heightmap, re-run both steps above** — nothing here caches stale heights.
+The shallow concrete gutter pan runs continuously between the carriageway
+edge and the gutter's inner edge, using the same material and slight grade as
+the existing junction pan fill.
 
 Materials are 100% the shared library (`asphalt_road`/`asphalt_patched` for
 through streets vs. residential/service/alleys per class, `curb_concrete`,

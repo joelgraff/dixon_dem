@@ -21,6 +21,7 @@ from common_roads import (
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import common as pc
 import bridges_composed
+import transport_layout
 
 OUT_DIR = os.path.join(pc.ROOT, "game", "roads", "_build")
 # Bridges are their own baked layer (res://roads/bridges.scn), so a bridge edit rebuilds in seconds
@@ -56,19 +57,24 @@ PATHY = {"footway", "cycleway", "path", "pedestrian", "steps"}
 DOWNTOWN_STREET_WORDS = ("galena", "1st", "first", "2nd", "second", "3rd", "third", "hennepin", "peoria")
 DOWNTOWN_BOUNDS = (1330.0, -1780.0, 1920.0, -1030.0)  # x0,z0,x1,z1
 
-CURB_HEIGHT = 0.15
-CURB_WIDTH = 0.12
-GUTTER_WIDTH = 0.35
-PARKWAY_GAP = 2.0
-SIDEWALK_W_RESIDENTIAL = 1.7
-SIDEWALK_W_DOWNTOWN = 3.6
-ROAD_Y_BIAS = 0.085  # was 0.025 (too tight against terrain's own +-20mm tolerance,
+CURB_HEIGHT = transport_layout.CURB_REVEAL
+CURB_WIDTH = transport_layout.CURB_WIDTH
+GUTTER_WIDTH = transport_layout.GUTTER_WIDTH
+PARKWAY_GAP = transport_layout.PARKWAY_GAP
+SIDEWALK_W_RESIDENTIAL = transport_layout.SIDEWALK_W_RESIDENTIAL
+SIDEWALK_W_DOWNTOWN = transport_layout.SIDEWALK_W_DOWNTOWN
+ROAD_SAMPLE_SPACING = 2.5
+ROAD_SMOOTH_ITERS = 2
+AERIAL_PAVED_SIMPLIFY_M = 2.0
+ROAD_Y_BIAS = transport_layout.ROAD_BIAS  # was 0.025 (too tight against terrain's own +-20mm tolerance,
                     # risking z-fighting at large world coords). A diagnostic run at
                     # 0.5 m ruled out depth/z-fighting as the cause of the remaining
                     # mid-block coverage anomaly (see docs/roads_notes.md) -- reverted
                     # to this more modest, still-safe value rather than an obviously
                     # floating 0.5 m once that hypothesis was excluded.
-                    # 8.5 cm clears terrain in 99.6% of samples and stays well under CURB_HEIGHT.
+                    # 8.5 cm clears terrain in 99.6% of samples.
+CURB_TOP_Y_BIAS = ROAD_Y_BIAS + CURB_HEIGHT
+PAVEMENT_MATERIAL = "asphalt_road_plowed"
 
 
 def _cut(a, b):
@@ -209,17 +215,46 @@ def way_half_width(w):
     return max(width, 2.0) / 2.0
 
 
-def pullback_for_node(node, leg_half_width):
-    """Curb-return pullback distance for one way-end at this junction node.
-    Real (3+-way) intersections get the brief's 4-8 m curb-return radius;
-    a degree-2 node (a pass-through split, not a real corner -- see the
-    comment where this is called) only needs a small fixed pullback so its
-    fillet join stays numerically clean without eating the whole segment."""
+def pullback_for_node(node, leg_half_width, way=None):
+    """Place the approach beyond crossing sidewalk extents plus return clearance."""
     if node is None:
         return 0.0
     if len(node.legs) <= 2:
         return 1.0
-    return max(4.0, min(8.0, leg_half_width * 1.6))
+    radius = max(4.0, min(8.0, leg_half_width * 1.6))
+    if way is None:
+        return radius
+
+    def leg_direction(leg):
+        points = way_xz(leg["way"])
+        if leg["end"] == "end":
+            points.reverse()
+        return direction_at(points, 0)
+
+    def outer_extent(w):
+        half_width = way_half_width(w)
+        if w["tags"].get("highway") not in CURBED:
+            return half_width
+        downtown = is_downtown_way(w["tags"], (node.x, node.z))
+        return half_width + CURB_WIDTH + (
+            SIDEWALK_W_DOWNTOWN if downtown else PARKWAY_GAP + SIDEWALK_W_RESIDENTIAL
+        )
+
+    own_leg = next(leg for leg in node.legs if leg["way"] is way)
+    own_dir = leg_direction(own_leg)
+    own_extent = outer_extent(way)
+    pullback = radius
+    for leg in node.legs:
+        if leg is own_leg:
+            continue
+        other_dir = leg_direction(leg)
+        sine = abs(own_dir[0] * other_dir[1] - own_dir[1] * other_dir[0])
+        if sine < 0.1:
+            continue
+        cosine = abs(own_dir[0] * other_dir[0] + own_dir[1] * other_dir[1])
+        clearance = (outer_extent(leg["way"]) + own_extent * cosine) / sine
+        pullback = max(pullback, clearance + radius)
+    return pullback
 
 
 # ---------------------------------------------------------------------------
@@ -249,7 +284,9 @@ def plan_drivable_ways(drivable_ways, nodes):
         parkway = 0.0 if downtown else PARKWAY_GAP
         has_sidewalk = curbed  # same eligibility as curb for now
 
-        resampled = resample_polyline(vs, spacing=4.5, smooth_iters=1)
+        resampled = resample_polyline(
+            vs, spacing=ROAD_SAMPLE_SPACING, smooth_iters=ROAD_SMOOTH_ITERS,
+        )
         length = polyline_length(resampled)
 
         start_id = w["vertices"][0]["node_id"]
@@ -259,17 +296,10 @@ def plan_drivable_ways(drivable_ways, nodes):
         start_junction = start_node is not None and len(start_node.legs) >= 2
         end_junction = end_node is not None and len(end_node.legs) >= 2
 
-        # Curb-return pullback only makes sense for a REAL intersection (3+
-        # ways). A degree-2 "junction" is usually just an OSM way split at an
-        # interior shaping/tag-change vertex with nothing crossing it -- most
-        # of roads.json's ~1750 post-split junction nodes are this, not actual
-        # corners. Treating every one of those like a full curb-return blew
-        # 8 m off *each* end of already-short segments, leaving degenerate
-        # slivers (and visible gaps in the asphalt) between them. Degree-2
-        # gets a small fixed pullback (just enough for the fillet join to stay
-        # numerically clean); only real 3+-way junctions get the 4-8 m radius.
-        pb_start = pullback_for_node(start_node, hw) if start_junction else 0.0
-        pb_end = pullback_for_node(end_node, hw) if end_junction else 0.0
+        # Crossing widths, not this approach's width alone, determine where
+        # returns can start without folding through the adjoining pavement.
+        pb_start = pullback_for_node(start_node, hw, w) if start_junction else 0.0
+        pb_end = pullback_for_node(end_node, hw, w) if end_junction else 0.0
         pb_start = min(pb_start, length * 0.35)
         pb_end = min(pb_end, length * 0.35)
         trimmed = trim_polyline(resampled, pb_start, pb_end)
@@ -329,12 +359,49 @@ def ring_point(plan, key, side, end):
     return arr[idx]
 
 
-ARC_N = 4  # points per curb-return fillet, incl. endpoints
+CURB_RETURN_MAX_SEGMENT = 0.5
+CURB_RETURN_MIN_SEGMENTS = 16
 
 
-def build_loop(sorted_legs, ring_key, center):
+def curb_return_arc(a, dir_a, b, dir_b, center, segment_count=None):
+    """Sample a tangent quadratic curb return densely enough to read smoothly."""
+    if segment_count is None:
+        segment_count = max(
+            CURB_RETURN_MIN_SEGMENTS,
+            int(math.ceil(dist(a, b) / CURB_RETURN_MAX_SEGMENT)),
+        )
+    return fillet_arc(a, dir_a, b, dir_b, center, segment_count + 1)
+
+
+def junction_corner_segment_counts(sorted_legs):
+    """Use one tessellation per corner across asphalt, curb, gutter, and sidewalk rings."""
+    ring_keys = ("edge", "curb_out", "gutter_out", "sw_in", "sw_out")
+    segment_counts = []
+    for i, (plan, end) in enumerate(sorted_legs):
+        nxt_plan, nxt_end = sorted_legs[(i + 1) % len(sorted_legs)]
+        longest_chord = 0.0
+        for ring_key in ring_keys:
+            a = ring_point(plan, ring_key, "L", end)
+            b = ring_point(nxt_plan, ring_key, "R", nxt_end)
+            if a is not None and b is not None:
+                longest_chord = max(longest_chord, dist(a, b))
+        segment_counts.append(max(
+            CURB_RETURN_MIN_SEGMENTS,
+            int(math.ceil(longest_chord / CURB_RETURN_MAX_SEGMENT)),
+        ))
+    return segment_counts
+
+
+def build_loop(sorted_legs, ring_key, center, segment_counts=None):
     """Ordered boundary loop [R0,L0, arc.., R1,L1, arc.., ...] at one ring level."""
     n = len(sorted_legs)
+    if segment_counts is None:
+        segment_counts = junction_corner_segment_counts(sorted_legs)
+    if len(segment_counts) != n:
+        raise ValueError("junction corner tessellation count does not match its leg count")
+    arcs = build_corner_arcs(sorted_legs, ring_key, center, segment_counts)
+    if arcs is None:
+        return None
     pts = []
     for i in range(n):
         plan, end = sorted_legs[i]
@@ -344,13 +411,257 @@ def build_loop(sorted_legs, ring_key, center):
             return None
         pts.append(r_pt)
         pts.append(l_pt)
-        nxt_plan, nxt_end = sorted_legs[(i + 1) % n]
-        nxt_r = ring_point(nxt_plan, ring_key, "R", nxt_end)
-        if nxt_r is None:
-            return None
-        arc = fillet_arc(l_pt, outward_dir(plan, end), nxt_r, outward_dir(nxt_plan, nxt_end), center, ARC_N)
-        pts.extend(arc[1:-1])
+        pts.extend(arcs[i][1:-1])
     return pts
+
+
+def prepare_junctions(nodes, plan_by_way_id):
+    junctions = []
+    for node in nodes.values():
+        legs = [
+            (plan_by_way_id[id(leg["way"])], leg["end"])
+            for leg in node.legs
+            if id(leg["way"]) in plan_by_way_id
+        ]
+        if len(legs) < 2:
+            continue
+        legs.sort(key=lambda item: angle_of(outward_dir(item[0], item[1])))
+        center = (node.x, node.z)
+        corner_segments = junction_corner_segment_counts(legs)
+        try:
+            asphalt_loop = build_loop(legs, "edge", center, corner_segments)
+        except Exception:
+            continue
+        if asphalt_loop and len(asphalt_loop) >= 3:
+            junctions.append({
+                "legs": legs,
+                "center": center,
+                "corner_segments": corner_segments,
+                "asphalt_loop": asphalt_loop,
+            })
+    return junctions
+
+
+def build_corner_arcs(sorted_legs, ring_key, center, segment_counts):
+    """Offset one pavement return so all roadside profiles stay parallel."""
+    arcs = []
+    for i, (plan, end) in enumerate(sorted_legs):
+        nxt_plan, nxt_end = sorted_legs[(i + 1) % len(sorted_legs)]
+        start = ring_point(plan, ring_key, "L", end)
+        finish = ring_point(nxt_plan, ring_key, "R", nxt_end)
+        if start is None or finish is None:
+            return None
+        edge_start = ring_point(plan, "edge", "L", end)
+        edge_finish = ring_point(nxt_plan, "edge", "R", nxt_end)
+        dir_a = outward_dir(plan, end)
+        dir_b = outward_dir(nxt_plan, nxt_end)
+        edge_arc = curb_return_arc(
+            edge_start, dir_a, edge_finish, dir_b, center, segment_counts[i],
+        )
+        if ring_key == "edge":
+            arcs.append(edge_arc)
+            continue
+        offset_a = ((start[0] - edge_start[0]) * -dir_a[1]
+                    + (start[1] - edge_start[1]) * dir_a[0])
+        offset_b = ((finish[0] - edge_finish[0]) * dir_b[1]
+                    - (finish[1] - edge_finish[1]) * dir_b[0])
+        arc = []
+        for k, point in enumerate(edge_arc):
+            tangent = direction_at(edge_arc, k)
+            offset = offset_a + (offset_b - offset_a) * k / (len(edge_arc) - 1)
+            arc.append((point[0] + tangent[1] * offset,
+                        point[1] - tangent[0] * offset))
+        arc[0], arc[-1] = start, finish
+        arcs.append(arc)
+    return arcs
+
+
+def junction_polygon_grid(junctions):
+    from shapely.geometry import Polygon
+
+    grid = {}
+    for junction in junctions:
+        loop = junction["asphalt_loop"]
+        polygon = Polygon(loop)
+        if not polygon.is_valid:
+            polygon = polygon.buffer(0)
+        clip_polygon = polygon.buffer(0.05)
+        min_x = min(point[0] for point in loop) - 1.0
+        max_x = max(point[0] for point in loop) + 1.0
+        min_z = min(point[1] for point in loop) - 1.0
+        max_z = max(point[1] for point in loop) + 1.0
+        for i in range(int(math.floor(min_x / _GRID_CELL)),
+                        int(math.floor(max_x / _GRID_CELL)) + 1):
+            for j in range(int(math.floor(min_z / _GRID_CELL)),
+                           int(math.floor(max_z / _GRID_CELL)) + 1):
+                grid.setdefault((i, j), []).append((loop, polygon, clip_polygon))
+    return grid
+
+
+def _point_in_polygon(px, pz, loop):
+    inside = False
+    for i, a in enumerate(loop):
+        b = loop[(i + 1) % len(loop)]
+        if (a[1] > pz) != (b[1] > pz):
+            x_cross = a[0] + (pz - a[1]) * (b[0] - a[0]) / (b[1] - a[1])
+            if px < x_cross:
+                inside = not inside
+    return inside
+
+
+def _in_junction_polygon(px, pz, polygon_grid, margin=0.05):
+    cell_x = int(math.floor(px / _GRID_CELL))
+    cell_z = int(math.floor(pz / _GRID_CELL))
+    for i in range(cell_x - 1, cell_x + 2):
+        for j in range(cell_z - 1, cell_z + 2):
+            for loop, _, _ in polygon_grid.get((i, j), ()):
+                if _point_in_polygon(px, pz, loop):
+                    return True
+                if margin <= 0.0:
+                    continue
+                for k, a in enumerate(loop):
+                    b = loop[(k + 1) % len(loop)]
+                    dx, dz = b[0] - a[0], b[1] - a[1]
+                    length_sq = dx * dx + dz * dz
+                    t = 0.0 if length_sq == 0.0 else max(
+                        0.0, min(1.0, ((px - a[0]) * dx + (pz - a[1]) * dz) / length_sq),
+                    )
+                    if math.hypot(px - (a[0] + dx * t), pz - (a[1] + dz * t)) <= margin:
+                        return True
+    return False
+
+
+def ribbon_triangles_outside_junctions(inner_a, inner_b, outer_a, outer_b,
+                                        polygon_grid, margin=0.0):
+    """Clip a ribbon quad to the asphalt boundary and return outside triangles."""
+    from shapely import make_valid
+    from shapely.geometry import Polygon
+    from shapely.ops import triangulate, unary_union
+
+    quad = Polygon([inner_a, inner_b, outer_b, outer_a])
+    if quad.is_empty:
+        return []
+    valid_quad = quad.is_valid
+    if not valid_quad:
+        print(f"  warning: repairing folded roadside surface at {inner_a}")
+        quad = make_valid(quad)
+
+    min_x, min_z, max_x, max_z = quad.bounds
+    candidates = {}
+    for i in range(int(math.floor(min_x / _GRID_CELL)),
+                    int(math.floor(max_x / _GRID_CELL)) + 1):
+        for j in range(int(math.floor(min_z / _GRID_CELL)),
+                       int(math.floor(max_z / _GRID_CELL)) + 1):
+            for _, polygon, buffered in (polygon_grid or {}).get((i, j), ()):
+                candidates[id(polygon)] = (
+                    buffered if margin == 0.05 else polygon.buffer(margin)
+                )
+    clipping = unary_union(list(candidates.values()))
+    if valid_quad and (not candidates or not quad.intersects(clipping)):
+        return [(inner_a, inner_b, outer_b), (inner_a, outer_b, outer_a)]
+    outside = quad.difference(clipping)
+    return [
+        (tuple(triangle.exterior.coords[:3]))
+        for polygon in _polygon_parts(outside)
+        for triangle in triangulate(polygon)
+        if polygon.buffer(1e-8).covers(triangle)
+    ]
+
+
+def _polygon_parts(geometry):
+    if geometry.is_empty:
+        return []
+    if geometry.geom_type == "Polygon":
+        return [geometry]
+    if hasattr(geometry, "geoms"):
+        return [part for child in geometry.geoms for part in _polygon_parts(child)]
+    return []
+
+
+def ribbon_cells_outside_junctions(inner_a, inner_b, outer_a, outer_b,
+                                    polygon_grid, margin=0.0):
+    """Trim a run at exact junction crossings, keeping its cross-section intact."""
+    from shapely import make_valid
+    from shapely.geometry import LineString, Polygon
+    from shapely.ops import unary_union
+
+    inner_pair, outer_pair = [inner_a, inner_b], [outer_a, outer_b]
+    if not polygon_grid:
+        return [(inner_pair, outer_pair)]
+    points = (inner_a, inner_b, outer_b, outer_a)
+    candidates = {}
+    for i in range(int(math.floor(min(p[0] for p in points) / _GRID_CELL)),
+                   int(math.floor(max(p[0] for p in points) / _GRID_CELL)) + 1):
+        for j in range(int(math.floor(min(p[1] for p in points) / _GRID_CELL)),
+                       int(math.floor(max(p[1] for p in points) / _GRID_CELL)) + 1):
+            for _, polygon, _ in polygon_grid.get((i, j), ()):
+                candidates[id(polygon)] = polygon
+    if not candidates:
+        return [(inner_pair, outer_pair)]
+
+    is_line = inner_a == outer_a and inner_b == outer_b
+    footprint = LineString(inner_pair) if is_line else Polygon(points)
+    if not footprint.is_valid:
+        footprint = make_valid(footprint)
+    # A shared street-mouth edge is a join, not an overlap to cut away.
+    crossing = footprint.intersection(
+        unary_union(list(candidates.values())).buffer(margin - 1e-6),
+    )
+    if crossing.is_empty:
+        return [(inner_pair, outer_pair)]
+    start = ((inner_a[0] + outer_a[0]) * 0.5, (inner_a[1] + outer_a[1]) * 0.5)
+    finish = ((inner_b[0] + outer_b[0]) * 0.5, (inner_b[1] + outer_b[1]) * 0.5)
+    dx, dz = finish[0] - start[0], finish[1] - start[1]
+    length_sq = dx * dx + dz * dz
+    if length_sq < EPS:
+        return []
+
+    def intervals(geometry):
+        if geometry.is_empty:
+            return []
+        if geometry.geom_type in ("LineString", "Polygon"):
+            coords = geometry.exterior.coords if geometry.geom_type == "Polygon" else geometry.coords
+            ts = [
+                max(0.0, min(1.0, ((x - start[0]) * dx + (z - start[1]) * dz) / length_sq))
+                for x, z in coords
+            ]
+            return [(min(ts), max(ts))]
+        if hasattr(geometry, "geoms"):
+            return [span for child in geometry.geoms for span in intervals(child)]
+        return []
+
+    def pair_at(a, b, t0, t1):
+        return [(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+                for t in (t0, t1)]
+
+    kept = []
+    cursor = 0.0
+    for t0, t1 in sorted(intervals(crossing)):
+        if t0 > cursor + EPS:
+            kept.append((cursor, t0))
+        cursor = max(cursor, t1)
+    if cursor < 1.0 - EPS:
+        kept.append((cursor, 1.0))
+    return [(pair_at(inner_a, inner_b, t0, t1), pair_at(outer_a, outer_b, t0, t1))
+            for t0, t1 in kept]
+
+
+def emit_flat_triangles(mb_by_mat, triangles, hm, y_bias, material_tag,
+                        double_sided=False):
+    if not triangles:
+        return
+    sub = MeshBuild()
+    for triangle in triangles:
+        indices = []
+        for x, z in triangle:
+            indices.append(sub.add_vertex(
+                x, hm.sample(x, z) + y_bias, z, hm.normal(x, z),
+            ))
+        sub.add_tri(*indices)
+        if double_sided:
+            sub.add_tri(indices[2], indices[1], indices[0])
+    if not sub.is_empty():
+        mb_by_mat.setdefault(material_tag, MeshBuild()).extend(sub)
 
 
 def ribbon_between_loops(mb_by_mat, loop_in, loop_out, hm, y_bias_in, y_bias_out, material_tag,
@@ -386,6 +697,34 @@ def ribbon_between_loops(mb_by_mat, loop_in, loop_out, hm, y_bias_in, y_bias_out
         mb_by_mat.setdefault(material_tag, MeshBuild()).extend(sub)
 
 
+def ribbon_between_pairs(mb_by_mat, pairs, hm, y_bias_in, y_bias_out, material_tag,
+                         flip=False, double_sided=False):
+    if not pairs:
+        return
+    sub = MeshBuild()
+    for loop_in, loop_out in pairs:
+        if len(loop_in) != 2 or len(loop_out) != 2:
+            continue
+        li = [
+            sub.add_vertex(x, hm.sample(x, z) + y_bias_in, z, hm.normal(x, z))
+            for x, z in loop_in
+        ]
+        ri = [
+            sub.add_vertex(x, hm.sample(x, z) + y_bias_out, z, hm.normal(x, z))
+            for x, z in loop_out
+        ]
+        if flip:
+            sub.add_quad(ri[0], ri[1], li[1], li[0])
+            if double_sided:
+                sub.add_quad(li[0], li[1], ri[1], ri[0])
+        else:
+            sub.add_quad(li[0], li[1], ri[1], ri[0])
+            if double_sided:
+                sub.add_quad(ri[0], ri[1], li[1], li[0])
+    if not sub.is_empty():
+        mb_by_mat.setdefault(material_tag, MeshBuild()).extend(sub)
+
+
 def add_quad_both(mb, a, b, c, d):
     mb.add_quad(a, b, c, d)
     mb.add_quad(d, c, b, a)
@@ -401,17 +740,11 @@ def close_loop_fill(mb_by_mat, loop, hm, y_bias, material_tag):
 
 
 def asphalt_material_for(w):
-    # "_plowed" variants (game/roads/materials/) reuse the frozen shared
-    # asphalt textures/shader but resist snow accumulation (very negative
-    # snow_slope_bias) so winter driving lanes read as plowed/wet-dark against
-    # full-coverage snow on curbs/sidewalks -- see docs/roads_notes.md.
-    cls = w["tags"].get("highway")
-    if cls in ("residential", "service", "track"):
-        return "asphalt_patched_plowed"
-    return "asphalt_road_plowed"
+    # Keep pavement visually continuous across road classes and their junctions.
+    return PAVEMENT_MATERIAL
 
 
-def build_way_surfaces(plans, hm, mb_by_mat):
+def build_way_surfaces(plans, hm, mb_by_mat, junction_polygons=None):
     # Single-sided ribbons: for any ribbon confined to one offset side (L or R)
     # progressing outward (whether "outward" means increasing horizontal offset
     # at constant height, or increasing height at constant offset), flip=True
@@ -443,142 +776,150 @@ def build_way_surfaces(plans, hm, mb_by_mat):
                 flip = side == "L"
                 edge_ring = plan.rings[f"edge_{side}"]
                 curb_out_ring = plan.rings[f"curb_out_{side}"]
-                ribbon_between_loops(mb_by_mat, edge_ring, edge_ring, hm, ROAD_Y_BIAS, CURB_HEIGHT,
-                                      "curb_concrete", flip=flip, close_loop=False)
-                ribbon_between_loops(mb_by_mat, edge_ring, curb_out_ring, hm, CURB_HEIGHT, CURB_HEIGHT,
-                                      "curb_concrete", flip=flip, double_sided=True, close_loop=False)
-                ribbon_between_loops(mb_by_mat, curb_out_ring, curb_out_ring, hm, CURB_HEIGHT, -0.05,
-                                      "curb_concrete", flip=flip, close_loop=False)
+                gutter_out_ring = plan.rings[f"gutter_out_{side}"]
+                gutter_cells = []
+                curb_face_cells = []
+                curb_top_cells = []
+                curb_back_cells = []
+                for i in range(len(edge_ring) - 1):
+                    edge_pair = edge_ring[i:i + 2]
+                    curb_pair = curb_out_ring[i:i + 2]
+                    gutter_pair = gutter_out_ring[i:i + 2]
+                    gutter_cells.extend(ribbon_cells_outside_junctions(
+                        gutter_pair[0], gutter_pair[1], edge_pair[0], edge_pair[1],
+                        junction_polygons,
+                    ))
+                    curb_face_cells.extend(ribbon_cells_outside_junctions(
+                        edge_pair[0], edge_pair[1], edge_pair[0], edge_pair[1],
+                        junction_polygons,
+                    ))
+                    curb_top_cells.extend(ribbon_cells_outside_junctions(
+                        edge_pair[0], edge_pair[1], curb_pair[0], curb_pair[1],
+                        junction_polygons,
+                    ))
+                    curb_back_cells.extend(ribbon_cells_outside_junctions(
+                        curb_pair[0], curb_pair[1], curb_pair[0], curb_pair[1],
+                        junction_polygons,
+                    ))
+                # Keep one uninterrupted cross-section up to each street mouth.
+                ribbon_between_pairs(mb_by_mat, gutter_cells, hm,
+                                     ROAD_Y_BIAS + 0.005, ROAD_Y_BIAS + 0.01,
+                                     "sidewalk_concrete", flip=flip, double_sided=True)
+                ribbon_between_pairs(mb_by_mat, curb_face_cells, hm,
+                                     ROAD_Y_BIAS, CURB_TOP_Y_BIAS,
+                                     "curb_concrete", flip=flip)
+                ribbon_between_pairs(mb_by_mat, curb_top_cells, hm,
+                                     CURB_TOP_Y_BIAS, CURB_TOP_Y_BIAS,
+                                     "curb_concrete", flip=flip, double_sided=True)
+                ribbon_between_pairs(mb_by_mat, curb_back_cells, hm,
+                                     CURB_TOP_Y_BIAS, -0.05, "curb_concrete",
+                                     flip=flip)
 
         if plan.has_sidewalk:
             for side in ("L", "R"):
                 flip = side == "L"
                 sw_in = plan.rings[f"sw_in_{side}"]
                 sw_out = plan.rings[f"sw_out_{side}"]
-                # Walking surface: double-sided like the junction loops, which always
-                # rendered correctly. The single-sided winding derivation here was wrong
-                # (same class of bug as the asphalt ribbon), so straight-run sidewalks were
-                # backface-culled and only their edge skirts remained visible -- the
-                # "sidewalks are only outlined" report.
-                ribbon_between_loops(mb_by_mat, sw_in, sw_out, hm, 0.05, 0.05, "sidewalk_concrete",
-                                      flip=flip, double_sided=True, close_loop=False)
+                surface_triangles = []
+                inner_edge_cells = []
+                outer_edge_cells = []
+                for i in range(len(sw_in) - 1):
+                    inner_pair, outer_pair = sw_in[i:i + 2], sw_out[i:i + 2]
+                    surface_triangles.extend(ribbon_triangles_outside_junctions(
+                        inner_pair[0], inner_pair[1], outer_pair[0], outer_pair[1],
+                        junction_polygons,
+                    ))
+                    inner_edge_cells.extend(ribbon_cells_outside_junctions(
+                        inner_pair[0], inner_pair[1], inner_pair[0], inner_pair[1],
+                        junction_polygons,
+                    ))
+                    outer_edge_cells.extend(ribbon_cells_outside_junctions(
+                        outer_pair[0], outer_pair[1], outer_pair[0], outer_pair[1],
+                        junction_polygons,
+                    ))
+                emit_flat_triangles(mb_by_mat, surface_triangles, hm, CURB_TOP_Y_BIAS,
+                                    "sidewalk_concrete", double_sided=True)
                 # Edge skirts: cosmetic only. They are tagged "sidewalk_edge" so the Godot
                 # baker keeps them out of collision -- as collidable geometry they were thin
                 # ledges standing proud of the road that the player had to jump over
                 # (user report: "outline ribbons projecting upward out of the road surface").
-                # Also shortened to stop at terrain level instead of -0.05.
-                ribbon_between_loops(mb_by_mat, sw_in, sw_in, hm, 0.05, 0.0, "sidewalk_edge",
-                                      flip=flip, double_sided=True, close_loop=False)
-                ribbon_between_loops(mb_by_mat, sw_out, sw_out, hm, 0.05, 0.0, "sidewalk_edge",
-                                      flip=flip, double_sided=True, close_loop=False)
+                # Skirts connect the raised walking surface to terrain level.
+                ribbon_between_pairs(mb_by_mat, inner_edge_cells, hm, CURB_TOP_Y_BIAS, 0.0,
+                                     "sidewalk_edge", flip=flip, double_sided=True)
+                ribbon_between_pairs(mb_by_mat, outer_edge_cells, hm, CURB_TOP_Y_BIAS, 0.0,
+                                     "sidewalk_edge", flip=flip, double_sided=True)
 
 
 
-def split_loop_outside_carriageway(loop_in, loop_out, segs, margin=0.2):
-    """Break a junction ring into the runs that lie OUTSIDE the carriageway.
-
-    A junction's sidewalk rings are closed loops around the intersection, so they span the
-    mouth of every leg -- laying a raised concrete slab straight across the roadway. The
-    player walks into it as a 15-70 cm ledge (user ticket 20260920_232703 at the Dixon arch,
-    tagged Roads/Chunk_8_-7 where sidewalk sat at y 22.95-23.77 over asphalt at 22.94-23.09).
-    Pavement belongs on the corners; the street mouth is for paint, not kerbstone.
-    """
-    if loop_in is None or loop_out is None or len(loop_in) != len(loop_out):
-        return []
-    runs = []
-    cur_in, cur_out = [], []
-    prev_mid = None
-    for a, b in zip(loop_in, loop_out):
-        mx, mz = (a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5
-        # Testing the ring's points alone is not enough: across a street mouth the ring
-        # is often just two points, one on each footpath, both outside the carriageway,
-        # joined by a straight span through it. That span rendered as two raised strips
-        # across the road (tickets 20260921_002438, 20260921_003127, "supposed to be
-        # fixed twice"), so the span between consecutive points is tested too.
-        spans_road = (segs and prev_mid is not None and
-                      any(_in_carriageway(prev_mid[0] + (mx - prev_mid[0]) * t,
-                                          prev_mid[1] + (mz - prev_mid[1]) * t, segs, margin=margin)
-                          for t in (0.2, 0.35, 0.5, 0.65, 0.8)))
-        if segs and _in_carriageway(mx, mz, segs, margin=margin):
-            if len(cur_in) >= 2:
-                runs.append((cur_in, cur_out))
-            cur_in, cur_out = [], []
-        else:
-            if spans_road:
-                if len(cur_in) >= 2:
-                    runs.append((cur_in, cur_out))
-                cur_in, cur_out = [], []
-            cur_in.append(a)
-            cur_out.append(b)
-        prev_mid = (mx, mz)
-    if len(cur_in) >= 2:
-        runs.append((cur_in, cur_out))
-    return runs
-
-
-def build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat, carriageway_segs=None):
-    for node in nodes.values():
-        legs = []
-        for leg in node.legs:
-            plan = plan_by_way_id.get(id(leg["way"]))
-            if plan is not None:
-                legs.append((plan, leg["end"]))
-        if len(legs) < 2:
-            continue
-        legs_sorted = sorted(legs, key=lambda item: angle_of(outward_dir(item[0], item[1])))
-        center = (node.x, node.z)
-
-        try:
-            asphalt_loop = build_loop(legs_sorted, "edge", center)
-        except Exception:
-            asphalt_loop = None
-        if asphalt_loop and len(asphalt_loop) >= 3:
-            mats = [asphalt_material_for(p.way) for p, _ in legs_sorted]
-            # Prefer the neutral-grey "_road" surface over the warmer "_patched"
-            # one whenever any connecting leg is a through-class road -- a big
-            # junction fan rendered in "_patched" reads as a blotchy pale-tan
-            # patch against its neighbors; a mixed intersection realistically
-            # gets through-street pavement anyway, not residential patching.
-            mat = "asphalt_road_plowed" if "asphalt_road_plowed" in mats else max(set(mats), key=mats.count)
-            close_loop_fill(mb_by_mat, asphalt_loop, hm, ROAD_Y_BIAS, mat)
+def build_junction_geometry(junctions, hm, mb_by_mat, junction_polygons=None):
+    for junction in junctions:
+        legs_sorted = junction["legs"]
+        center = junction["center"]
+        corner_segments = junction["corner_segments"]
+        asphalt_loop = junction["asphalt_loop"]
+        close_loop_fill(mb_by_mat, asphalt_loop, hm, ROAD_Y_BIAS, PAVEMENT_MATERIAL)
 
         if all(p.has_curb for p, _ in legs_sorted):
             try:
-                curb_out_loop = build_loop(legs_sorted, "curb_out", center)
-                gutter_loop = build_loop(legs_sorted, "gutter_out", center)
+                curb_in_arcs = build_corner_arcs(
+                    legs_sorted, "edge", center, corner_segments,
+                )
+                curb_out_arcs = build_corner_arcs(
+                    legs_sorted, "curb_out", center, corner_segments,
+                )
+                gutter_arcs = build_corner_arcs(
+                    legs_sorted, "gutter_out", center, corner_segments,
+                )
             except Exception:
-                curb_out_loop = gutter_loop = None
-            if asphalt_loop and curb_out_loop:
-                # Same treatment for the kerb ring: a kerb across the street mouth is a wall.
-                for run_a, run_c in split_loop_outside_carriageway(
-                        asphalt_loop, curb_out_loop, carriageway_segs):
-                    ribbon_between_loops(mb_by_mat, run_a, run_a, hm, ROAD_Y_BIAS, CURB_HEIGHT,
+                curb_in_arcs = curb_out_arcs = gutter_arcs = None
+            if curb_in_arcs and curb_out_arcs and gutter_arcs:
+                for edge_arc, curb_arc, gutter_arc in zip(
+                        curb_in_arcs, curb_out_arcs, gutter_arcs):
+                    ribbon_between_loops(mb_by_mat, edge_arc, edge_arc, hm,
+                                          ROAD_Y_BIAS, CURB_TOP_Y_BIAS,
                                           "curb_concrete", double_sided=True, close_loop=False)
-                    ribbon_between_loops(mb_by_mat, run_a, run_c, hm, CURB_HEIGHT, CURB_HEIGHT,
+                    ribbon_between_loops(mb_by_mat, edge_arc, curb_arc, hm,
+                                          CURB_TOP_Y_BIAS, CURB_TOP_Y_BIAS,
                                           "curb_concrete", double_sided=True, close_loop=False)
-                    ribbon_between_loops(mb_by_mat, run_c, run_c, hm, CURB_HEIGHT, -0.05,
+                    ribbon_between_loops(mb_by_mat, curb_arc, curb_arc, hm,
+                                          CURB_TOP_Y_BIAS, -0.05,
                                           "curb_concrete", double_sided=True, close_loop=False)
-            if asphalt_loop and gutter_loop:
-                ribbon_between_loops(mb_by_mat, gutter_loop, asphalt_loop, hm, ROAD_Y_BIAS + 0.005,
-                                      ROAD_Y_BIAS + 0.01, "sidewalk_concrete", double_sided=True, close_loop=True)
+                    ribbon_between_loops(
+                        mb_by_mat, gutter_arc, edge_arc, hm, ROAD_Y_BIAS + 0.005,
+                        ROAD_Y_BIAS + 0.01, "sidewalk_concrete", double_sided=True,
+                        close_loop=False,
+                    )
 
         if all(p.has_sidewalk for p, _ in legs_sorted):
             try:
-                sw_in_loop = build_loop(legs_sorted, "sw_in", center)
-                sw_out_loop = build_loop(legs_sorted, "sw_out", center)
+                sw_in_arcs = build_corner_arcs(
+                    legs_sorted, "sw_in", center, corner_segments,
+                )
+                sw_out_arcs = build_corner_arcs(
+                    legs_sorted, "sw_out", center, corner_segments,
+                )
             except Exception:
-                sw_in_loop = sw_out_loop = None
-            if sw_in_loop and sw_out_loop:
-                # Only the corner runs; never across a leg's carriageway (see
-                # split_loop_outside_carriageway).
-                for run_in, run_out in split_loop_outside_carriageway(
-                        sw_in_loop, sw_out_loop, carriageway_segs):
-                    ribbon_between_loops(mb_by_mat, run_in, run_out, hm, 0.05, 0.05,
-                                          "sidewalk_concrete", double_sided=True, close_loop=False)
-                    ribbon_between_loops(mb_by_mat, run_in, run_in, hm, 0.05, 0.0,
-                                          "sidewalk_edge", double_sided=True, close_loop=False)
-                    ribbon_between_loops(mb_by_mat, run_out, run_out, hm, 0.05, 0.0,
-                                          "sidewalk_edge", double_sided=True, close_loop=False)
+                sw_in_arcs = sw_out_arcs = None
+            if sw_in_arcs and sw_out_arcs:
+                for sw_in_arc, sw_out_arc in zip(sw_in_arcs, sw_out_arcs):
+                    for i in range(len(sw_in_arc) - 1):
+                        inner = sw_in_arc[i:i + 2]
+                        outer = sw_out_arc[i:i + 2]
+                        triangles = ribbon_triangles_outside_junctions(
+                            inner[0], inner[1], outer[0], outer[1], junction_polygons,
+                        )
+                        emit_flat_triangles(mb_by_mat, triangles, hm, CURB_TOP_Y_BIAS,
+                                            "sidewalk_concrete", double_sided=True)
+                        cells = ribbon_cells_outside_junctions(
+                            inner[0], inner[1], outer[0], outer[1], junction_polygons,
+                        )
+                        if len(cells) == 1 and cells[0] == (inner, outer):
+                            ribbon_between_loops(mb_by_mat, inner, inner, hm, CURB_TOP_Y_BIAS, 0.0,
+                                                  "sidewalk_edge", double_sided=True,
+                                                  close_loop=False)
+                            ribbon_between_loops(mb_by_mat, outer, outer, hm, CURB_TOP_Y_BIAS, 0.0,
+                                                  "sidewalk_edge", double_sided=True,
+                                                  close_loop=False)
 
 
 # ---------------------------------------------------------------------------
@@ -793,31 +1134,76 @@ def build_stop_signs(nodes, plan_by_way_id, downtown_node_ids, hm, furniture):
 # ---------------------------------------------------------------------------
 # Aerial-traced paved surfaces (parking lots, aprons, service yards)
 # ---------------------------------------------------------------------------
-def build_aerial_paved(hm, mb_by_mat, carriageway_segs=None):
-    """Lays the paved quads extracted from the Google Earth aerial.
+def build_aerial_paved(hm, mb_by_mat):
+    """Lay simplified paved polygons extracted from Illinois orthophotography.
 
     OSM has almost no parking data for downtown Dixon (2 landuse areas in the whole
-    aerial) even though the lots are a large share of the visible ground plane, so
-    they are traced from the photo instead -- see pipeline/aerial/extract_paved.py.
-    Quads are axis-aligned in aerial pixel space and tile exactly, so they are laid
-    as flat fills at terrain height. Quads whose centre falls inside a carriageway
-    are skipped so a lot never paves over a street.
+    play area) even though the lots are a large share of the visible ground plane,
+    so they are traced from the imagery instead -- see pipeline/aerial/extract_paved_il.py.
+    The extracted quads are dissolved and simplified before triangulation, removing
+    pixel-scale stair steps from parking-lot boundaries. The source mask already
+    excludes mapped roads and buildings.
     """
     path = os.path.join(pc.ROOT, "game", "data", "aerial_paved.json")
     if not os.path.exists(path):
         return 0
     quads = json.load(open(path)).get("quads", [])
-    laid = 0
-    for q in quads:
-        cx = sum(p[0] for p in q) / 4.0
-        cz = sum(p[1] for p in q) / 4.0
-        if carriageway_segs and _in_carriageway(cx, cz, carriageway_segs, margin=0.0):
+    polygons = dissolve_aerial_paved_quads(quads)
+    from shapely.ops import triangulate
+
+    sub = MeshBuild()
+    triangle_count = 0
+    for polygon in polygons:
+        buffered = polygon.buffer(1e-8)
+        for triangle in triangulate(polygon):
+            if not buffered.covers(triangle):
+                continue
+            points = list(triangle.exterior.coords)[:3]
+            indices = [
+                sub.add_vertex(
+                    x, hm.sample(x, z) + ROAD_Y_BIAS, z, hm.normal(x, z),
+                )
+                for x, z in points
+            ]
+            sub.add_tri(*indices)
+            sub.add_tri(indices[2], indices[1], indices[0])
+            triangle_count += 1
+    if not sub.is_empty():
+        mb_by_mat.setdefault(PAVEMENT_MATERIAL, MeshBuild()).extend(sub)
+    print(
+        f"  dissolved {len(quads)} aerial paving quads into {len(polygons)} "
+        f"simplified polygons ({triangle_count} triangles)",
+    )
+    return triangle_count
+
+
+def dissolve_aerial_paved_quads(quads):
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+
+    source_polygons = []
+    for quad in quads:
+        polygon = Polygon(quad)
+        if polygon.is_empty or polygon.area <= EPS:
             continue
-        loop = [(p[0], p[1]) for p in q]
-        close_loop_fill(mb_by_mat, loop, hm, ROAD_Y_BIAS, "asphalt_patched_plowed")
-        laid += 1
-    print(f"  {laid} aerial-traced paved quads ({len(quads) - laid} skipped inside carriageways)")
-    return laid
+        if not polygon.is_valid:
+            polygon = polygon.buffer(0)
+        if not polygon.is_empty:
+            source_polygons.append(polygon)
+    if not source_polygons:
+        return []
+
+    dissolved = unary_union(source_polygons)
+    simplified = []
+    for polygon in _polygon_parts(dissolved):
+        min_extent = min(
+            polygon.bounds[2] - polygon.bounds[0],
+            polygon.bounds[3] - polygon.bounds[1],
+        )
+        tolerance = min(AERIAL_PAVED_SIMPLIFY_M, max(0.5, min_extent * 0.1))
+        candidate = polygon.simplify(tolerance, preserve_topology=True)
+        simplified.extend(_polygon_parts(candidate))
+    return simplified
 
 # ---------------------------------------------------------------------------
 # Non-drivable paths (footway/cycleway/path/pedestrian/steps)
@@ -1083,6 +1469,7 @@ BALLAST_TOP = 0.20
 TIE_TOP = 0.35
 RAIL_TOP = 0.50
 
+
 def build_rails(rail_ways, all_road_ways, hm, mb_by_mat, furniture):
     # crossing detection: sample points where a rail polyline passes within
     # gutter distance of a road polyline (brute force -- both sets are small).
@@ -1294,7 +1681,7 @@ def main():
     rails = clip_ways_to_bounds(load_json("rails.json")["ways"])
     hm = Heightmap()
 
-    ways = roads["ways"]
+    ways = clip_ways_to_bounds(roads["ways"])
     junction_ids = set(j["node_id"] for j in roads["junction_nodes"])
     split_ways = split_at_junctions(ways, junction_ids)
     print(f"  {len(ways)} ways -> {len(split_ways)} after junction split")
@@ -1310,11 +1697,37 @@ def main():
     mb_by_mat = {}
     furniture = {}
 
-    print("Building way surfaces (asphalt/curb/sidewalk)...")
-    build_way_surfaces(plans, hm, mb_by_mat)
-
-    print("Building junction geometry...")
-    build_junction_geometry(nodes, plan_by_way_id, hm, mb_by_mat, _carriageway_index(plans))
+    print("Planning shared transportation surfaces...")
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+    aerial_path = os.path.join(pc.GAME_DATA, "aerial_paved.json")
+    if not os.path.exists(aerial_path):
+        raise FileNotFoundError("missing aerial paving candidates; run pipeline/aerial/extract_paved_il.py")
+    aerial = dissolve_aerial_paved_quads(load_json("aerial_paved.json")["quads"])
+    buildings = load_json("buildings.json")["buildings"]
+    obstacles = []
+    for building in buildings:
+        ring = building.get("footprint", [])
+        if len(ring) >= 3:
+            polygon = Polygon([(point["x"], point["z"]) for point in ring])
+            if not polygon.is_valid:
+                raise ValueError(f"invalid building footprint {building.get('id')}")
+            obstacles.append(polygon)
+    water = load_json("water.json")
+    for reach in water.get("reaches", []):
+        ring = reach.get("polygon", [])
+        if len(ring) >= 3:
+            polygon = Polygon([(point["x"], point["z"]) for point in ring])
+            if not polygon.is_valid:
+                raise ValueError("invalid water boundary in transportation exclusions")
+            obstacles.append(polygon)
+    layout, layout_report = transport_layout.build_layout(
+        plans, nodes, unary_union(aerial), unary_union(obstacles),
+        transport_layout.read_overrides(), split_ways,
+    )
+    print(f"  rejected {len(layout_report['rejected_lot_fragments'])} aerial fragments")
+    print("Meshing shared asphalt/curb/parkway/sidewalk/parking surfaces...")
+    transport_layout.emit_layout(layout, hm, mb_by_mat)
 
     print("Building markings...")
     build_markings(plans, hm, mb_by_mat)
@@ -1328,14 +1741,6 @@ def main():
     build_furniture(plans, hm, furniture)
     build_stop_signs(nodes, plan_by_way_id, downtown_node_ids, hm, furniture)
 
-    print("Building paths (footway/cycleway/etc)...")
-    # Pass the carriageway extents so footway slabs are clipped out of the street
-    # (OSM maps crossings as footways straight across the road).
-    build_pathy(split_ways, hm, mb_by_mat, _carriageway_index(plans))
-
-    print("Building aerial-traced paved surfaces...")
-    build_aerial_paved(hm, mb_by_mat, _carriageway_index(plans))
-
     print("Building bridges...")
     bridge_mb, bridge_furniture = {}, {}
     build_bridges(bridges, hm, bridge_mb, bridge_furniture)
@@ -1346,6 +1751,7 @@ def main():
     print("Chunking + writing output...")
     write_output(mb_by_mat, furniture)
     write_output(bridge_mb, bridge_furniture, BRIDGE_OUT_DIR)
+    transport_layout.save_layout(layout, layout_report)
 
 
 if __name__ == "__main__":
