@@ -62,6 +62,88 @@ def MeshBuild():  # noqa: N802 -- stands in for the class, imported when first u
     return real()
 
 
+REGISTRY_PATH = os.path.join(ROOT, "game", "data", "bridge_registry.json")
+
+
+def suppressed(path=None):
+    """{way id: reason} of OSM bridge ways the game leaves out.
+
+    Some bridge ways are not bridges of their own: the sidewalks of a street bridge are often mapped
+    as separate footway "bridges" over the same river. Once the street bridge is designed with its own
+    walkways those are duplicates; Bridge Composer's Remove records them here and the road plan
+    skips them."""
+    try:
+        with open(path or REGISTRY_PATH) as handle:
+            data = json.load(handle)
+        return {str(k): str(v) for k, v in (data.get("suppressed") or {}).items()}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+def save_suppressed(entries, path=None):
+    """Writes the suppressed registry (atomically)."""
+    import tempfile
+    target = path or REGISTRY_PATH
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    handle, temp = tempfile.mkstemp(dir=os.path.dirname(target), suffix=".tmp")
+    with os.fdopen(handle, "w") as out:
+        json.dump({"suppressed": {str(k): str(v) for k, v in sorted(entries.items())}}, out, indent=1)
+        out.write("\n")
+    os.replace(temp, target)
+
+
+def custom_designs(known_ids, directory=None):
+    """Designs for bridges that are not OSM ways: every composed file whose id is not in `known_ids`."""
+    folder = directory or COMPOSED_DIR
+    out = []
+    if not os.path.isdir(folder):
+        return out
+    for name in sorted(os.listdir(folder)):
+        if not name.endswith(".json"):
+            continue
+        bid = name[:-5]
+        if bid in known_ids:
+            continue
+        data = load(bid, folder)
+        if data is not None:
+            out.append(data)
+    return out
+
+
+def new_design(bid, centerline, width, kind, name, deck_ends, span_m=20.0, crest=None):
+    """A starting design for a bridge drawn in the editor: `kind` is "street" (walkways, barriers,
+    lamps) or "path" (a narrow deck with a railing), `deck_ends` the [start, end] deck heights."""
+    length = centerline_length(centerline)
+    street = kind == "street"
+    n = max(1, round(length / span_m))
+    supports = [{"kind": "abutment", "station": 0.0, "length": 1.5}]
+    for k in range(1, n):
+        supports.append({"kind": "pier", "station": round(length * k / n, 2), "length": 1.4,
+                         "width": 6.0 if street else max(1.5, width * 0.8), "shape": "bullnose"})
+    supports.append({"kind": "abutment", "station": round(length, 2), "length": 1.5})
+    crest = (0.5 if street else 0.2) if crest is None else crest
+    if street:
+        section = {"barrier_h": 0.9, "barrier_w": 0.4, "barrier_rail_h": 0.35, "barrier_rail_style": "pipe",
+                   "walkway_w": 2.5, "walkway_sides": "both", "walkway_rise": WALKWAY_RISE_M,
+                   "outer_type": "metal", "parapet_w": 0.3, "parapet_h": 0.6, "curb_h": 0.2,
+                   "rail_h": 1.05, "rail_style": "picket"}
+    else:
+        section = {"barrier_h": 0.15, "barrier_w": 0.15, "walkway_w": 0.0, "rail_h": 1.1, "rail_style": "picket"}
+    return {
+        "format": FORMAT, "version": VERSION, "id": str(bid), "name": name or None,
+        "centerline": [[round(p[0], 2), round(p[1], 2)] for p in centerline],
+        "deck": {"width": float(width), "thickness": 0.3 if street else 0.2,
+                 "elevation": crest_profile(length, deck_ends[0], deck_ends[1], crest),
+                 "profile": {"kind": "crest", "start": deck_ends[0], "end": deck_ends[1], "crest": crest}},
+        "supports": supports,
+        "spans": [{"type": "girder", "depth": 0.9 if street else 0.5, "haunch": 0.5 if street else 0.0}
+                  for _ in range(len(supports) - 1)],
+        "cross_section": section,
+        "lamps": {"spacing": 25.0} if street else None,
+        "materials": {},
+    }
+
+
 def path_for(bid, directory=None):
     return os.path.join(directory or COMPOSED_DIR, f"{bid}.json")
 

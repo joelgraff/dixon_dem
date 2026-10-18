@@ -948,7 +948,11 @@ def bridge_profile(pts2d, ys, end_ground):
 
 def build_bridges(bridges, hm, mb_by_mat, furniture):
     profiles = {}
+    skipped = bridges_composed.suppressed()   # bridge ways recorded as duplicates (Bridge Composer's Remove)
     for b in bridges:
+        if str(b["id"]) in skipped:
+            print(f"  bridge {b['id']} left out: {skipped[str(b['id'])]}")
+            continue
         tags = b["tags"]
         if tags.get("kind") == "railway":
             continue  # handled with rails
@@ -1010,6 +1014,14 @@ def build_bridges(bridges, hm, mb_by_mat, furniture):
         # A couple of ornate lamp posts per bridge end (galena_bridge.md: cobra/acorn lights).
         for pt in (pts2d[0], pts2d[-1]):
             furniture.setdefault("lamp_downtown", []).append([pt[0], hm.sample(*pt), pt[1], 0.0])
+
+    # Bridges drawn in Bridge Composer that are not OSM ways at all.
+    for design in bridges_composed.custom_designs({str(b["id"]) for b in bridges}):
+        result = bridges_composed.build(mb_by_mat, furniture, design, ground=hm.sample)
+        profiles[str(design["id"])] = result["profile"]
+        for message in result["warnings"]:
+            print(f"  bridge {design['id']}: {message}")
+        print(f"  bridge {design['id']} ({design.get('name') or 'unnamed'}) built from its design")
 
     # Deck height by distance along each bridge's centreline, for dressing that is
     # built outside this plan (landmarks' Galena Ave bridge piers and railings).

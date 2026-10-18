@@ -14,6 +14,12 @@ Bridge Composer (docs/bridge_composer_schema.md) uses the same server:
   GET  /game-bridges            every bridge way with its centreline, width and
                                 whether a design exists
   GET  /game-bridge/<way id>    that design (404 if none)
+  POST /game-new-bridge         {centerline, width, kind, name}: a bridge drawn in the editor, written as
+                                bridges_composed/custom-<n>.json and returned
+  POST /game-suppress-bridge/<id>  {suppressed, reason}: records an OSM bridge way as a duplicate
+                                (game/data/bridge_registry.json) that the road plan leaves out
+  POST /game-delete-bridge/<id>    removes a design: a drawn bridge disappears, an OSM bridge goes
+                                back to the generated deck
   POST /game-save-bridge/<id>   writes game/data/bridges_composed/<id>.json, which
                                 pipeline/roads/bridges_composed.py builds in place
                                 of the generated deck; same checks as /game-save
@@ -455,6 +461,72 @@ def approach_heights(vertices, sampler, approach=APPROACH_M):
     return out
 
 
+def new_bridge(body, directory=BRIDGES_DIR, bridges_json=BRIDGES_JSON, sampler=None):
+    """Creates a design for a bridge drawn in the editor. `body` is JSON:
+    {"centerline": [[x, z], ...], "width": metres, "kind": "street" | "path", "name": str | null}.
+    Returns the design written to bridges_composed/custom-<n>.json."""
+    try:
+        request = json.loads(body)
+        line = [[float(p[0]), float(p[1])] for p in request["centerline"]]
+        width = float(request.get("width") or (16.0 if request.get("kind") == "street" else 3.0))
+        kind = request.get("kind", "path")
+    except (ValueError, KeyError, TypeError, IndexError):
+        raise ValueError("needs centerline [[x, z], ...], width, kind")
+    if kind not in ("street", "path"):
+        raise ValueError("kind is street or path")
+    if len(line) < 2 or len(line) > 500 or bridges_composed.centerline_length(line) < 3.0:
+        raise ValueError("a bridge needs a centreline at least 3 m long")
+    sampler = sampler or raw_ground()
+    vertices = [{"x": p[0], "z": p[1]} for p in line]
+    ends = approach_heights(vertices, sampler) if sampler else None
+    if not ends:
+        ends = [round(sampler.at(*line[0]) if sampler else 0.0, 2), round(sampler.at(*line[-1]) if sampler else 0.0, 2)]
+    taken = {n[:-5] for n in os.listdir(directory)} if os.path.isdir(directory) else set()
+    k = 1
+    while f"custom-{k}" in taken:
+        k += 1
+    name = request.get("name")
+    design = bridges_composed.new_design(f"custom-{k}", line, width, kind, name if isinstance(name, str) and name.strip() else None, ends)
+    design = {key: value for key, value in design.items() if value is not None}
+    bridges_composed.validate(design)
+    os.makedirs(directory, exist_ok=True)
+    with open(os.path.join(directory, f"{design['id']}.json"), "w") as handle:
+        json.dump(design, handle, indent=1)
+        handle.write("\n")
+    return design
+
+
+def delete_bridge(bid, directory=BRIDGES_DIR):
+    """Deletes a composed design: a custom bridge disappears; an OSM bridge goes back to the generated deck."""
+    if not ID.match(bid or ""):
+        raise ValueError("bad id")
+    path = os.path.join(directory, f"{bid}.json")
+    if not os.path.exists(path):
+        raise ValueError("no design for this bridge")
+    os.remove(path)
+
+
+def suppress_bridge(bid, body, registry=None, bridges_json=BRIDGES_JSON):
+    """Records (or clears) an OSM bridge way as a duplicate the game leaves out.
+    `body` is JSON {"suppressed": true | false, "reason": "..."}."""
+    if not ID.match(bid or ""):
+        raise ValueError("bad id")
+    try:
+        request = json.loads(body)
+    except ValueError:
+        raise ValueError("not JSON")
+    with open(bridges_json) as handle:
+        ways = {str(w["id"]) for w in json.load(handle)["bridges"]}
+    if bid not in ways:
+        raise ValueError("only OSM bridge ways can be removed; delete a drawn bridge instead")
+    entries = bridges_composed.suppressed(registry)
+    if request.get("suppressed", True):
+        entries[bid] = str(request.get("reason") or "removed in Bridge Composer")
+    else:
+        entries.pop(bid, None)
+    bridges_composed.save_suppressed(entries, registry)
+
+
 def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
     """Every road/path bridge way the game has, with whether it has a composed design."""
     sampler = sampler or ground()
@@ -462,6 +534,7 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
         ways = json.load(handle)["bridges"]
     out = []
     roads, rails, water = _naming_data()
+    removed = bridges_composed.suppressed()
     for way in ways:
         tags = way["tags"]
         if tags.get("kind") == "railway":
@@ -496,6 +569,31 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
                         round(sampler.at(way["vertices"][-1]["x"], way["vertices"][-1]["z"]), 2)]
                        if sampler else None),
             "composed": os.path.exists(os.path.join(directory, f"{way['id']}.json")),
+            # recorded as a duplicate (Remove in Bridge Composer): the road plan leaves it out
+            "suppressed": removed.get(str(way["id"])),
+            "custom": False,
+        })
+    # Bridges drawn in the editor, which are not OSM ways: one per composed file with no way behind it.
+    known = {str(w["id"]) for w in ways}
+    for design in bridges_composed.custom_designs(known, directory):
+        vertices = [{"x": p[0], "z": p[1]} for p in design["centerline"]]
+        width = design["deck"]["width"]
+        way = {"id": design["id"], "vertices": vertices, "tags": {"name": design.get("name"), "layer": 1}}
+        crosses = crossings(way, roads, rails, water)
+        derived = bridge_title({"name": design.get("name")}, crosses)
+        rows = design["deck"]["elevation"]
+        out.append({
+            "id": design["id"], "name": design.get("name"), "highway": None,
+            "title": design.get("name") or derived, "carries": carries({"name": design.get("name")}),
+            "crosses": crosses, "derived_title": derived, "width_m": width,
+            "centerline": design["centerline"], "deck_y": [rows[0][1], rows[-1][1]],
+            "ground_profile": ground_profile(vertices, sampler, extend=APPROACH_M) if sampler else None,
+            "approach_m": APPROACH_M,
+            "approach_y": approach_heights(vertices, raw_ground()),
+            "approach_sidewalks": approach_sidewalks(vertices, width / 2.0),
+            "ground": ([round(sampler.at(*design["centerline"][0]), 2), round(sampler.at(*design["centerline"][-1]), 2)]
+                       if sampler else None),
+            "composed": True, "suppressed": None, "custom": True,
         })
     # The two carriageways of a divided road are one structure: a deck whose own centreline
     # crosses nothing in the data takes what its twin crosses.
@@ -507,7 +605,7 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
         if b["crosses"]:
             continue
         for twin in out:
-            if (twin is not b and twin["crosses"] and twin["name"] and twin["name"] == b["name"]
+            if (not b["custom"] and twin is not b and twin["crosses"] and twin["name"] and twin["name"] == b["name"]
                     and twin["highway"] == b["highway"]
                     and math.hypot(middle(twin)[0] - middle(b)[0], middle(twin)[1] - middle(b)[1]) < 60.0):
                 b["crosses"] = list(twin["crosses"])
@@ -632,11 +730,15 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
             return super().do_GET()
 
         def do_POST(self):
-            prefix = "/game-save/"
-            saver, target = save, composed_dir
-            if self.path.startswith("/game-save-bridge/"):
-                prefix, saver, target = "/game-save-bridge/", save_bridge, bridges_dir
-            if not self.path.startswith(prefix):
+            routes = {
+                "/game-save/": (lambda bid, body: save(bid, body, composed_dir)),
+                "/game-save-bridge/": (lambda bid, body: save_bridge(bid, body, bridges_dir)),
+                "/game-suppress-bridge/": (lambda bid, body: suppress_bridge(bid, body)),
+                "/game-delete-bridge/": (lambda bid, body: delete_bridge(bid, bridges_dir)),
+                "/game-new-bridge": None,
+            }
+            route = next((r for r in routes if self.path == r or (r.endswith("/") and self.path.startswith(r))), None)
+            if route is None:
                 return self._reply(404, "not found")
             host = self.headers.get("Host", "")
             origin = self.headers.get("Origin")
@@ -646,10 +748,14 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                 length = int(self.headers.get("Content-Length", ""))
             except ValueError:
                 return self._reply(411, "length required")
-            if length <= 0 or length > MAX_BYTES:
+            if length < 0 or length > MAX_BYTES:
                 return self._reply(413, "too large")
+            body = self.rfile.read(length) if length else b""
             try:
-                saver(self.path[len(prefix):], self.rfile.read(length), target)
+                if route == "/game-new-bridge":
+                    design = new_bridge(body, bridges_dir)
+                    return self._send(json.dumps(design).encode(), "application/json")
+                routes[route](self.path[len(route):], body)
             except ValueError as error:
                 return self._reply(400, str(error))
             return self._reply(200, "saved")

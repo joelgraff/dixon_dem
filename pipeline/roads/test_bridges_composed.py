@@ -245,6 +245,52 @@ def test_rail_styles_build_and_face_their_normals():
     assert count("picket") > 3 * count("pipe") > 0
 
 
+def test_bridges_can_be_added_and_removed():
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "game", "tools"))
+    import composer_server as cs
+    tmp = tempfile.mkdtemp()
+    registry = os.path.join(tmp, "registry.json")
+    ways = os.path.join(tmp, "bridges.json")
+    with open(ways, "w") as handle:
+        json.dump({"bridges": [{"id": 10, "vertices": [], "tags": {}}, {"id": 11, "vertices": [], "tags": {}}]}, handle)
+    # an OSM way is recorded as a duplicate, then restored
+    cs.suppress_bridge("10", json.dumps({"suppressed": True, "reason": "sidewalk of 12"}).encode(), registry, ways)
+    assert bc.suppressed(registry) == {"10": "sidewalk of 12"}
+    cs.suppress_bridge("11", json.dumps({}).encode(), registry, ways)       # suppressed defaults to true
+    assert set(bc.suppressed(registry)) == {"10", "11"}
+    cs.suppress_bridge("10", json.dumps({"suppressed": False}).encode(), registry, ways)
+    assert set(bc.suppressed(registry)) == {"11"}
+    for bad in ("999", "../x"):
+        try:
+            cs.suppress_bridge(bad, b"{}", registry, ways)
+        except ValueError:
+            continue
+        raise AssertionError(f"suppressed {bad}")
+    # a bridge drawn in the editor is a composed file with no way behind it
+    class Flat:
+        def at(self, x, z):
+            return 7.0
+    folder = os.path.join(tmp, "designs")
+    made = cs.new_bridge(json.dumps({"centerline": [[0, 0], [60, 0]], "width": 3, "kind": "path", "name": "Trail"}).encode(),
+                         folder, ways, Flat())
+    again = cs.new_bridge(json.dumps({"centerline": [[0, 20], [60, 20]], "kind": "street"}).encode(), folder, ways, Flat())
+    assert (made["id"], again["id"]) == ("custom-1", "custom-2")
+    assert abs(made["deck"]["elevation"][0][1] - 7.085) < 0.01 and again["cross_section"]["walkway_w"] > 0
+    assert [d["id"] for d in bc.custom_designs({"10", "11"}, folder)] == ["custom-1", "custom-2"]
+    assert bc.custom_designs({"custom-1", "custom-2"}, folder) == []         # known ids are not custom
+    cs.delete_bridge("custom-1", folder)
+    assert [d["id"] for d in bc.custom_designs(set(), folder)] == ["custom-2"]
+    for bad_body in (b"{}", json.dumps({"centerline": [[0, 0], [1, 0]]}).encode(),
+                     json.dumps({"centerline": [[0, 0], [30, 0]], "kind": "ferry"}).encode()):
+        try:
+            cs.new_bridge(bad_body, folder, ways, Flat())
+        except ValueError:
+            continue
+        raise AssertionError("accepted a bad bridge")
+
+
 def test_road_surface_height_matches_the_road_plan():
     # a deck's end is the road surface, and the heightmap anchor subtracts this: they must agree
     import build_road_plan
@@ -265,6 +311,7 @@ if __name__ == "__main__":
     test_the_save_server_takes_only_a_design_for_that_way()
     test_a_crest_profile_is_one_smooth_curve_between_the_street_heights()
     test_rail_styles_build_and_face_their_normals()
+    test_bridges_can_be_added_and_removed()
     test_road_surface_height_matches_the_road_plan()
     test_the_server_reports_terrain_along_a_bridge()
     test_bridges_are_named_for_what_they_carry_over_what_they_cross()
