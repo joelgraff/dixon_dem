@@ -50,6 +50,14 @@ QUERIES = {
 );
 out body geom;
 """,
+    "power": f"""
+[out:json][timeout:180];
+(
+  way["power"~"^(line|minor_line|cable)$"]({BBOX});
+  node["power"~"^(pole|tower|portal|terminal|transformer)$"]({BBOX});
+);
+out body geom;
+""",
     "buildings": f"""
 [out:json][timeout:180];
 (

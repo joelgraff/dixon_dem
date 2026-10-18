@@ -14,7 +14,7 @@ import numpy as np
 from affine import Affine
 from pyproj import Transformer
 from scipy.ndimage import map_coordinates
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point, box
 
 sys.path.insert(0, os.path.dirname(__file__))
 from common import GAME_DATA, LANDMARK_LONLAT, ORIGIN_EASTING, ORIGIN_NORTHING, to_godot
@@ -78,6 +78,7 @@ def main():
     build_water(raw_arr, raw_tf)
     build_landuse(raw_arr, raw_tf)
     build_points(raw_arr, raw_tf)  # pois, trees, lamps
+    build_power(raw_arr, raw_tf)
     print("build_vectors: done.")
 
 
@@ -587,6 +588,63 @@ def build_points(raw_arr, raw_tf):
     with open(os.path.join(GAME_DATA, "lamps.json"), "w") as f:
         json.dump({"points": lamps}, f)
     print(f"  pois.json: {len(pois)} points, {len(barrier_lines)} barrier lines  trees.json: {len(trees)}  lamps.json: {len(lamps)}")
+
+
+def build_power(raw_arr, raw_tf):
+    """Export overhead power ways and mapped supports in Godot-local space."""
+    min_e, min_n = ORIGIN_EASTING, ORIGIN_NORTHING
+    max_e, max_n = min_e + WORLD_ORIGIN["size_m"], min_n + WORLD_ORIGIN["size_m"]
+    play_box = box(min_e, min_n, max_e, max_n)
+    lines, supports = [], []
+
+    for el in load_osm("power"):
+        tags = el.get("tags", {})
+        power = tags.get("power", "")
+        if el["type"] == "node":
+            if power not in {"pole", "tower", "portal", "terminal", "transformer"}:
+                continue
+            e, n = _T_LONLAT_TO_UTM.transform(el["lon"], el["lat"])
+            if not (min_e <= e <= max_e and min_n <= n <= max_n):
+                continue
+            x, z = godot_xz(e, n)
+            supports.append({
+                "id": el["id"], "kind": power,
+                "x": round(x, 2), "y": round(sample_y(raw_arr, raw_tf, e, n), 2), "z": round(z, 2),
+                "voltage": tags.get("voltage"),
+            })
+            continue
+
+        if el["type"] != "way" or power not in {"line", "minor_line", "cable"}:
+            continue
+        if tags.get("location") in {"underground", "indoor"}:
+            continue
+        geometry = el.get("geometry", [])
+        if len(geometry) < 2:
+            continue
+        utm_points = [_T_LONLAT_TO_UTM.transform(p["lon"], p["lat"]) for p in geometry]
+        clipped = LineString(utm_points).intersection(play_box)
+        parts = [clipped] if clipped.geom_type == "LineString" else (
+            list(clipped.geoms) if clipped.geom_type == "MultiLineString" else [])
+        for part_index, part in enumerate(parts):
+            if part.length < 2.0:
+                continue
+            vertices = []
+            for e, n in part.coords:
+                x, z = godot_xz(e, n)
+                vertices.append({
+                    "x": round(x, 2), "y": round(sample_y(raw_arr, raw_tf, e, n), 2),
+                    "z": round(z, 2),
+                })
+            lines.append({
+                "id": el["id"] if len(parts) == 1 else f'{el["id"]}_{part_index}',
+                "kind": power, "voltage": tags.get("voltage"),
+                "cables": tags.get("cables"), "vertices": vertices,
+            })
+
+    out_path = os.path.join(GAME_DATA, "power.json")
+    with open(out_path, "w") as f:
+        json.dump({"lines": lines, "supports": supports}, f)
+    print(f"  power.json: {len(lines)} overhead lines, {len(supports)} supports")
 
 
 if __name__ == "__main__":

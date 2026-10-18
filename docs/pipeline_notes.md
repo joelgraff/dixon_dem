@@ -22,6 +22,7 @@ All consumable outputs are in `game/data/`:
 | `pois.json` | amenity/historic/tourism points, incl. Lincoln statue, Dixon arch |
 | `trees.json` | `natural=tree` points (sparse -- OSM coverage is thin) |
 | `lamps.json` | **empty** -- no street lamps mapped in OSM for Dixon |
+| `power.json` | overhead power lines clipped to the play area and mapped support nodes |
 
 `.r32` = raw float32 little-endian, row-major, row 0 = north edge. Value =
 `elevation_m - base_elevation_m` (already Godot-local Y). See
@@ -76,6 +77,9 @@ Sourced from a live OSM/Overpass survey on 2026-09-17 (not guessed) -- see
   raster-only mask to an accurate vector polygon split.
 - `nachusa_house` position is interpolated, not a verified address match.
 - `lamps.json` is empty; no street lamps mapped in OSM for this area.
+- Power-line and support rendering is documented in
+  [infrastructure_notes.md](./infrastructure_notes.md); the power export must
+  be regenerated after fetching `osm_power.json`.
 - Van Arnam Island's NE tip and Page Park's west edge extend slightly past
   the play-area square (still covered by the wider OSM fetch + horizon grid).
 - DEM source is 2008-2009 LIDAR; anything built/regraded since then is only
