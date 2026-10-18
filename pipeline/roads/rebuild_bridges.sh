@@ -10,7 +10,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PYTHON="$ROOT/.venv/bin/python"
 echo "== 1/3 heightmap"
 (cd "$ROOT/pipeline" && "$PYTHON" -u build_heightmap.py)
-echo "== 2/3 road plan (about 12 minutes)"
+echo "== 2/3 road plan (about 3 minutes)"
 (cd "$ROOT/pipeline/roads" && "$PYTHON" -u build_road_plan.py)
 echo "== 3/3 bake roads"
 bash "$ROOT/game/roads/tools/build_roads.sh"
