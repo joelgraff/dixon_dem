@@ -73,6 +73,17 @@ class Surface:
         self.x0, self.z0, self.spacing = hm.x0, hm.z0, hm.spacing
         self.h, self.w = self.grid.shape
 
+    @classmethod
+    def from_grid(cls, grid, transform):
+        """A sampler over an in-memory play grid (game Y), `transform` its UTM affine (row 0 north)."""
+        self = cls.__new__(cls)
+        self.grid = np.asarray(grid, dtype=np.float64)
+        self.spacing = abs(transform.a)
+        self.x0 = transform.c - pc.ORIGIN_EASTING
+        self.z0 = -(transform.f - pc.ORIGIN_NORTHING)
+        self.h, self.w = self.grid.shape
+        return self
+
     def sample(self, xs, zs):
         col = (np.asarray(xs, dtype=np.float64) - self.x0) / self.spacing
         row = (np.asarray(zs, dtype=np.float64) - self.z0) / self.spacing

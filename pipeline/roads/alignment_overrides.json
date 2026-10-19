@@ -1,0 +1,26 @@
+{
+  "format": "dixon-alignment-overrides",
+  "version": 1,
+  "_about": "Hand-set design controls the solvers must honour (docs/roadway_control_plan.md \u00a78). profile: per route (alignments.json id), 'ignore_ground': [[from_sta, to_sta], ...] leaves DEM samples there out of the vertical fit; 'pins': [{'sta': m, 'elevation': game Y of the top of pavement, 'grade': fraction (optional)}] are fixed controls; 'pvi_stations': [m, ...] fixes the route's PVI stations (the ends are added; each curve is as long as its shorter straight, and refinement leaves the route alone). Stations are the route's, metres from its 0+00.",
+  "profile": [
+    {
+      "route": "R1020578833",
+      "ignore_ground": [
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "note": "Downtown service alley at (1824, -1428): its mapped west end runs 6 m past the top of a 4 m wall or pad edge in the DEM (ground +42%). The alley is held at the terrace grade to its mapped end instead of diving off the wall."
+    },
+    {
+      "route": "R1068020153",
+      "note": "Service drive at (850, -1855) crossing the abandoned IC rail embankment: the ground rises 6.5 m in 20 m and falls 6 m in 15 m (a 68% grade change in 10 m at its crest). Graded as a drive over a berm would be, a 14 m crest curve over the berm and a sag that runs out 13 m before Chuck Vail Drive, so the drive meets it on a straight; up to about 1.15 m comes off the crest. The OSM rail crosses 12 m east of the DEM's crest and is drawn 1.4 m off the ground there, so its top of rail is taken from the ground (build_profiles RAIL_TRUST_M).",
+      "pvi_stations": [
+        16.0,
+        30.0,
+        36.0
+      ]
+    }
+  ]
+}

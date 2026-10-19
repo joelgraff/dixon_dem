@@ -109,6 +109,11 @@ junction steps, grade change, implied K, cross slope and breaklines, checked aga
 `road_metrics_baseline.json` and the limits in `design_standards.json`. After changing the
 heightmap or road conform, run `pipeline/roads/road_metrics.py` for the full report. Run it with
 `--update-baseline` only when the numbers improve. See `docs/roadway_control_plan.md`.
+Road heights come from designed vertical profiles: `pipeline/build_heightmap.py` runs
+`pipeline/roads/build_profiles.py` (also runnable alone, about 3 s) and writes `game/data/profiles.json`
+and `game/roads/_build/profile_report.json` (fit to ground, control conflicts, advisory class-limit
+violations). Hand-set controls go in `pipeline/roads/alignment_overrides.json`; tests are
+`test_profiles.py`.
 After baking, `godot --headless --path game res://roads/tools/test_transportation.tscn`
 checks that grass follows the graded collision and cannot spawn on asphalt.
 

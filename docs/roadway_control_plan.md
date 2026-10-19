@@ -1,6 +1,6 @@
 # Roadway horizontal and vertical control: plan
 
-Status: proposal, 2026-10-18. Phases 0 and 1 are built (see their results sections); the rest is not.
+Status: proposal, 2026-10-18. Phases 0, 1 and 2 are built (see their results sections); the rest is not.
 
 ## The problem
 
@@ -248,8 +248,8 @@ Each phase ships on its own and shows improvement against the baseline metrics.
 | --- | --- | --- |
 | 0 (done) | `design_standards.json`; `road_metrics.py` with a ratchet test; breaklines located | none |
 | 1 (done) | Routes, stationing, horizontal fit, OSM-deviation report; aerial curb-to-curb width survey per route | none (data only); review images over the aerial |
-| 2 | Network vertical solve with shared junction elevations and fixed controls; `road_conform` reads design profiles instead of per-way moving averages | junction steps gone, grades smooth; the biggest win for the smallest change |
-| 3 | Cross-section templates on station ranges; crown warping at junctions; TIN-based conformed heightmap with daylighting | real lane, parking and gutter widths; clean curb lines |
+| 2 (done) | Network vertical solve with shared junction elevations and fixed controls; `road_conform` reads design profiles instead of per-way moving averages | junction steps gone, grades smooth; the biggest win for the smallest change |
+| 3 | Cross-section templates on station ranges; crown warping at junctions (with the edge-of-pavement junction tie, see phase 2 results); sawtooth gutters on flat streets; TIN-based conformed heightmap with daylighting | real lane, parking and gutter widths; clean curb lines |
 | 4 | Linear and node module library replacing the polygon pipeline and fan fills; curated-module escape hatch | regular sidewalk panels and joints, consistent curb returns and ramps |
 | 5 | Bridges as station ranges; Composer edits PVIs; anchor and ramp code retired; clearance checks | approaches and decks share one profile |
 | 6 | Editor support: drag PIs, PVIs and template breaks in-game or in Composer, rebuilding per route | — |
@@ -373,6 +373,137 @@ north–south by up to about 14 m near tile edges:
     boxes, so the parking lots in `aerial_paved.json` may be off by up to 15 m.
 
   Both need a follow-up.
+
+## Phase 2 results
+
+`pipeline/roads/build_profiles.py` solves the network's vertical control; `vertical.py` holds the
+profile maths. `pipeline/build_heightmap.py` runs the solve on the hydro-flattened ground and then
+burns the profiles into `heightmap_play_1m_road_conformed.r32`, about 3 s of its 16 s. It writes
+`game/data/profiles.json` and the design-check report `game/roads/_build/profile_report.json`.
+`build_profiles.py` also runs alone. Tests: `test_profiles.py`.
+
+**Profiles:**
+- Each of the 281 routes is PVIs joined by symmetric parabolic vertical curves, 5,464 PVIs in all.
+  The straights are at most 20 m. Each curve is as long as the shorter straight beside it, so the
+  profile is smooth (G1) everywhere.
+- Elevations are the top of pavement at the centreline. The conformed terrain is 0.085 m below
+  (`ROAD_SURFACE_M`), as before.
+- The 101 ways on no route (footways, cycleways, steps) get their own profile along their OSM
+  line.
+
+**Fit to the ground:**
+- Robust least squares (Huber, 0.10 m) on DEM samples every metre along the alignment.
+- Grade changes are smoothed with a robust penalty too: up to 0.5% is penalised quadratically, a
+  larger change linearly. A real embankment or bluff is followed rather than cut through. With
+  plain quadratic smoothing, a 6 m berm was cut by 4 m in testing.
+- Where the fit misses the ground by more than 0.25 m for 4 m or more, the vertical curve there is
+  halved, or a PVI is added, and the tier is re-solved.
+- Result: the profile is a median 0.016 m from the ground and 0.167 m at the 99th percentile. Only
+  317 m of the 94 km is more than 0.3 m off.
+- The largest misses are at the Galena deck ends, where the DEM dives into the river bank (3.3 m).
+  This is the artefact the old `anchor_profile` existed to hide.
+
+**Network:**
+- The solve runs a class at a time: arterials, then collectors, locals and service roads.
+- The senior route at each junction keeps the profile it was fitted with. That is the higher
+  class, then the through route, then the longer.
+- Routes of one class are solved together, so the heights at their junctions are shared unknowns.
+- All 588 junction ties are held to within 0.1 mm.
+
+**Junction tie:**
+- The plan's rule, the junior route taking the senior one's edge-of-pavement height at its curb
+  returns, was built and measured first. It made the junction steps worse: 261 over 0.10 m and
+  53 over 0.25 m.
+- On Dixon's hills, a side street at 7–15% crossing a flat street needs a level senior crown
+  through the junction. The tie leaves that as a 0.3–0.4 m table: the junior street climbs to the
+  curb return, runs level across, and climbs again.
+- Real junctions there are tilted planes. That is crown warping, which is phase 3.
+- So the tie is now centreline to centreline at the junction's control point. In the conformed
+  heightmap, the surfaces of the routes that meet are blended by inverse-square distance to each
+  centreline, so each centreline keeps its own grade and there is no crease.
+- The edge-of-pavement tie stays in the code (`JUNCTION_TIE = "curb_return"`) for phase 3.
+
+**Fixed controls** (hard rows, 1 mm-level):
+- Composed bridge decks (Galena and Peoria): the elevation and the grade at each deck end, so an
+  approach meets the deck level and without a kink. The deck's interior rows are softer shape
+  rows. No ground data is used inside a deck's station range.
+- A path, or a route that does not carry the bridge, ending at a composed deck has its end held
+  at the deck's height.
+- A deck end is held only within 1 m (`DECK_TRUST_M`) of its approach's own ground 5–15 m back.
+  The user said some composed decks were set for another purpose, so one further off is not a
+  control: the approach keeps to the ground and the end is listed in `deck_ends_not_held`. Today
+  that is only the IC railbed track (R1502908856) at the north end of the cycleway bridge
+  1502908855, whose flat deck (10.04) is 5.65 m below it. Galena and Peoria are held.
+- Top of rail at the 19 grade crossings.
+  - 11 crossings have an OSM node shared with the rail. There, the rail as drawn is exactly 0.5 m
+    above the ground, and the road rises to meet it.
+  - At the other 8, all on the abandoned IC line (way 367355676), `rails.json` interpolates the
+    rail's height between vertices up to about 120 m apart, so the drawn rail is 0.24 to 1.49 m
+    off the ground.
+  - Holding the drawn rail there would lift streets by up to 2 m (West Everett Street).
+    Instead, top of rail is taken as ground + 0.5 m and each crossing is listed in the report
+    (`rails_off_ground_at_crossings`). The rail itself needs its own profile.
+- Pins and overrides in `pipeline/roads/alignment_overrides.json`: `ignore_ground`, `pins` and
+  `pvi_stations`. Two routes use them today: the alley and the rail-embankment drive (below).
+
+**Class limits (advisory)** are reported and never applied:
+- 500 m of centreline is over its class's maximum grade.
+- 466 vertical curves are under the class's K, and 162 are shorter than 50 ft.
+- The minimum gutter grade (0.3%) was given to flat straights on 99 curbed routes (7.8 km of
+  centreline), each only where the profile moved 5 cm or less to get it.
+- One route kept 76 m of flat street: the ground does not allow a grade there, so it needs a
+  sawtooth gutter (phase 3).
+
+**`road_conform`:**
+- The per-way 15 m moving average, `anchor_profile`, `BRIDGE_ANCHOR_*` and their sidewalk
+  second pass are gone.
+- Roads are painted along their OSM centrelines with heights from the profile, lowest class first,
+  then the junctions are blended.
+- Within 40 m of a composed deck's end, the section eases to level and widens 6 m past the
+  pavement, so sidewalks still meet the deck's walkways. This replaces the sidewalk-levelling pass
+  until phase 3's templates.
+- A half-cell offset is fixed: the conform placed raster cells at pixel centres, but every
+  consumer reads sample (r, c) at the cell corner. That shifted the crown 0.5 m diagonally off the
+  road mesh. The fix is most of the cross-slope improvement below: the same profiles painted
+  at pixel centres give a 0.70% median deviation from the crown and 469 adverse sides, against
+  0.32% and 209 painted at corners (measured on the same profiles).
+
+**Metrics** (`road_metrics.py`, baseline updated):
+
+| metric | before | after |
+| --- | --- | --- |
+| junction steps over 0.25 m | 22 | 0 |
+| junction steps over 0.10 m | 133 | 20 |
+| junction step p50 / p90 / p99 / max | 0.055 / 0.153 / 0.365 / 0.858 m | 0.020 / 0.062 / 0.149 / 0.246 m |
+| grade change in 10 m p50 / p90 / p99 / max | 0.41 / 1.77 / 4.57 / 44% | 0.28 / 1.61 / 4.57 / 36% |
+| cross slope deviation from crown p50 / p99 | 0.81 / 4.96% | 0.32 / 3.13% |
+| adverse cross-slope sides | 786 | 212 |
+| breaklines | 5 | 2 |
+
+**The three breaklines:**
+- **Service drive over the rail embankment** (way 1068020153, route R1068020153). The ground
+  climbs 6.5 m in 20 m and falls 6 m in 15 m. The OSM rail crosses 12 m east of the DEM's crest,
+  and the drawn rail there is 0.9 m off the ground (ground + 0.5 m is used as top of rail).
+  Fixed PVIs in `alignment_overrides.json` grade it the way a drive over a berm is graded: one
+  crest curve, and a sag that runs out before Chuck Vail Drive. The worst grade change is now
+  29% in 10 m, not 49%, and the junction it meets has no step. It still counts as one breakline,
+  because the ground leaves no profile under 25% grade.
+- **West 9th Street, stations 60–80.** There is no culvert or hydro-enforcement notch: the ground
+  has no dip there. It is a 4.4 m pitch up a bluff edge in 14 m, and the designed profile spreads
+  it to 22%. A profile under the 12% class limit would cut and fill about 1.5 m over 40 m of
+  frontage, which the class limits' advisory status rules out. It is left as reported.
+- **Downtown alley** (way 1020578833). Its mapped west end runs 6 m past the top of a 4 m wall in
+  the DEM. `ignore_ground` holds the alley at its terrace grade to its mapped end, and the
+  breakline is gone.
+
+**Follow-ups:**
+- Rails need their own profiles. `rails.json` heights are linear between far-apart vertices, so
+  the abandoned IC line floats and sinks by up to 1.5 m.
+- `build_rails`'s crossing pad uses the segment's first vertex height, and is oriented along the
+  rail rather than the road.
+- Phase 3's crown warping, which would let the edge-of-pavement junction tie come back.
+- Composed cycleway bridge 1502908855: its flat deck (10.04) is 5.65 m below the railbed track at
+  its north end, which is left on its ground.
 
 ## Decisions (answered 2026-10-18, recorded in `design_standards.json`)
 

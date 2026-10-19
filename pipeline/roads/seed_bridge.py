@@ -63,8 +63,8 @@ def seed(way_id, match_approaches=False, crest=0.5):
     deck_y = sum(v["y"] for v in way["vertices"]) / len(way["vertices"])
     g0, g1 = hm.sample(*pts[0]) + bc.ROAD_SURFACE_M, hm.sample(*pts[-1]) + bc.ROAD_SURFACE_M
     if match_approaches:
-        # the deck meets the street 50 ft out; build_heightmap.py then raises the roads that end
-        # at the bridge to these heights, so the approach and the deck are one surface
+        # the deck meets the street 50 ft out; the route's vertical profile (build_profiles.py) then
+        # holds these heights and the deck's end grades, so the approach and the deck are one surface
         g0, g1 = approach_ends(way["vertices"])
     if match_approaches:
         # a long smooth vertical curve between the street heights, cambered by `crest` at midspan

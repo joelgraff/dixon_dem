@@ -2,27 +2,27 @@
  "_about": "Ratchet for test_road_metrics.py: lower is better for every metric. Regenerate with road_metrics.py --update-baseline only when the numbers improve.",
  "metrics": {
   "grade_change_pct_per_10m": {
-   "p50": 0.41,
-   "p90": 1.77,
+   "p50": 0.28,
+   "p90": 1.61,
    "p99": 4.57,
-   "max": 43.99
+   "max": 35.68
   },
   "cross_slope_dev_from_crown_pct": {
-   "p50": 0.81,
-   "p90": 1.83,
-   "p99": 4.96,
-   "max": 28.65
+   "p50": 0.32,
+   "p90": 1.05,
+   "p99": 3.13,
+   "max": 17.72
   },
-  "cross_slope_adverse_sides": 786,
+  "cross_slope_adverse_sides": 212,
   "junction_step_m": {
-   "p50": 0.0554,
-   "p90": 0.1531,
-   "p99": 0.3652,
-   "max": 0.8579
+   "p50": 0.0201,
+   "p90": 0.0622,
+   "p99": 0.1493,
+   "max": 0.2457
   },
-  "junction_steps_over_0.10m": 133,
-  "junction_steps_over_0.25m": 22,
-  "breaklines": 5,
+  "junction_steps_over_0.10m": 20,
+  "junction_steps_over_0.25m": 0,
+  "breaklines": 2,
   "drivable_length_beyond_play_heightmap_m": 0.0
  }
 }

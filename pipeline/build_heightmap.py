@@ -4,7 +4,8 @@
 Outputs (game/data/):
   world_origin.json
   heightmap_play_1m.r32              raw-resampled + hydro-flattened river, 1m spacing
-  heightmap_play_1m_road_conformed.r32   same + road corridors carved flat (~2% camber)
+  heightmap_play_1m_road_conformed.r32   same + the designed road profiles burnt in (2% crown)
+  profiles.json                      the road network's vertical alignments (roads/build_profiles.py)
   heightmap_horizon_12.5m.r32        coarse 10km x 10km terrain for distant view
   water_reaches.json                 river reach polygons + flat pool elevations
                                       (consumed by build_vectors.py for water.json)
@@ -28,7 +29,7 @@ from rasterio.vrt import WarpedVRT
 from scipy.ndimage import distance_transform_edt, map_coordinates
 from scipy.spatial import cKDTree
 from shapely.geometry import LineString
-from shapely.ops import linemerge, substring, unary_union
+from shapely.ops import unary_union
 
 sys.path.insert(0, os.path.dirname(__file__))
 from common import (
@@ -257,207 +258,139 @@ def hydro_flatten(arr, transform, width, height, reaches, max_depth=3.0):
     return out
 
 
-def load_road_lines(min_e, min_n, max_e, max_n):
-    from osm_common import road_width_m, is_bridge, way_line_utm
-    roads = load_osm("roads_rails")
-    roads = clip_lines_by_bounds(roads, min_e, min_n, max_e, max_n, pad=50.0)
+from roads import build_profiles   # noqa: E402  (pipeline/roads/build_profiles.py: the vertical solve)
+
+CROWN = 0.02            # normal crown, design_standards.json cross_section.crown (set in main)
+FEATHER_M = 1.5         # past a corridor's edge the conformed ground blends back to what is beneath over this
+CONFORM_CHUNK = 64      # samples per window when finding a strip's raster cells
+
+
+def _corridor_cells(cols, rows, reach, width, height):
+    """Flat indices of every raster cell within `reach` cells of any sample (windows per chunk)."""
     out = []
-    for el in roads:
-        tags = el.get("tags", {})
-        if "highway" not in tags:
+    for i in range(0, len(cols), CONFORM_CHUNK):
+        c, r = cols[i:i + CONFORM_CHUNK], rows[i:i + CONFORM_CHUNK]
+        c0 = max(int(np.floor(c.min() - reach)), 0)
+        c1 = min(int(np.ceil(c.max() + reach)), width - 1)
+        r0 = max(int(np.floor(r.min() - reach)), 0)
+        r1 = min(int(np.ceil(r.max() + reach)), height - 1)
+        if c1 < c0 or r1 < r0:
             continue
-        if is_bridge(tags):
-            continue
-        line = way_line_utm(el)
-        if line is None or line.length < 1.0:
-            continue
-        out.append((line, road_width_m(tags)))
-    return out
+        rr, cc = np.mgrid[r0:r1 + 1, c0:c1 + 1]
+        out.append((rr * width + cc).ravel())
+    return np.unique(np.concatenate(out)) if out else np.empty(0, dtype=np.int64)
 
 
-from roads.bridges_composed import ROAD_SURFACE_M   # noqa: E402
-
-BRIDGE_ANCHOR_SNAP_M = 6.0     # a road ends 'at' a bridge when its end is within this of the deck's
-BRIDGE_ANCHOR_WIDE_M = 6.0     # within the blend of a bridge end, the conformed ground reaches this far beyond the road's edge
-                               # (to the sidewalks), and is level across, so the sidewalks meet the walkways
-BRIDGE_ANCHOR_BLEND_M = 40.0   # how far back along an approach road the deck's end height is blended in
-
-
-def _smoothstep(t):
-    t = np.clip(t, 0.0, 1.0)
-    return t * t * (3.0 - 2.0 * t)
-
-
-def load_bridge_anchors(base_elevation_m):
-    """Where a bridge designed in Bridge Composer ends and how high its deck is there.
-
-    Returns [(easting, northing, elevation_m), ...], one per deck end. The roads that run up
-    to those ends are conformed to the deck's height (road_conform), so the approach rises to
-    meet the deck instead of ending in the sag where the DEM drops into the river bank."""
-    folder = os.path.join(GAME_DATA, "bridges_composed")
-    out = []
-    if not os.path.isdir(folder):
-        return out
-    for name in sorted(os.listdir(folder)):
-        if not name.endswith(".json"):
-            continue
-        try:
-            with open(os.path.join(folder, name)) as handle:
-                design = json.load(handle)
-            if design.get("format") != "dixon-bridge":
-                continue
-            line = design["centerline"]
-            rows = design["deck"]["elevation"]
-            for (x, z), row in ((line[0], rows[0]), (line[-1], rows[-1])):
-                # game x = easting - origin; game z = -(northing - origin)
-                # the deck's end is the road surface; the terrain under the approach sits ROAD_SURFACE_M below it
-                out.append((ORIGIN_EASTING + x, ORIGIN_NORTHING - z, row[1] - ROAD_SURFACE_M + base_elevation_m))
-        except (OSError, ValueError, KeyError, IndexError, TypeError):
-            continue
-    return out
+def _strip_surface(tree, st, elev, xs, ys, reach_max):
+    """For cells (xs, ys): distance to the strip's nearest sample, its conformed height there
+    (crown fall included) and its blend weight alpha (1 inside the corridor, 0 past the feather)."""
+    d, i = tree.query(np.column_stack([xs, ys]), distance_upper_bound=reach_max)
+    hw, extra, camber = st["hw"], st["extra"], st["camber"]
+    ok = np.isfinite(d)
+    ic = np.where(ok, i, 0)
+    dc = np.where(ok, d, reach_max)
+    core = hw[ic] + extra[ic]
+    v = elev[ic] - camber[ic] * CROWN * np.minimum(dc, hw[ic] + 0.5)
+    t = np.clip((dc - core) / FEATHER_M, 0.0, 1.0)
+    alpha = np.where(ok, 1.0 - (3 * t ** 2 - 2 * t ** 3), 0.0)
+    return dc, v, alpha
 
 
-BRIDGE_ANCHOR_EXTEND_M = 3.0   # a conformed road runs this far onto the bridge, so raster cells at the abutment are covered
+def paint_strip(out, transform, width, height, st, pts, elev):
+    """Conform the ground under one strip of road samples (UTM points, absolute elevations of the
+    conformed ground at the centreline), over whatever has been painted already.
+
+    Each cell takes its nearest sample's height less the crown's fall (camber * CROWN * distance,
+    flat past the pavement edge), is fully conformed out to hw + extra and blends back to what is
+    beneath over FEATHER_M beyond."""
+    spacing = abs(transform.a)
+    inv = ~transform
+    # sample (row, col) of the written heightmap is read at the cell's corner, transform * (col, row),
+    # by every consumer (common_roads.Heightmap, road_metrics, the terrain), so it is painted there
+    cols, rows = inv * (pts[:, 0], pts[:, 1])
+    reach = float((st["hw"] + st["extra"]).max()) + FEATHER_M
+    flat = _corridor_cells(cols, rows, reach / spacing + 1.0, width, height)
+    if flat.size == 0:
+        return 0
+    rr, cc = np.divmod(flat, width)
+    xs, ys = transform * (cc, rr)
+    _, v, alpha = _strip_surface(cKDTree(pts), st, elev, xs, ys, reach)
+    m = alpha > 0
+    rr, cc, v, alpha = rr[m], cc[m], v[m], alpha[m]
+    out[rr, cc] = (alpha * v + (1.0 - alpha) * out[rr, cc]).astype(np.float32)
+    return int(m.sum())
 
 
-def _extend_line(line, ends):
-    """`line` continued BRIDGE_ANCHOR_EXTEND_M past the end(s) that meet a bridge."""
-    coords = list(line.coords)
-    def step(a, b, dist):
-        d = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5 or 1.0
-        return (b[0] + (b[0] - a[0]) / d * dist, b[1] + (b[1] - a[1]) / d * dist)
-    if ends["start"] is not None:
-        coords.insert(0, step(coords[1], coords[0], BRIDGE_ANCHOR_EXTEND_M))
-    if ends["end"] is not None:
-        coords.append(step(coords[-2], coords[-1], BRIDGE_ANCHOR_EXTEND_M))
-    return LineString(coords)
+JUNCTION_BLEND_EPS_M2 = 0.25   # softens the inverse-square weights at the centrelines themselves
 
 
-def anchor_profile(dists, elevs, length, ends, blend_m=BRIDGE_ANCHOR_BLEND_M):
-    """Blends a road's elevation profile toward a bridge deck's height at its ends.
+def blend_junction(out, transform, width, height, cp, members):
+    """Where the routes meeting at a junction overlap, their surfaces are blended by inverse-square
+    distance to each centreline, instead of the last-painted one covering the others: each
+    centreline keeps its own profile and crown, and the pavement between them is warped smoothly
+    from one to the other. `members`: [(strip, kd-tree, elevations), ...]."""
+    spacing = abs(transform.a)
+    reach = max(float((st["hw"] + st["extra"]).max()) for st, _, _ in members) + FEATHER_M
+    radius = 2.5 * reach
+    inv = ~transform
+    c, r = inv * cp
+    c0, c1 = max(int(c - radius / spacing), 0), min(int(c + radius / spacing) + 1, width - 1)
+    r0, r1 = max(int(r - radius / spacing), 0), min(int(r + radius / spacing) + 1, height - 1)
+    if c1 < c0 or r1 < r0:
+        return 0
+    rr, cc = np.mgrid[r0:r1 + 1, c0:c1 + 1]
+    rr, cc = rr.ravel(), cc.ravel()
+    xs, ys = transform * (cc, rr)
+    inside = (xs - cp[0]) ** 2 + (ys - cp[1]) ** 2 <= radius ** 2
+    rr, cc, xs, ys = rr[inside], cc[inside], xs[inside], ys[inside]
+    num = np.zeros(len(rr))
+    den = np.zeros(len(rr))
+    count = np.zeros(len(rr), dtype=int)
+    top = np.zeros(len(rr))
+    for st, tree, elev in members:
+        d, v, alpha = _strip_surface(tree, st, elev, xs, ys, reach)
+        w = alpha / (d * d + JUNCTION_BLEND_EPS_M2)
+        num += w * v
+        den += w
+        count += alpha > 0
+        top = np.maximum(top, alpha)
+    m = count >= 2
+    if not m.any():
+        return 0
+    rr, cc = rr[m], cc[m]
+    blended = num[m] / den[m]
+    out[rr, cc] = (top[m] * blended + (1.0 - top[m]) * out[rr, cc]).astype(np.float32)
+    return int(m.sum())
 
-    `ends` is {"start": y or None, "end": y or None}: the deck height to meet at the road's first
-    and last point. The profile reaches that height exactly at the end and returns to its own
-    over `blend_m`, along the road (smoothstep), so the grade is gentle and the road meets the
-    deck level."""
-    out = np.array(elevs, dtype=np.float64)
-    dists = np.asarray(dists, dtype=np.float64)
-    for key, y in ends.items():
-        if y is None:
-            continue
-        d = dists if key == "start" else length - dists
-        w = _smoothstep(1.0 - d / blend_m)
-        out = out * (1.0 - w) + y * w
-    return out
 
+def road_conform(arr, transform, width, height, strips, junctions=(), base_elevation_m=0.0):
+    """Burn the designed road profiles (roads/build_profiles.py) into the ground.
 
-def smooth_profile(dists, elevs, window_m=15.0):
-    if len(dists) < 3:
-        return elevs
-    out = np.array(elevs, dtype=np.float64)
-    for i in range(len(dists)):
-        lo = dists[i] - window_m / 2
-        hi = dists[i] + window_m / 2
-        sel = (dists >= lo) & (dists <= hi)
-        out[i] = np.mean(np.array(elevs)[sel])
-    return out
-
-
-def road_conform(arr, transform, width, height, roads, anchors=()):
+    `strips` come from build_profiles.conform_strips, lowest priority first: paths, then routes
+    from the lowest class up, so where corridors overlap away from a junction the senior one is on
+    top. At each junction the routes that meet there are then blended (blend_junction)."""
     out = arr.copy()
-    all_pts = []   # (e, n)
-    all_elev = []
-    all_hw = []    # half-width at that sample
-    corridor_polys = []
-    anchored = []
-    zone_pts, zone_elev, zone_hw, zone_polys = [], [], [], []   # the ground beside an approach to a bridge
-
-    for line, wid in roads:
-        # A road that ends at a bridge's end rises (or falls) to the deck's height there. Only a
-        # road whose own end is at the bridge counts: one that merely passes beneath it (a
-        # riverside path) is left at the ground.
-        ends = {"start": None, "end": None}
-        if anchors:
-            for key, p in (("start", line.coords[0]), ("end", line.coords[-1])):
-                for e, n_, y in anchors:
-                    if (p[0] - e) ** 2 + (p[1] - n_) ** 2 <= BRIDGE_ANCHOR_SNAP_M ** 2:
-                        ends[key] = y
-            if ends["start"] is not None or ends["end"] is not None:
-                line = _extend_line(line, ends)
-        n = max(2, int(line.length / 2.0))
-        dists = np.linspace(0, line.length, n)
-        pts = [line.interpolate(d) for d in dists]
-        es = np.array([p.x for p in pts])
-        ns = np.array([p.y for p in pts])
-        elevs = bilinear_sample(arr, transform, es, ns)
-        elevs_smooth = smooth_profile(dists, elevs, window_m=15.0)
-        if ends["start"] is not None or ends["end"] is not None:
-            elevs_smooth = anchor_profile(dists, elevs_smooth, line.length, ends)
-            anchored.append((line.length, ends))
-        half_w = wid / 2.0
-        for e, n, el in zip(es, ns, elevs_smooth):
-            all_pts.append((e, n))
-            all_elev.append(el)
-            all_hw.append(half_w)
-        corridor_polys.append((line.buffer(half_w + 1.5, cap_style=2), 1))
-        # Within the blend of a bridge end the ground is also levelled out to the sidewalks, so the
-        # walkway on the bridge meets them. These samples get a pass of their own after the main one,
-        # because nearest-sample conforming lets a neighbouring road's lower samples win at a junction.
-        for key, lo, hi in (("start", 0.0, BRIDGE_ANCHOR_BLEND_M),
-                            ("end", line.length - BRIDGE_ANCHOR_BLEND_M, line.length)):
-            if ends[key] is None:
+    by_key = {}
+    for st in strips:
+        x, z = st["xz"][:, 0], st["xz"][:, 1]
+        pts = np.column_stack([ORIGIN_EASTING + x, ORIGIN_NORTHING - z])
+        # the conformed ground is the road surface less the road mesh's height above it
+        elev = st["y"] - build_profiles.ROAD_SURFACE_M + base_elevation_m
+        by_key[st["key"]] = (st, pts, elev)
+        paint_strip(out, transform, width, height, st, pts, elev)
+    trees = {}
+    for j in junctions:
+        members = []
+        for key in j["routes"]:
+            if key not in by_key:
                 continue
-            for e, n_, el, dist_along in zip(es, ns, elevs_smooth, dists):
-                if lo <= dist_along <= hi:
-                    zone_pts.append((e, n_))
-                    zone_elev.append(el)
-                    zone_hw.append(half_w + BRIDGE_ANCHOR_WIDE_M)
-            zone_polys.append((substring(line, max(0.0, lo), min(line.length, hi)).buffer(
-                half_w + BRIDGE_ANCHOR_WIDE_M + 1.5, cap_style=2), 1))
-
-    if not all_pts:
-        return out
-
-    corridor_mask = rasterize(corridor_polys, out_shape=(height, width), transform=transform, fill=0, dtype=np.uint8).astype(bool)
-    rows, cols = np.nonzero(corridor_mask)
-    if rows.size == 0:
-        return out
-    xs, ys = transform * (cols + 0.5, rows + 0.5)  # pixel-center -> UTM
-
-    tree = cKDTree(np.array(all_pts))
-    dist_to_center, idx = tree.query(np.column_stack([xs, ys]), k=1)
-    center_elev = np.array(all_elev)[idx]
-    half_w = np.array(all_hw)[idx]
-    buffer_r = half_w + 1.5
-
-    camber_drop = np.clip(0.02 * dist_to_center, 0.0, 0.02 * (half_w + 0.5))
-    conformed = center_elev - camber_drop
-
-    # feather the last ~2m of the buffer back to the raw surface
-    feather_start = np.maximum(buffer_r - 2.0, half_w)
-    t = np.clip((dist_to_center - feather_start) / np.maximum(buffer_r - feather_start, 0.01), 0.0, 1.0)
-    alpha = 1.0 - (3 * t ** 2 - 2 * t ** 3)  # smoothstep, 1 at center -> 0 at edge
-    raw_here = arr[rows, cols]
-    blended = alpha * conformed + (1 - alpha) * raw_here
-
-    out[rows, cols] = blended.astype(np.float32)
-
-    if zone_pts:
-        # the second pass: level ground out to the sidewalks beside each bridge approach
-        zmask = rasterize(zone_polys, out_shape=(height, width), transform=transform, fill=0, dtype=np.uint8).astype(bool)
-        zrows, zcols = np.nonzero(zmask)
-        if zrows.size:
-            zx, zy = transform * (zcols + 0.5, zrows + 0.5)
-            ztree = cKDTree(np.array(zone_pts))
-            zdist, zidx = ztree.query(np.column_stack([zx, zy]), k=1)
-            zhw = np.array(zone_hw)[zidx]
-            zbuf = zhw + 1.5
-            zstart = np.maximum(zbuf - 2.0, zhw - BRIDGE_ANCHOR_WIDE_M)
-            zt = np.clip((zdist - zstart) / np.maximum(zbuf - zstart, 0.01), 0.0, 1.0)
-            zalpha = 1.0 - (3 * zt ** 2 - 2 * zt ** 3)
-            out[zrows, zcols] = (zalpha * np.array(zone_elev)[zidx] + (1 - zalpha) * out[zrows, zcols]).astype(np.float32)
-    if anchors:
-        print(f"  {len(anchored)} road ends conformed to a composed bridge's deck height")
+            st, pts, elev = by_key[key]
+            if key not in trees:
+                trees[key] = cKDTree(pts)
+            members.append((st, trees[key], elev))
+        if len(members) >= 2:
+            cp = (ORIGIN_EASTING + j["x"], ORIGIN_NORTHING - j["z"])
+            blend_junction(out, transform, width, height, cp, members)
     return out
 
 
@@ -479,13 +412,25 @@ def main():
     reaches = build_water_reaches((min_e, min_n, max_e, max_n))
     play_hydro = hydro_flatten(play_arr, play_transform, pw, ph, reaches) if reaches else play_arr.copy()
 
+    # the hydro-flattened ground is what the vertical solve fits, so it is written first
+    write_r32(os.path.join(GAME_DATA, "heightmap_play_1m.r32"), play_hydro - base_elevation_m)
+
+    print("Road profiles (vertical solve)...")
+    global CROWN
+    standards = build_profiles.rm.load_standards()
+    CROWN = standards["cross_section"]["crown"]
+    ground = build_profiles.rm.Surface.from_grid(play_hydro - base_elevation_m, play_transform)
+    doc, report = build_profiles.solve(surface=ground, standards=standards)
+    build_profiles.write(doc, report)
+    s = build_profiles.summary(report)
+    print(f"  {s['routes']} route profiles ({s['pvis']} PVIs), {s['paths']} path profiles; "
+          f"fit to ground p50 {s['fit_to_ground_m']['p50']} m, p99 {s['fit_to_ground_m']['p99']} m; "
+          f"{s['conflicts']} control conflicts")
+
     print("Road-conforming...")
-    roads = load_road_lines(min_e, min_n, max_e, max_n)
-    print(f"  {len(roads)} non-bridge road segments")
-    anchors = load_bridge_anchors(base_elevation_m)
-    if anchors:
-        print(f"  {len(anchors)} composed-bridge deck ends anchor the road profile")
-    play_road = road_conform(play_hydro, play_transform, pw, ph, roads, anchors)
+    strips, junctions = build_profiles.conform_strips(doc)
+    print(f"  {len(strips)} strips, {len(junctions)} junctions blended")
+    play_road = road_conform(play_hydro, play_transform, pw, ph, strips, junctions, base_elevation_m)
 
     print("Building horizon heightmap...")
     hmin_e, hmin_n, hmax_e, hmax_n = horizon_extent()
@@ -495,7 +440,6 @@ def main():
     print(f"  horizon grid: {hw}x{hh} @ {HORIZON_SPACING_M}m")
 
     # write outputs, offset by base_elevation_m
-    write_r32(os.path.join(GAME_DATA, "heightmap_play_1m.r32"), play_hydro - base_elevation_m)
     write_r32(os.path.join(GAME_DATA, "heightmap_play_1m_road_conformed.r32"), play_road - base_elevation_m)
     write_r32(os.path.join(GAME_DATA, "heightmap_horizon_12.5m.r32"), horizon_arr - base_elevation_m)
 

@@ -106,9 +106,11 @@ the straight line between them plus a parabola `crest` high at midspan
 continuously end to end: on Galena (207 m, ends 8.51 / 8.0, 0.5 m crest) the steepest run is 1.2%,
 where ramping to a flat design height used 8% over 6 m. The crest is the deck's camber; the
 default 0.5 m is an estimate (the real rise at the Galena Ave Bridge is not documented) and is
-meant to be adjusted. `pipeline/build_heightmap.py` raises the approach roads that end at a
-composed bridge to the deck's end heights (the terrain under them is `ROAD_SURFACE_M` = 0.085 m lower,
-as roads sit above terrain), blending back to the ground over 40 m, so the roads meet the deck.
+meant to be adjusted. The deck's end heights and end grades are fixed controls of the route's
+vertical profile (`pipeline/roads/build_profiles.py`, run by `pipeline/build_heightmap.py`), so the
+approach road's designed profile meets the deck level and without a kink; the terrain under the road
+is `ROAD_SURFACE_M` = 0.085 m lower, as roads sit above terrain. A path that ends at a composed deck
+has its end held at the deck's height the same way.
 
 ### Supports
 | field | meaning | default |

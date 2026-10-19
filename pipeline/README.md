@@ -24,7 +24,8 @@ cd pipeline
    reprojects to EPSG:26916 with `rasterio.vrt.WarpedVRT`, and writes:
    - `game/data/world_origin.json`
    - `game/data/heightmap_play_1m.r32` (resampled + hydro-flattened river)
-   - `game/data/heightmap_play_1m_road_conformed.r32` (same + road corridors carved)
+   - `game/data/heightmap_play_1m_road_conformed.r32` (same + the designed road profiles burnt in)
+   - `game/data/profiles.json` (the roads' vertical alignments, from `roads/build_profiles.py`)
    - `game/data/heightmap_horizon_12.5m.r32` (coarse 10x10km surround)
    - `game/data/_water_reaches_utm.json` -- **internal** intermediate file
      (river/pond reach polygons in UTM + pool levels), consumed by
@@ -117,14 +118,27 @@ either side of Van Arnam Island) is exported as multiple ring entries
 
 ### Road-conforming
 
-For every non-bridge `highway=*` way: sample raw elevation at 2m intervals,
-smooth along arc-length with a 15m moving average (removes DEM noise/bumps
-so grades read as smooth), then for every heightmap pixel within
-`half_width + 1.5m` of the smoothed centerline, look up the nearest sample
-(via a `scipy.spatial.cKDTree`) and apply a ~2% camber (drop proportional to
-lateral distance from centerline, capped at the roadway edge) for drainage
-crown. The last ~2m of the buffer is feathered (smoothstep) back to the raw
-surface to avoid a hard seam at the shoulder.
+The roads are burnt in from their designed vertical profiles
+(`roads/build_profiles.py`, docs/roadway_control_plan.md phase 2), which
+`build_heightmap.py` solves on the hydro-flattened ground before conforming:
+each route of `game/data/alignments.json` is a chain of PVIs and parabolic
+vertical curves fitted robustly to the DEM, with junction elevations shared
+between the routes that meet, composed bridge decks and rail crossings held,
+and `pipeline/roads/alignment_overrides.json` pins. Ways on no route
+(footways, paths) get a profile of their own. The profiles are written to
+`game/data/profiles.json` and a design-check report to
+`game/roads/_build/profile_report.json`.
+
+Each road is then painted along its OSM centreline, lowest class first: every
+pixel within `half_width` of the centreline takes the profile height of its
+nearest sample (0.5 m apart) less the conformed surface's `ROAD_SURFACE_M`,
+less a 2% crown fall to the pavement edge, and the next 1.5 m is feathered
+(smoothstep) back to what was beneath. At each junction the routes that meet
+are blended by inverse-square distance to each centreline, so every
+centreline keeps its own profile and the pavement between them warps without
+a crease. Within 40 m of a composed bridge deck's end the section eases to
+level and widens 6 m past the pavement, so the sidewalks meet the deck's
+walkways.
 
 ### Bridge deck heights
 
