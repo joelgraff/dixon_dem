@@ -144,17 +144,15 @@ against buildings/water.
   faster than tall/unmown).
 - `vegetation.gd` — loads `trees.json`/`shrubs.json`, builds the mesh cache
   (one `ArrayMesh` per species×variation, 3 variations/species), chunks
-  instances into `MultiMeshInstance3D` nodes: **near LOD** (120m chunks,
-  real branch mesh, `visibility_range` 0-115m, 20m fade), **far LOD** (300m
-  chunks, billboard impostor grouped by deciduous/conifer form only — color
-  fidelity matters less at range, so this tier doesn't need per-species
-  meshes — 95-850m, both fades overlapping 90-115m for a soft crossfade),
-  **shrubs** (120m chunks, 0-55m, no far tier — too small to matter at
-  range). Materials built once: a duplicate of `materials/lib/bark.tres`
-  (grime disabled — MultiMesh shares one material across instances at very
-  different elevations, and grime's `ground_level` is a single scalar; see
-  materials_notes.md's own documented limitation for exactly this
-  situation) plus one shared `ShaderMaterial` each for foliage/grass.
+  instances into `MultiMeshInstance3D` nodes: **near LOD** (64m chunks, real
+  branch mesh), **far LOD** (256m chunks, one camera-facing impostor quad per
+  tree, every species in one draw per chunk), a **shadow proxy** copy of the
+  far layer, and **shrubs** (64m chunks, no far tier). The LOD switch is
+  per tree in the shaders, not per chunk — see "LOD (2026-10-19)" below.
+  Materials built once: `tree_bark.gdshader` (fed the texture set from
+  `materials/lib/bark.tres`), `foliage.gdshader` in four variants
+  (deciduous, evergreen, shrub, hedge), `tree_impostor.gdshader` (visible and
+  shadow-proxy variants), grass.
 - `grass_spawner.gd` — runtime-only, not part of the static placement plan.
   Loads the imported `grass_mask.png` as a `Texture2D` (export-safe) and reads
   its image plus `grass_mask.json` (R=mown density, G=tall/unmown density), and
@@ -187,12 +185,18 @@ near houses), `shrub_wild` (scruffier, wood-edge/rail-side), cattail
   pixel-by-pixel the way roads did (see roads_notes.md's `Pillow` mean
   technique) — a future pass could cross-check the same way if a critic
   wants tighter numbers.
-- Tree instances use the placement plan's `canopy_r_m` for horizontal scale
-  and `height_m` for vertical scale; street/downtown trees retain the
-  existing 0.6 size factor. This allows crown width to vary independently of
-  height. The procedural near meshes' crown envelope is approximate, so
-  inspect eye-level captures for LOD silhouette changes.
-- **Season-transition color path is a 4-keyframe piecewise function** tuned
+- Tree meshes are normalised to unit height at build time and carry their
+  measured crown radius (`crown_r` mesh meta). Instances get vertical scale
+  `height_m` and horizontal scale `canopy_r_m / crown_r`, clamped to within
+  1.5x of uniform (`MAX_CROWN_STRETCH`) so leaf cards don't smear. Before
+  2026-10-19 the meshes topped out at ~1.5 units with a ~0.75 crown radius
+  while the code assumed 1.0 and 1.0: every tree rendered 1.5x its planned
+  height with crowns ~25% narrower than planned and cards stretched ~2x
+  vertically, and the far billboard (correctly sized) did not match it.
+- **Season-transition color path is a 4-keyframe piecewise function**
+  (now in `tree_common.gdshaderinc`; the spring keyframe is derived from each
+  species' summer colour — the old fixed `vec3(0.66, 0.78, 0.40)` was ~4x the
+  tuned summer albedo; spring is not re-captured since that change) tuned
   for the four *static* keyframe looks (matching every capture in this
   brief), not for what a live multi-second transition passes through
   mid-tween — e.g. a summer→autumn transition numerically crosses the
@@ -386,3 +390,111 @@ whoever next captures vegetation shots should confirm both that the bad
 frame doesn't reproduce and that far-LOD trees now sit correctly on the
 ground with the right silhouette height at the near/far crossfade distance
 (~80-95m from camera).
+
+
+## LOD (2026-10-19): per-tree crossfade, impostors, shadow proxy
+
+**Why trees vanished near the camera.** Godot evaluates `visibility_range`
+from the camera to each node's AABB *centre*
+(`renderer_scene_cull.cpp`, `_visibility_range_check`), and the fade band
+for `FADE_SELF` is `[end - end_margin, end + end_margin]`. The trees were in
+120m near chunks with `end` 90 / margin 18 and 300m far chunks with `begin`
+78 / margin 25. So a whole near chunk disappeared once its centre passed
+108m, even with trees in it 10-20m away, while the far chunk covering the
+same trees stayed hidden until *its* centre was >53m away: whole blocks of
+trees within 50m were sometimes drawn by neither layer. Elsewhere both drew.
+The far billboards were also two crossed cards at twice the near crown's
+width and two-thirds its height, using the leaf shader with density 0 in
+winter, so in winter every tree beyond the near range disappeared.
+
+**Now.** Each tree fades itself by its own distance
+(`tree_common.gdshaderinc`: instance origin = `MODEL_MATRIX[3]` in vertex).
+The near mesh (foliage + bark) dissolves over `[LOD_NEAR_END - LOD_BAND,
+LOD_NEAR_END]` = 105-130m with a screen-space dither that shifts every frame
+(TAA blends it into a crossfade); the impostor uses the same value and dither
+inverted, so each pixel is drawn by exactly one layer. Instances fully on the
+other side collapse to a point in the vertex shader (no fragment cost).
+Chunk `visibility_range` is now just a cull with slack (near chunks end at
+130 + 0.75 x chunk + 25m, fade disabled); impostors have no far limit — the
+whole town is visible from the air. `veg_camera_pos` is pushed to the
+materials every frame from the active camera, because shadow passes see the
+light as their camera. In winter (`season_foliage` 0.8-1) the near range
+shrinks to 75m (`LOD_NEAR_END_BARE`): bare impostors look the same past that
+and cost one quad.
+
+**Impostor** (`tree_impostor.gdshader`): one camera-facing quad per tree,
+pivoted at the crown centre (so it reads round from above, not a sliver),
+width = rendered crown diameter, height = tree height. Crown (lumpy ellipse
+for deciduous, tiered cone for conifers), trunk, clump shading and a
+pseudo-sphere normal are analytic. Species summer/autumn colours ride in
+`INSTANCE_CUSTOM` (8:8:8 packed), and tint/autumn timing use the same
+per-tree hash functions as the near mesh, so colour doesn't jump at the
+switch (measured on `street_elev_summer`: near crowns sRGB ~(133,150,98),
+impostors ~(141,155,100)). Bare deciduous impostors draw five limbs from the
+trunk top plus a light twig haze; conifers stay green.
+
+**Shadow proxy.** Near crowns no longer cast shadows; a second, shadow-only
+copy of the impostor layer (`shadow_proxy = true`: ignores the LOD fade, so
+the quad faces the light) casts for every tree. Near-crown shadows into 4
+cascades cost ~3ms at street level; this is nearly free and the shadow no
+longer changes shape at the LOD switch. The proxy drops the twig haze
+(dithered haze cast solid-looking discs on snow). Trade-off: no self-shadowing
+inside a near crown beyond what the proxy plane gives (roughly: lower half
+of the crown is shadowed, upper half lit).
+
+**Near mesh look.** Foliage cards carry crown-volume normals (ellipsoid
+gradient from the crown centre, baked in `_finalize_tree`) instead of
+per-card plane normals, so a crown shades as one lit volume. Cards tilt up to
+±0.8 rad (was ±0.35, which left them edge-on from below) and cards seen
+edge-on fade out (geometric normal from screen derivatives) instead of
+smearing into streaks. The leaf mask is leaf-sized lobes from two noise
+octaves seeded per card (`v_card_seed`), the fine octave fading with
+`fwidth` so it doesn't sparkle at range. Per-tree tint (value 0.80-1.16,
+warm/cool hue), per-tree autumn timing and season colour are computed per
+vertex. A third branch level of thin twigs gives the bare crown a fine
+outer silhouette. Bark uses `tree_bark.gdshader` (same textures, darker
+grey-brown, per-tree LOD).
+
+**Fixed in passing:** `foliage.gdshader` computed "world position" in
+`fragment()` as `MODEL_MATRIX * VERTEX`, but there `VERTEX` is view space and
+`MODEL_MATRIX` is the chunk node's identity, so the hole-punch noise and
+autumn jitter were in view space and swam as the camera moved. World
+position is now a varying from `vertex()`. Conifers and arborvitae used the
+deciduous leaf-drop curve and lost all needles in winter; they now use
+evergreen material variants.
+
+**Density.** Yard/park/wood trees are thinned 15% at build time
+(`DENSITY_THIN_PCT`, agreed with the user 2026-10-19), on top of the
+existing 15% street-tree thinning. It bought ~1fps in the dense park view —
+tree count is not the main cost; near-crown fill rate is.
+
+**Twig haze on near cards** is implemented (`twig_haze` uniform) but off: with
+TAA it read as pale blue fog around near crowns and cost ~3fps in winter.
+
+### Performance (1920x1080, RX 580, `vegetation/perf_probe.tscn`)
+
+`perf_probe.gd` now takes `--pos=x,y,z --look=x,y,z`; its default vantage
+moved because the old S Hennepin one is inside a house wall since the road
+relayout. Vantages are those in `captures/vegetation/lod/shots.json`.
+Before = HEAD vegetation code (27a46dc), same session, same GPU.
+
+| vantage | before summer | after summer | before winter | after winter |
+|---|---|---|---|---|
+| street_eye (2208, 25.8, -876) | 61.5 | 65.5 | 55.8 | 60.0 |
+| park_eye (2150, 7.6, -1850) | 37.0 | 55.5 | 40.1 | 52.3 |
+| street_elev (+45m) | 30.9 | 61.8 | 51.6 | 64.2 |
+| vista_high (+200m) | 73.8 | 74.5 | 73.2 | 68.9 |
+| roads `perf_probe.tscn` (downtown) | 54.9 | 48.8-52.0 | | |
+
+Run-to-run spread is about ±2-3fps. All vegetation vantages are above the
+50fps floor; park (dense trees right at the camera) is below the 60 target.
+The downtown roads probe sits at ~51 whatever the vegetation does: hiding the
+near trees, the impostors, the shadow proxies or the shrubs each left it
+within 0.5fps, so the gap to its old 54.9 is not from this change. Where the
+remaining vegetation cost is: near crowns' fragment work (alpha-scissor cards
+run the fragment shader in the depth prepass and the colour pass). Moving the
+LOD switch from 130m to 95m gained <1fps; next levers would be fewer, larger
+cards per cluster or a cheaper leaf mask.
+
+Captures: `captures/vegetation/lod/before/` and `after/` (summer + winter,
+eye level, park, +45m, +200m).

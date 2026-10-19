@@ -28,13 +28,24 @@ func _ready() -> void:
 	_cam = Camera3D.new()
 	_cam.far = 4000.0
 	add_child(_cam)
-	# S Hennepin Ave, mature residential canopy -- street trees, yard trees,
-	# foundation shrubs, and near-camera grass all in frame at once.
-	_cam.position = Vector3(1723.0, 31.7, -585.0)
-	_cam.look_at(Vector3(1735.0, 29.0, -680.0), Vector3.UP)
+	# Default: residential street at eye height looking along a tree-lined
+	# block (street trees, yard trees, foundation shrubs, near grass and the
+	# impostor tier all in frame). The old S Hennepin vantage
+	# (1723, 31.7, -585) ends up inside a house wall since the 2026-10 road
+	# relayout. Override with --pos=x,y,z --look=x,y,z (e.g. the vantages in
+	# captures/vegetation/lod/shots.json).
+	var pos := _vec3_arg(args.get("pos", "2208,25.8,-876"))
+	var look := _vec3_arg(args.get("look", "2277,22,-1064"))
+	_cam.position = pos
+	_cam.look_at(look, Vector3.UP)
 	_cam.make_current()
 	WorldState.apply_named(args.get("season", "summer"), args.get("weather", "clear"), float(args.get("hour", "12.0")))
 	print("perf_probe(vegetation): warming up ", WARMUP_FRAMES, " frames...")
+
+
+func _vec3_arg(v: String) -> Vector3:
+	var p := v.split(",")
+	return Vector3(float(p[0]), float(p[1]), float(p[2]))
 
 
 func _process(_delta: float) -> void:

@@ -67,7 +67,8 @@ static func _add_cyl(st: SurfaceTool, base: Vector3, top: Vector3, r0: float, r1
 static func _add_card(st: SurfaceTool, center: Vector3, sz: float, rng: RandomNumberGenerator,
 		summer: Color, autumn: Color, ao: float, wind_weight: float) -> void:
 	var yaw := rng.randf() * TAU_F
-	var tilt := rng.randf_range(-0.35, 0.35)
+	# wide tilt range so cards seen from below/above aren't all edge-on
+	var tilt := rng.randf_range(-0.8, 0.8)
 	var right := Vector3(cos(yaw), 0, sin(yaw))
 	var up := Vector3(0, 1, 0).rotated(right, tilt) if right.length() > 0.01 else Vector3.UP
 	var fwd := right.cross(up).normalized()
@@ -158,16 +159,19 @@ static func build_deciduous(shape_family: String, seed: int, summer: Color, autu
 			var len2 := rng.randf_range(0.16, 0.26)
 			var tip := mid + dir2 * len2
 			_add_cyl(st_bark, mid, tip, r0 * 0.6, r0 * 0.25, 5, 0.0, len2)
+			# third level: short thin twigs fanning off the tip, so a bare
+			# winter crown has a fine outer silhouette instead of a few forks
+			for k in range(rng.randi_range(2, 3)):
+				var dir3 := (dir2 + Vector3(rng.randf_range(-0.8, 0.8), rng.randf_range(-0.2, 0.6), rng.randf_range(-0.8, 0.8))).normalized()
+				var len3 := rng.randf_range(0.07, 0.13)
+				_add_cyl(st_bark, tip, tip + dir3 * len3, r0 * 0.25, r0 * 0.08, 3, 0.0, len3)
 			var n_cards := leaf_density + rng.randi_range(-1, 2)
 			_add_leaf_cluster(st_leaf, tip, cluster_r * 0.34, rng, summer, autumn, rng.randf_range(0.55, 0.95), rng.randf_range(0.6, 1.0), n_cards)
 			# a mid-branch card for canopy fullness
 			if rng.randf() < 0.6:
 				_add_leaf_cluster(st_leaf, mid.lerp(tip, 0.45), cluster_r * 0.28, rng, summer, autumn, rng.randf_range(0.4, 0.7), rng.randf_range(0.4, 0.7), max(2, n_cards - 2))
 
-	var bark_mesh := ArrayMesh.new()
-	st_bark.commit(bark_mesh)
-	var out := st_leaf.commit(bark_mesh)
-	return out
+	return _finalize_tree(st_bark, st_leaf, false)
 
 
 const CONIFER_PARAMS := {
@@ -218,9 +222,7 @@ static func build_conifer(shape_family: String, seed: int, color: Color) -> Arra
 	# treetop tuft
 	_add_leaf_cluster(st_leaf, prev + Vector3(0, 0.03, 0), 0.09, rng, color, color, 0.9, 0.7, 3)
 
-	var mesh := ArrayMesh.new()
-	st_bark.commit(mesh)
-	return st_leaf.commit(mesh)
+	return _finalize_tree(st_bark, st_leaf, true)
 
 
 ## Squat rounded shrub or (columnar=true) a narrow hedge column. No bark
@@ -318,36 +320,84 @@ static func build_grass_blades(seed: int, n: int, tallness: float) -> ArrayMesh:
 	return st.commit(mesh)
 
 
-## Simple cross-card billboard impostor for far LOD (2 crossed quads spanning
-## the whole tree envelope, bottom at y=0 matching the near-mesh's trunk-base
-## origin so a MultiMeshInstance3D's uniform height_m scale lands the far
-## silhouette at the same world height/position as the near mesh it replaces
-## across the LOD crossfade). Reuses foliage.gdshader.
-static func build_billboard(summer: Color, autumn: Color, height_frac: float = 1.0) -> ArrayMesh:
+## Far-LOD impostor: one unit quad (x -0.5..0.5, y 0..1, UV 0..1 with v=0
+## at the base). tree_impostor.gdshader turns it to face the camera and draws
+## the crown/trunk analytically, so one mesh serves every species; the custom
+## AABB covers the camera-facing quad from any view angle (it pivots about
+## the crown centre, so from above it reaches out sideways).
+static func build_impostor_quad() -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_custom_format(0, SurfaceTool.CUSTOM_RGBA_FLOAT)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 1
-	var half_w := 0.5 * height_frac
-	var col := Color(summer.r, summer.g, summer.b, 0.75)
-	var cus := Color(autumn.r, autumn.g, autumn.b, 0.5)
-	for pass_i in range(2):
-		var right := Vector3(1, 0, 0) if pass_i == 0 else Vector3(0, 0, 1)
-		var base := Vector3(0, 0, 0)
-		var p00 := base - right * half_w
-		var p10 := base + right * half_w
-		var p11 := base + right * half_w + Vector3(0, height_frac, 0)
-		var p01 := base - right * half_w + Vector3(0, height_frac, 0)
-		var up := Vector3.UP
-		var n := up.cross(right).normalized()
-		st.set_color(col); st.set_custom(0, cus)
-		st.set_normal(n); st.set_uv(Vector2(0, 0)); st.add_vertex(p00)
-		st.set_normal(n); st.set_uv(Vector2(1, 0)); st.add_vertex(p10)
-		st.set_normal(n); st.set_uv(Vector2(1, 1)); st.add_vertex(p11)
-		st.set_color(col); st.set_custom(0, cus)
-		st.set_normal(n); st.set_uv(Vector2(0, 0)); st.add_vertex(p00)
-		st.set_normal(n); st.set_uv(Vector2(1, 1)); st.add_vertex(p11)
-		st.set_normal(n); st.set_uv(Vector2(0, 1)); st.add_vertex(p01)
+	st.set_normal(Vector3(0, 0, 1))
+	st.set_uv(Vector2(0, 0)); st.add_vertex(Vector3(-0.5, 0, 0))
+	st.set_uv(Vector2(1, 0)); st.add_vertex(Vector3(0.5, 0, 0))
+	st.set_uv(Vector2(1, 1)); st.add_vertex(Vector3(0.5, 1, 0))
+	st.set_uv(Vector2(0, 0)); st.add_vertex(Vector3(-0.5, 0, 0))
+	st.set_uv(Vector2(1, 1)); st.add_vertex(Vector3(0.5, 1, 0))
+	st.set_uv(Vector2(0, 1)); st.add_vertex(Vector3(-0.5, 1, 0))
+	var mesh := st.commit()
+	mesh.custom_aabb = AABB(Vector3(-1.0, -0.3, -1.0), Vector3(2.0, 1.9, 2.0))
+	return mesh
+
+
+## Normalises a tree to unit height (top of the foliage/branches at y=1.0,
+## trunk base at the origin) and replaces the foliage cards' plane normals
+## with crown-volume normals (outward from the crown centre, biased up), so
+## the canopy shades as one lit volume. Measured crown metadata is stored on
+## the mesh for vegetation.gd's instance scaling and the impostor:
+##   crown_r    = 90th-percentile horizontal radius of the foliage (unit-height space)
+##   crown_base = 10th-percentile foliage height (0..1)
+## Before this, the deciduous meshes topped out at ~1.5 units with a ~0.75
+## crown radius, so every tree rendered 1.5x its planned height_m and the
+## horizontal canopy_r_m scale (which assumed a 1.0 radius) squashed crowns
+## into tall, stretched cards.
+static func _finalize_tree(st_bark: SurfaceTool, st_leaf: SurfaceTool, conifer: bool) -> ArrayMesh:
+	var bark := st_bark.commit_to_arrays()
+	var leaf := st_leaf.commit_to_arrays()
+	var lv: PackedVector3Array = leaf[Mesh.ARRAY_VERTEX]
+	var bv: PackedVector3Array = bark[Mesh.ARRAY_VERTEX]
+	var top := 0.0
+	for p in lv:
+		top = maxf(top, p.y)
+	for p in bv:
+		top = maxf(top, p.y)
+	var k := 1.0 / maxf(top, 0.01)
+	for i in range(bv.size()):
+		bv[i] *= k
+	bark[Mesh.ARRAY_VERTEX] = bv
+
+	var radii := PackedFloat32Array()
+	var heights := PackedFloat32Array()
+	var centre := Vector3.ZERO
+	for i in range(lv.size()):
+		lv[i] *= k
+		centre += lv[i]
+		radii.append(Vector2(lv[i].x, lv[i].z).length())
+		heights.append(lv[i].y)
+	centre /= maxf(float(lv.size()), 1.0)
+	radii.sort(); heights.sort()
+	var crown_r := radii[int(radii.size() * 0.9)] if radii.size() > 0 else 0.4
+	var crown_base := heights[int(heights.size() * 0.1)] if heights.size() > 0 else 0.3
+	var half_h := maxf((1.0 - crown_base) * 0.5, 0.05)
+
+	var ln: PackedVector3Array = leaf[Mesh.ARRAY_NORMAL]
+	for i in range(lv.size()):
+		var d := lv[i] - centre
+		var n: Vector3
+		if conifer:
+			# cone: radial outward plus a strong upward lean
+			n = Vector3(d.x, 0.0, d.z).normalized() + Vector3(0, 0.45, 0)
+		else:
+			# ellipsoid gradient, biased up (sky light comes from above)
+			n = Vector3(d.x / crown_r, d.y / half_h, d.z / crown_r) + Vector3(0, 0.15, 0)
+		ln[i] = n.normalized() if n.length() > 0.001 else Vector3.UP
+	leaf[Mesh.ARRAY_VERTEX] = lv
+	leaf[Mesh.ARRAY_NORMAL] = ln
+
 	var mesh := ArrayMesh.new()
-	return st.commit(mesh)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, bark)
+	var custom_fmt := Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, leaf, [], {}, custom_fmt)
+	mesh.set_meta("crown_r", crown_r)
+	mesh.set_meta("crown_base", crown_base)
+	return mesh
