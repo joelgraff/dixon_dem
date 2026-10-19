@@ -16,7 +16,11 @@ every consumer builds on, so the numbers stay comparable when the way that surfa
 - breaklines: runs where |grade| > 25% or the grade changes by more than 15% in 10 m, each with
   the ground's own grade there and the distance to the nearest bridge end, to say why.
 
-Run: ../../.venv/bin/python road_metrics.py [--update-baseline]
+Since phase 3a every drivable way on a route is measured along its design line (the route
+alignment the road mesh and the conform are built on, templates.design_roads) at its template
+width; `--osm` measures along the OSM lines at their tag widths instead, as before.
+
+Run: ../../.venv/bin/python road_metrics.py [--update-baseline] [--osm] [--surface heightmap.r32]
 Writes game/roads/_build/road_metrics.json (the full report, breakline list included).
 `--update-baseline` rewrites road_metrics_baseline.json, the ratchet test_road_metrics.py holds
 the build to; do that only when a change makes the numbers better.
@@ -171,7 +175,10 @@ def leg_paths(way_vertices, node_id):
 
 def junction_step(node, legs, surface, fit=LEG_FIT_M):
     """Spread of the node's height and every leg's profile extended back to it (m), or None."""
-    heights = [float(surface.sample([node["x"]], [node["z"]])[0])]
+    # the legs start at the node as the ways draw it (on a design way, the junction's point on
+    # the route alignments, which can sit a little off the OSM node)
+    x, z = legs[0][0] if legs else (node["x"], node["z"])
+    heights = [float(surface.sample([x], [z])[0])]
     d = np.arange(fit[0], fit[1] + 1e-9, 1.0)
     for leg in legs:
         s_v = stations(leg)
@@ -267,7 +274,7 @@ def pct(values):
     return {("max" if p == 100 else f"p{p}"): round(float(np.percentile(v, p)), 4) for p in PERCENTILES}
 
 
-def measure(standards=None, surface=None, ground=None, roads=None, ends=None):
+def measure(standards=None, surface=None, ground=None, roads=None, ends=None, design=True):
     standards = standards or load_standards()
     surface = surface or Surface()
     if ground is None:
@@ -276,6 +283,12 @@ def measure(standards=None, surface=None, ground=None, roads=None, ends=None):
         with open(os.path.join(pc.GAME_DATA, "roads.json")) as handle:
             roads = json.load(handle)
     ends = bridge_ends() if ends is None else ends
+    osm_ways = roads["ways"]
+    if design:
+        # the surface is designed along the route alignments at template widths
+        # (templates.design_roads), so it is measured there, not along the OSM lines
+        import templates
+        roads, _ = templates.design_roads(roads)
 
     ways = [w for w in roads["ways"]
             if class_of(w["tags"]["highway"], standards) and not w["tags"].get("bridge")]
@@ -336,7 +349,8 @@ def measure(standards=None, surface=None, ground=None, roads=None, ends=None):
         if step is not None:
             steps.append(step)
     steps = np.array(steps)
-    legacy = legacy_profile_disagreement(ways, ground)
+    legacy = legacy_profile_disagreement([w for w in osm_ways if class_of(w["tags"]["highway"], standards)
+                                          and not w["tags"].get("bridge")], ground)
     from build_road_plan import VALID_BOUNDS
     beyond = length_beyond_heightmap(ways, surface, VALID_BOUNDS)
 
@@ -421,7 +435,10 @@ def built_vertices_beyond_heightmap(build_dir=os.path.dirname(REPORT_PATH)):
 
 
 def main(argv):
-    report = measure()
+    surface = None
+    if "--surface" in argv:          # measure another conformed heightmap (e.g. a saved earlier one)
+        surface = Surface(argv[argv.index("--surface") + 1])
+    report = measure(surface=surface, design="--osm" not in argv)
     if os.path.isdir(os.path.dirname(REPORT_PATH)):
         total, beyond = built_vertices_beyond_heightmap()
         report["diagnostic"]["built_vertices"] = total

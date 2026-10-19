@@ -66,6 +66,30 @@ class Heightmap:
         h1 = h01 * (1 - fc) + h11 * fc
         return float(h0 * (1 - fr) + h1 * fr)
 
+    def sample_many(self, x, z):
+        """sample() over arrays of points (the same bilinear weights and edge clamping)."""
+        col = np.clip((np.asarray(x, dtype=np.float64) - self.x0) / self.spacing, 0.0, self.width - 1.001)
+        row = np.clip((np.asarray(z, dtype=np.float64) - self.z0) / self.spacing, 0.0, self.height - 1.001)
+        c0 = np.floor(col).astype(np.intp)
+        r0 = np.floor(row).astype(np.intp)
+        c1 = np.minimum(c0 + 1, self.width - 1)
+        r1 = np.minimum(r0 + 1, self.height - 1)
+        fc = col - c0
+        fr = row - r0
+        g = self.grid
+        h0 = g[r0, c0] * (1 - fc) + g[r0, c1] * fc
+        h1 = g[r1, c0] * (1 - fc) + g[r1, c1] * fc
+        return h0 * (1 - fr) + h1 * fr
+
+    def normal_many(self, x, z, step=0.5):
+        """normal() over arrays of points: (n, 3) unit normals."""
+        x = np.asarray(x, dtype=np.float64)
+        z = np.asarray(z, dtype=np.float64)
+        dzdx = (self.sample_many(x + step, z) - self.sample_many(x - step, z)) / (2 * step)
+        dzdz = (self.sample_many(x, z + step) - self.sample_many(x, z - step)) / (2 * step)
+        n = np.column_stack([-dzdx, np.ones_like(dzdx), -dzdz])
+        return n / (np.linalg.norm(n, axis=1) + 1e-9)[:, None]
+
     def normal(self, x, z, step=0.5):
         """Approximate surface normal via central difference (Godot: +Y up, -Z north)."""
         hL = self.sample(x - step, z)
@@ -257,6 +281,45 @@ class MeshBuild:
         if area2 < 1e-8:
             return
         self.indices.extend([a, b, c])
+
+    def add_triangles(self, xyz, normals):
+        """Appends a soup of triangles at once: xyz and normals are (n, 3, 3) arrays, one row per
+        triangle corner. As with add_vertex then add_tri, every corner becomes a vertex and a
+        triangle whose 3D area is (near) zero gets no indices."""
+        xyz = np.asarray(xyz, dtype=np.float64).reshape(-1, 3, 3)
+        if not len(xyz):
+            return
+        normals = np.asarray(normals, dtype=np.float64).reshape(-1, 3, 3)
+        base = len(self.verts)
+        rows = np.concatenate([xyz.reshape(-1, 3), normals.reshape(-1, 3), np.zeros((len(xyz) * 3, 2))], axis=1)
+        self.verts.extend(map(tuple, rows.tolist()))
+        u = xyz[:, 1] - xyz[:, 0]
+        v = xyz[:, 2] - xyz[:, 0]
+        keep = np.linalg.norm(np.cross(u, v), axis=1) >= 1e-8
+        idx = base + np.arange(len(xyz) * 3).reshape(-1, 3)
+        self.indices.extend(idx[keep].ravel().tolist())
+
+    def add_quads_both_sides(self, quads, normals):
+        """Appends quads (n, 4, 3), each corner a vertex with the quad's normal (n, 3), and both
+        windings: as add_vertex x4 then add_quad(a, b, c, d) and add_quad(d, c, b, a)."""
+        quads = np.asarray(quads, dtype=np.float64)
+        if not len(quads):
+            return
+        base = len(self.verts)
+        rows = np.concatenate([quads.reshape(-1, 3), np.repeat(np.asarray(normals, dtype=np.float64), 4, axis=0),
+                               np.zeros((len(quads) * 4, 2))], axis=1)
+        self.verts.extend(map(tuple, rows.tolist()))
+        idx = base + np.arange(len(quads) * 4).reshape(-1, 4)
+        a, b, c, d = idx.T
+        tris = np.stack([np.stack(t, axis=1) for t in ((a, b, c), (a, c, d), (d, c, b), (d, b, a))], axis=1)
+        p = quads
+        corners = {"a": p[:, 0], "b": p[:, 1], "c": p[:, 2], "d": p[:, 3]}
+        keep = []
+        for u, v, w in (("a", "b", "c"), ("a", "c", "d"), ("d", "c", "b"), ("d", "b", "a")):
+            e1, e2 = corners[v] - corners[u], corners[w] - corners[u]
+            keep.append(np.linalg.norm(np.cross(e1, e2), axis=1) >= 1e-8)
+        keep = np.stack(keep, axis=1)
+        self.indices.extend(tris[keep].ravel().tolist())
 
     def add_quad(self, a, b, c, d):
         """a,b,c,d in order around the quad (CCW as seen from above/outside)."""

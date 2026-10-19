@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import common as pc
 import bridges_composed
 import transport_layout
+from templates import CURBED, DOWNTOWN_BOUNDS, DOWNTOWN_STREET_WORDS  # noqa: F401  (service/track: no curb)
 
 OUT_DIR = os.path.join(pc.ROOT, "game", "roads", "_build")
 # Bridges are their own baked layer (res://roads/bridges.scn), so a bridge edit rebuilds in seconds
@@ -50,12 +51,7 @@ def in_bounds(x, z):
 
 DRIVABLE = {"residential", "service", "primary", "secondary", "tertiary",
             "unclassified", "primary_link", "tertiary_link", "track"}
-CURBED = {"residential", "primary", "secondary", "tertiary", "unclassified",
-          "primary_link", "tertiary_link"}  # service/track: no curb (flush apron)
 PATHY = {"footway", "cycleway", "path", "pedestrian", "steps"}
-
-DOWNTOWN_STREET_WORDS = ("galena", "1st", "first", "2nd", "second", "3rd", "third", "hennepin", "peoria")
-DOWNTOWN_BOUNDS = (1330.0, -1780.0, 1920.0, -1030.0)  # x0,z0,x1,z1
 
 CURB_HEIGHT = transport_layout.CURB_REVEAL
 CURB_WIDTH = transport_layout.CURB_WIDTH
@@ -127,7 +123,9 @@ def clip_ways_to_bounds(ways):
             runs.append(run)
         piece_n = 0
         for run in runs:
-            if len(run) < 2 or math.hypot(run[-1]["x"] - run[0]["x"], run[-1]["z"] - run[0]["z"]) < 1e-6:
+            # a closed way (a loop street) starts and ends on the same point: test the run's
+            # length, not its ends' separation
+            if len(run) < 2 or sum(math.hypot(b["x"] - a["x"], b["z"] - a["z"]) for a, b in zip(run, run[1:])) < 1e-6:
                 continue
             piece = dict(w)
             piece["vertices"] = run
@@ -233,6 +231,11 @@ def pullback_for_node(node, leg_half_width, way=None):
 
     def outer_extent(w):
         half_width = way_half_width(w)
+        template = w.get("template")
+        if template is not None:
+            if template["section"] == "uncurbed":
+                return half_width
+            return half_width + CURB_WIDTH + template["parkway_m"] + template["sidewalk_m"]
         if w["tags"].get("highway") not in CURBED:
             return half_width
         downtown = is_downtown_way(w["tags"], (node.x, node.z))
@@ -267,7 +270,8 @@ RING_NAMES = ["edge", "curb_out", "gutter_out", "sw_in", "sw_out"]
 class WayPlan:
     __slots__ = ("way", "half_w", "has_curb", "has_sidewalk", "sw_width", "parkway",
                  "centerline", "full_centerline", "downtown", "rings",
-                 "start_junction", "end_junction", "start_free", "end_free")
+                 "start_junction", "end_junction", "start_free", "end_free",
+                 "half_ws", "gutter_w", "curb_reveal")
 
 
 def plan_drivable_ways(drivable_ways, nodes):
@@ -278,15 +282,27 @@ def plan_drivable_ways(drivable_ways, nodes):
             continue
         hw = way_half_width(w)
         cls = w["tags"].get("highway")
-        curbed = cls in CURBED
-        downtown = is_downtown_way(w["tags"], vs[len(vs) // 2])
-        sw_width = SIDEWALK_W_DOWNTOWN if downtown else SIDEWALK_W_RESIDENTIAL
-        parkway = 0.0 if downtown else PARKWAY_GAP
+        template = w.get("template")
+        if template is not None:
+            # a design way (templates.design_roads): its line is the route's alignment and its
+            # section the route's template, so it is used as it is, not smoothed again
+            curbed = template["section"] != "uncurbed"
+            downtown = template["section"] == "downtown"
+            sw_width, parkway = template["sidewalk_m"], template["parkway_m"]
+            gutter_w, curb_reveal = template["gutter_visible_m"], template["curb_reveal_m"]
+            resampled = [tuple(p) for p in vs]
+            half_ws = [max(v.get("hw", hw), 1.0) for v in w["vertices"]]
+        else:
+            curbed = cls in CURBED
+            downtown = is_downtown_way(w["tags"], vs[len(vs) // 2])
+            sw_width = SIDEWALK_W_DOWNTOWN if downtown else SIDEWALK_W_RESIDENTIAL
+            parkway = 0.0 if downtown else PARKWAY_GAP
+            gutter_w, curb_reveal = GUTTER_WIDTH, CURB_HEIGHT
+            resampled = resample_polyline(
+                vs, spacing=ROAD_SAMPLE_SPACING, smooth_iters=ROAD_SMOOTH_ITERS,
+            )
+            half_ws = [hw] * len(resampled)
         has_sidewalk = curbed  # same eligibility as curb for now
-
-        resampled = resample_polyline(
-            vs, spacing=ROAD_SAMPLE_SPACING, smooth_iters=ROAD_SMOOTH_ITERS,
-        )
         length = polyline_length(resampled)
 
         start_id = w["vertices"][0]["node_id"]
@@ -314,6 +330,9 @@ def plan_drivable_ways(drivable_ways, nodes):
         plan.centerline = trimmed
         plan.full_centerline = resampled
         plan.downtown = downtown
+        plan.half_ws = half_ws
+        plan.gutter_w = gutter_w if curbed else 0.0
+        plan.curb_reveal = curb_reveal if curbed else 0.0
         plan.start_junction = start_node if start_junction else None
         plan.end_junction = end_node if end_junction else None
         plan.start_free = not start_junction
@@ -1618,6 +1637,31 @@ def split_mesh_by_chunk(mb: MeshBuild):
     return buckets
 
 
+_PENDING_CHUNKS = []
+
+
+def _dump_chunk(i):
+    path, doc = _PENDING_CHUNKS[i]
+    with open(path, "w") as f:
+        json.dump(doc, f)
+
+
+def _write_pending_chunks():
+    """Writes the queued chunk files, in parallel: JSON-encoding the floats is most of the
+    write. Forked workers inherit the queue, so nothing is pickled across."""
+    import multiprocessing
+    count = len(_PENDING_CHUNKS)
+    try:
+        if count > 1 and "fork" in multiprocessing.get_all_start_methods():
+            with multiprocessing.get_context("fork").Pool(min(count, os.cpu_count() or 1)) as pool:
+                pool.map(_dump_chunk, range(count), chunksize=1)
+        else:
+            for i in range(count):
+                _dump_chunk(i)
+    finally:
+        _PENDING_CHUNKS.clear()
+
+
 def write_output(mb_by_mat, furniture, out_dir=None):
     OUT_DIR = out_dir or globals()["OUT_DIR"]   # the road layer by default; the bridge layer when given
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -1660,11 +1704,12 @@ def write_output(mb_by_mat, furniture, out_dir=None):
         if not meshes_out and not furn_out:
             continue
         fname = f"chunk_{cx}_{cz}.json"
-        with open(os.path.join(OUT_DIR, fname), "w") as f:
-            json.dump({"cx": cx, "cz": cz, "meshes": meshes_out, "furniture": furn_out}, f)
+        _PENDING_CHUNKS.append((os.path.join(OUT_DIR, fname),
+                                {"cx": cx, "cz": cz, "meshes": meshes_out, "furniture": furn_out}))
         bounds = [cx * CHUNK_SIZE, cz * CHUNK_SIZE, (cx + 1) * CHUNK_SIZE, (cz + 1) * CHUNK_SIZE]
         manifest.append({"cx": cx, "cz": cz, "file": fname, "bounds": bounds})
 
+    _write_pending_chunks()
     with open(os.path.join(OUT_DIR, "manifest.json"), "w") as f:
         json.dump({"chunk_size": CHUNK_SIZE, "chunks": manifest}, f, indent=0)
 
@@ -1676,7 +1721,9 @@ def write_output(mb_by_mat, furniture, out_dir=None):
 # ---------------------------------------------------------------------------
 def main():
     print("Loading data...")
-    roads = load_json("roads.json")
+    import templates
+    roads, design_report = templates.design_roads(load_json("roads.json"))
+    print(f"  {design_report['design_centreline_km']} km of drivable centreline on route alignments")
     bridges = load_json("bridges.json")["bridges"]
     rails = clip_ways_to_bounds(load_json("rails.json")["ways"])
     hm = Heightmap()
@@ -1727,7 +1774,7 @@ def main():
     )
     print(f"  rejected {len(layout_report['rejected_lot_fragments'])} aerial fragments")
     print("Meshing shared asphalt/curb/parkway/sidewalk/parking surfaces...")
-    transport_layout.emit_layout(layout, hm, mb_by_mat)
+    transport_layout.emit_layout(layout, hm, mb_by_mat, transport_layout.older_curb_region(plans))
 
     print("Building markings...")
     build_markings(plans, hm, mb_by_mat)

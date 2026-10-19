@@ -122,7 +122,10 @@ def weighted_choice(rng, mix):
 print("loading game/data/*.json ...")
 landuse = load_json("landuse.json")["areas"]
 trees_osm = load_json("trees.json")["points"]
-roads = load_json("roads.json")
+# the design roads (route alignments at template widths, roads/templates.py): the layout's
+# carriageway, curb and parkway are built on them, so street-tree slots and the road ROW are too
+from roads.templates import design_roads
+roads, _ = design_roads(load_json("roads.json"))
 transportation = load_layout()
 ways = roads["ways"]
 junction_nodes = roads["junction_nodes"]
@@ -259,17 +262,24 @@ building_recs = []  # dict: poly, area, is_house
 _build_dir = os.path.join(pc.ROOT, "game", "buildings", "_build")
 _hull_count = 0
 if os.path.isdir(_build_dir):
-    import glob
-    for chunk_path in glob.glob(os.path.join(_build_dir, "chunk_*.json")):
+    # Hulls are chunk-LOCAL (build_building_plan.py subtracts each chunk's
+    # center so Godot can position the chunk node there); the manifest
+    # records that origin per chunk file -- add it back to get world x/z.
+    try:
+        _manifest_chunks = json.load(open(os.path.join(_build_dir, "manifest.json")))["chunks"]
+    except Exception:
+        _manifest_chunks = []
+    for ci in _manifest_chunks:
         try:
-            chunk = json.load(open(chunk_path))
+            chunk = json.load(open(os.path.join(_build_dir, ci["file"])))
         except Exception:
             continue
+        ox, oz = float(ci["origin_x"]), float(ci["origin_z"])
         for c in chunk.get("collisions", []):
             hull = c.get("hull")
             if not hull or len(hull) < 3:
                 continue
-            poly = poly_from_ring([{"x": p[0], "z": p[1]} for p in hull])
+            poly = poly_from_ring([{"x": p[0] + ox, "z": p[1] + oz} for p in hull])
             if not poly or not poly.intersects(PLAY_BOX):
                 continue
             _hull_count += 1

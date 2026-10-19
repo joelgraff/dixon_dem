@@ -3,6 +3,8 @@ import math
 import sys
 import tempfile
 import unittest
+
+import numpy as np
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -22,6 +24,14 @@ class Flat:
     @staticmethod
     def normal(_x, _z):
         return [0.0, 1.0, 0.0]
+
+    @staticmethod
+    def sample_many(x, _z):
+        return np.zeros(len(x))
+
+    @staticmethod
+    def normal_many(x, _z):
+        return np.tile([0.0, 1.0, 0.0], (len(x), 1))
 
 
 def straight_plan(downtown=False):

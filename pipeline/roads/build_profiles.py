@@ -774,13 +774,19 @@ def conform_strips(doc=None, alignments=None, roads=None):
     """The samples road_conform paints, in game x/z: one strip per route and per path.
 
     Each strip: {"key", "order", "xz" (m, 2), "y" (top of pavement), "hw", "extra", "camber",
-    "sta"}. Routes are sampled along their OSM ways (the road mesh's centrelines), their heights
-    read from the route's profile at the station each sample projects to."""
+    "sta"}. Routes are sampled along their design ways (templates.design_roads: the route
+    alignments the road mesh is built on), half as wide as their templates, their heights read
+    from the route's profile at the station each sample projects to. `roads` defaults to the
+    design roads; bridges and paths keep their OSM lines."""
     doc = doc or load_json(OUT_PATH)
     alignments = alignments or load_json(os.path.join(pc.GAME_DATA, "alignments.json"))
-    roads = roads or load_json(os.path.join(pc.GAME_DATA, "roads.json"))
+    if roads is None:
+        import templates
+        roads, _ = templates.design_roads(load_json(os.path.join(pc.GAME_DATA, "roads.json")), alignments)
     ways = {w["id"]: w for w in roads["ways"]}
     recs = {r["id"]: r for r in alignments["routes"]}
+    from build_road_plan import VALID_BOUNDS
+    x0b, z0b, x1b, z1b = VALID_BOUNDS
     strips = []
     npaths = len(doc["paths"])
 
@@ -802,7 +808,15 @@ def conform_strips(doc=None, alignments=None, roads=None):
         pts = np.array([(v["x"], v["z"]) for v in w["vertices"]])
         if len(pts) < 2:
             continue
-        xz, _ = _densify(pts, CONFORM_STEP_M)
+        xz, ds = _densify(pts, CONFORM_STEP_M)
+        tag_hw = (w["tags"].get("width_m") or 6.0) / 2.0
+        hw_at = np.interp(ds, rm.stations(pts), [v.get("hw", tag_hw) for v in w["vertices"]])
+        # past the play heightmap there is no route (it ends at the edge): a sample there would
+        # take the clamped end station's height and feather it back over the edge rows
+        keep = (xz[:, 0] >= x0b) & (xz[:, 0] <= x1b) & (xz[:, 1] >= z0b) & (xz[:, 1] <= z1b)
+        if keep.sum() < 2:
+            continue
+        xz, hw_at = xz[keep], hw_at[keep]
         best = np.full(len(xz), np.inf)
         pick = np.full(len(xz), -1)
         stas = np.zeros(len(xz))
@@ -823,7 +837,7 @@ def conform_strips(doc=None, alignments=None, roads=None):
             if m.any():
                 acc[rid]["xz"].append(xz[m])
                 acc[rid]["sta"].append(stas[m])
-                acc[rid]["hw"].append(np.full(m.sum(), (w["tags"].get("width_m") or 6.0) / 2.0))
+                acc[rid]["hw"].append(hw_at[m])
     # each route runs BRIDGE_EXTEND_M onto its bridges, so the cells at the abutment are covered
     for rid, rd in doc["routes"].items():
         rec = recs.get(rid)

@@ -1,6 +1,6 @@
 # Roadway horizontal and vertical control: plan
 
-Status: proposal, 2026-10-18. Phases 0, 1 and 2 are built (see their results sections); the rest is not.
+Status: proposal, 2026-10-18. Phases 0, 1, 2 and 3a are built (see their results sections); the rest is not.
 
 ## The problem
 
@@ -249,7 +249,8 @@ Each phase ships on its own and shows improvement against the baseline metrics.
 | 0 (done) | `design_standards.json`; `road_metrics.py` with a ratchet test; breaklines located | none |
 | 1 (done) | Routes, stationing, horizontal fit, OSM-deviation report; aerial curb-to-curb width survey per route | none (data only); review images over the aerial |
 | 2 (done) | Network vertical solve with shared junction elevations and fixed controls; `road_conform` reads design profiles instead of per-way moving averages | junction steps gone, grades smooth; the biggest win for the smallest change |
-| 3 | Cross-section templates on station ranges; crown warping at junctions (with the edge-of-pavement junction tie, see phase 2 results); sawtooth gutters on flat streets; TIN-based conformed heightmap with daylighting | real lane, parking and gutter widths; clean curb lines |
+| 3a (done) | Cross-section templates on station ranges; the transportation layout and the conformed heightmap built on the route alignments at template widths | real curb-to-curb widths; curb lines on the designed tangents and curves |
+| 3b | Crown warping at junctions (with the edge-of-pavement junction tie, see phase 2 results); sawtooth gutters on flat streets; TIN-based conformed heightmap with daylighting | clean junction surfaces and curb returns |
 | 4 | Linear and node module library replacing the polygon pipeline and fan fills; curated-module escape hatch | regular sidewalk panels and joints, consistent curb returns and ramps |
 | 5 | Bridges as station ranges; Composer edits PVIs; anchor and ramp code retired; clearance checks | approaches and decks share one profile |
 | 6 | Editor support: drag PIs, PVIs and template breaks in-game or in Composer, rebuilding per route | — |
@@ -511,6 +512,147 @@ burns the profiles into `heightmap_play_1m_road_conformed.r32`, about 3 s of its
 - Phase 3's crown warping, which would let the edge-of-pavement junction tie come back.
 - Composed cycleway bridge 1502908855: its flat deck (10.04) is 5.65 m below the railbed track at
   its north end, which is left on its ground.
+
+## Phase 3a results
+
+`pipeline/roads/templates.py` (about 10 s) writes `game/data/templates.json` and
+`game/roads/_build/templates_report.json`. `rebuild_transportation.sh` now runs it, then
+`build_heightmap.py`, then the road plan and the rest. Tests: `test_templates.py`.
+
+**Templates** (§4), one or more per route, each over a station range:
+- Curb-to-curb width, in this order:
+  1. the aerial survey's width, where it measured the route (41 km)
+  2. a real OSM `width` or `lanes` tag (7 km, mostly the arterials)
+  3. the median measured width of the way's class: local 9.75 m (32 ft, 83 routes), collector
+     12.19 m (40 ft, 4 routes) (31 km)
+  4. the importer's default, for service roads and alleys, which were not surveyed (15 km)
+- Nearly every OSM width in roads.json is the importer's class default
+  (`osm_common.HIGHWAY_DEFAULTS`: 6.5 m for every residential street). Only a width different
+  from that default counts as a tag.
+- Lanes and parking: parking lanes (8 ft) go in, both sides and then one, while the travel lanes
+  stay at least `lane_width_min` (local 2.6 m). The lane count follows a real `lanes` tag, or
+  else the nearest even number. Result: 27 km of residential street parks both sides, 46 km one
+  side, and 4 km none. Link ramps never park.
+- Gutter: the 2 ft flag (B-6.24) is always in the template. It shows only where the aerial saw
+  concrete on a clear majority of a route's blocks; otherwise it is `overlaid`, with a visible
+  width of 0. No route met that bar, so the concrete gutter strip is gone from the game. An
+  override brings it back per route.
+- Curb: `new` (6 in) by default (`curb_default`), or `older` (4 in) per route by override. The
+  layout and mesh carry the lower curb, parkway and walk wherever a template says so. No route
+  uses `older` yet.
+- Roadside: the residential (2.0 m parkway, 1.7 m walk) and downtown (3.6 m walk) profiles the
+  layout already built, now in `design_standards.json` `roadside` and overridable per route.
+- Where the width changes along a route, it tapers over L = WS²/60 (12 tapers).
+- Overrides: `alignment_overrides.json` `templates`, by route and optional station range. They
+  set width (ft or m), lanes, parking, gutter, curb, section, parkway and sidewalk. None are set
+  yet.
+
+**Design roads.** `templates.design_roads()` is what the layout, the conform and the metrics
+read: roads.json with every drivable way on a route re-drawn along its alignment.
+- Each way is cut at its junction nodes. Each run is matched to a route and a station stretch by
+  a two-way fit, so a run cannot follow a route around a loop or on past its own end.
+- Arcs are densified to stay within 2 cm of the curve.
+- 93.9 km of drivable centreline is on the alignments, and nothing inside the play area keeps
+  its OSM line.
+- Run ends meet at one point per node: the routes through the node set it, and routes ending
+  there snap onto it. The snap is a median 0.11 m, at most 1.8 m, blended back along the run
+  over at least 6 m. The junction control point itself is not used: where two routes meet
+  nearly end to end it is an ill-conditioned line intersection, up to 4 m off both.
+- Approaches end exactly on the OSM bridge ends, since the decks are built from OSM.
+- Past the play edge, the line runs straight on, and consumers clip it.
+
+**Layout** (`transport_layout.py`, `build_road_plan.py`):
+- The carriageway follows the design lines at template widths. A corridor's half-width can
+  change along it, for the tapers.
+- Gutter, curb, parkway and walk come from each plan's template. The junction solve, lots,
+  overrides and validation are unchanged.
+- Design ways are no longer Chaikin-smoothed again.
+- Asphalt went from 612,000 to 875,000 m² (+43%), the real widths.
+- The roadside now stops at a building face, and every conflict is listed in the layout's
+  quality report (`roadside_conflicts`): walk or parkway against 64 building groups (2,250 m², mostly the blocks
+  around downtown, where fronts stand close to wider streets), and pavement or curb under 18
+  buildings (282 m², 13 and 215 m² before). The pavement cases say a width or an alignment is
+  wrong there; they are for review and for template overrides.
+
+**Conformed heightmap.** `build_profiles.conform_strips` samples the design ways, at the
+template half-width per sample. So the painted crown, the road mesh and the layout share one
+centreline. Route samples past the play edge are dropped: the route ends there, and one sample
+took a clamped end station 8 m above the ground and feathered it over the edge rows.
+
+**Vegetation** (`place_vegetation.py`) reads the design roads too. On OSM lines at OSM widths,
+its street-tree slots fell on the wider pavement, and only 315 street trees survived. Now there
+are 2,888 street trees, and 5,813 trees in all (the committed set has 5,696).
+
+**Found and fixed on the way:**
+- `clip_ways_to_bounds` dropped every closed way, because it read "starts where it ends" as
+  zero length. Since phase 0, the Shady Lane loop, two service loops and 11 footway and
+  pedestrian loops were missing from routes, the conform and the mesh. `build_alignments.py`
+  was re-run: 282 routes, 565 junctions.
+
+**Metrics.** `road_metrics.py` now measures along the design lines at template widths, the
+surface every consumer builds on. `--osm` measures the old way, and `--surface` measures another
+heightmap. Comparing old and new on the same instrument:
+
+| metric | baseline: phase 2 surface, OSM lines and tag widths | phase 2 surface, design lines and template widths | phase 3a surface, design lines and template widths |
+| --- | --- | --- | --- |
+| junction step p50 / p90 / p99 / max | 0.020 / 0.062 / 0.149 / 0.246 m | 0.021 / 0.062 / 0.148 / 0.234 m | 0.020 / 0.064 / 0.147 / 0.269 m |
+| junction steps over 0.10 / 0.25 m | 20 / 0 | 17 / 0 | 21 / 1 |
+| grade change in 10 m p50 / p90 / p99 / max | 0.28 / 1.61 / 4.57 / 35.7% | 0.28 / 1.62 / 4.60 / 35.8% | 0.28 / 1.61 / 4.56 / 36.2% |
+| cross slope deviation from crown p50 / p90 / p99 / max | 0.32 / 1.05 / 3.13 / 17.7% | 1.44 / 4.57 / 12.8 / 45.2% | 0.24 / 1.19 / 3.66 / 19.8% |
+| adverse cross-slope sides | 212 | 4,337 | 309 |
+| breaklines | 2 | 3 | 3 |
+
+- The middle column is why the instrument had to change: the phase 2 surface, measured at the
+  new curb lines, falls outside its own painted pavement.
+- **The ratchet (`test_road_metrics.py`) fails against the phase 2 baseline**. By decision
+  (2026-10-18) the baseline stays as it is, and the regressions below are open items for 3b.
+  Where the numbers are worse:
+  - **Cross slope.** Split at the junctions (a box of the widest leg's half-width plus 1 m):
+    - Outside the junctions, the deviation is better or level: p50 0.31 → 0.23%, p90 0.80 →
+      0.77%, p99 2.09 → 2.07%. Adverse sides are 36 → 51 of about 16,300 samples. Some are on
+      roads that were not built before (the loops). One is a 15.85 m Chuck Vail Drive measured
+      from a single block with its centre 1.9 m off the alignment.
+    - Inside the junctions, the adverse rate is unchanged at about 15% (173 of 1,192 samples,
+      then 261 of 1,694). But the wider templates put 42% more stations inside junction boxes,
+      where the crown is undefined until 3b warps it.
+  - **Breaklines.** The extra one is the rail-berm drive's designed +32% climb (its phase 2
+    PVI override). Measured along the OSM line, 0.5 m off the alignment, it was missed. The
+    phase 2 surface shows the same three breaklines on the design lines.
+  - **Junction step max.** The step is at a service-road crest at (2381, −1230), which is
+    0.25–0.26 m on either surface and either instrument.
+
+**Captures** (`captures/roads/phase3a_templates/`, the phase 2 shots plus a measured residential
+block, downtown Galena and a curve): 
+- Residential streets are visibly wider, about 32–35 ft. Their curb lines run straight down the
+  designed tangents and round the arcs cleanly (Eustace Drive, Upham Place), with asphalt to the
+  curb and no gutter strip.
+- Downtown Galena's walks run to the building faces.
+- At the phase 2 junctions (Carroll, W 8th, Dixon Ave), the returns come off the wider streets,
+  and the grass island inside Carroll's junction is down to a few flecks. Street trees are back
+  in the parkways.
+- **Upham Place** shows the risk of the class-median fallback. At 32 ft, the houses on the
+  outside of the curve have their porches at the curb, and the walk is cut away at the building
+  faces. Unmeasured streets where houses stand close need a narrower override, or a
+  survey that counts more blocks.
+
+**Found, not fixed:**
+- Yard trees and foundation shrubs were 0: the baked building hulls in
+  `game/buildings/_build/chunk_*.json` are chunk-local, but `place_vegetation.py` read them as
+  world coordinates. That was fixed in a separate session, which places them through the bake's
+  chunk origins: 6,632 yard trees and 38,686 foundation shrubs. This was unrelated to roads.
+- Chuck Vail Drive (R21836045) is 15.85 m wide, from a single counted block whose centre is
+  1.9 m off the alignment. It needs a look on the aerial, or an override.
+
+**Left for 3b:**
+- Crown warping at junctions, sawtooth gutters, and the TIN surface with daylighting.
+- Bring the ratchet back to green against the unchanged phase 2 baseline, on the design-line
+  instrument:
+  - cross slope: p90 1.19% (baseline 1.05%), p99 3.66% (3.13%), max 19.8% (17.7%), adverse
+    sides 309 (212). Mostly inside junctions, where crown warping applies.
+  - junction steps: max 0.269 m (0.246 m), 21 over 0.10 m (20), 1 over 0.25 m (0). The one
+    over 0.25 m is the service-road crest at (2381, −1230).
+  - breaklines: 3 (2). The extra one is the rail-berm drive's designed +32% climb; it needs a
+    profile decision there, not a surface fix.
 
 ## Decisions (answered 2026-10-18, recorded in `design_standards.json`)
 

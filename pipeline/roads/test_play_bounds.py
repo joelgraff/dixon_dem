@@ -48,6 +48,13 @@ class ClipToPlayHeightmapTests(unittest.TestCase):
         self.assertEqual([p["id"] for p in pieces], [300])
         self.assertEqual(pieces[0]["vertices"], inside["vertices"])
 
+    def test_closed_way_is_kept(self):
+        # a loop street starts and ends on one node; it was once dropped as zero length
+        v = self.vert
+        loop = {"id": 4, "tags": {}, "vertices": [v(10, -10, 1), v(40, -10, 2), v(40, -40, 3), v(10, -10, 1)]}
+        pieces = clip_ways_to_bounds([loop])
+        self.assertEqual([p["id"] for p in pieces], [400])
+        self.assertEqual(len(pieces[0]["vertices"]), 4)
 
 
 if __name__ == "__main__":

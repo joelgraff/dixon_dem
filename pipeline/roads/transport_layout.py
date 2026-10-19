@@ -4,6 +4,9 @@ import hashlib
 import math
 from pathlib import Path
 
+import numpy as np
+import shapely
+
 from shapely import constrained_delaunay_triangles, difference, intersection, set_precision, union_all
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon, box, mapping, shape
 from shapely.ops import unary_union
@@ -17,6 +20,7 @@ LAYOUT_PATH = ROOT / "game/roads/_build/transport_layout.json"
 OVERRIDES_PATH = ROOT / "pipeline/roads/layout_overrides.json"
 CURB_WIDTH = 0.12
 CURB_REVEAL = 0.1524
+CURB_REVEAL_OLDER = 0.102   # design_standards.json cross_section.curb_reveal_older, a template's 'older' curb
 GUTTER_WIDTH = 0.3048
 ROAD_BIAS = 0.085
 TOP_BIAS = ROAD_BIAS + CURB_REVEAL
@@ -77,7 +81,8 @@ def load_layout(path=LAYOUT_PATH):
 
 def input_fingerprints():
     paths = [ROOT / "game/data" / name
-             for name in ("roads.json", "buildings.json", "water.json", "aerial_paved.json")]
+             for name in ("roads.json", "buildings.json", "water.json", "aerial_paved.json",
+                          "alignments.json", "templates.json")]
     paths.append(OVERRIDES_PATH)
     return {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in paths}
@@ -174,20 +179,81 @@ def clean_lots(source, exclusions, overrides):
     return checked(result, "parking lots"), rejected
 
 
+def plan_roadside(plan):
+    """(parkway, sidewalk) widths behind a curbed plan's curb: its template's, or the legacy
+    downtown/residential profile for a plan built without one."""
+    if getattr(plan, "parkway", None) is not None and getattr(plan, "sw_width", None) is not None:
+        return (round(plan.parkway, 3), round(plan.sw_width, 3))
+    return (0.0, SIDEWALK_W_DOWNTOWN) if plan.downtown else (PARKWAY_GAP, SIDEWALK_W_RESIDENTIAL)
+
+
+def plan_corridor(plan):
+    """The plan's carriageway: a flat-capped, round-jointed strip of its half width, which may
+    change along the line (per-vertex `half_ws`, where a template width tapers)."""
+    points = plan.full_centerline
+    hws = getattr(plan, "half_ws", None)
+    if not hws or max(hws) - min(hws) < 1e-3:
+        return LineString(points).buffer(hws[0] if hws else plan.half_w, cap_style="flat", join_style="round")
+    parts = []
+    for i, (a, b) in enumerate(zip(points, points[1:])):
+        length = math.dist(a, b)
+        if length < 1e-9:
+            continue
+        nx, nz = -(b[1] - a[1]) / length, (b[0] - a[0]) / length
+        ha, hb = hws[i], hws[i + 1]
+        parts.append(Polygon([(a[0] + nx * ha, a[1] + nz * ha), (b[0] + nx * hb, b[1] + nz * hb),
+                              (b[0] - nx * hb, b[1] - nz * hb), (a[0] - nx * ha, a[1] - nz * ha)]))
+        if i > 0:
+            parts.append(Point(a).buffer(ha, quad_segs=16))
+    return union(parts)
+
+
+def older_curb_region(plans, reveal=CURB_REVEAL):
+    """Where the curb is lower than the standard reveal (an 'older' curb in a template)."""
+    return union([LineString(plan.full_centerline).buffer(plan.half_w + 8.0)
+                  for plan in plans if plan.has_curb
+                  and getattr(plan, "curb_reveal", reveal) < reveal - 1e-3])
+
+
+CONFLICT_MIN_M2 = 0.5
+
+
+def roadside_conflicts(surfaces, obstacles):
+    """Each obstacle (building or water) a surface runs into, by surface: area and where."""
+    parts = list(polygon_parts(obstacles))
+    tree = STRtree(parts) if parts else None
+    out = {}
+    for name, geometry in surfaces.items():
+        rows = []
+        if tree is not None and not geometry.is_empty:
+            for i in tree.query(geometry, predicate="intersects"):
+                area = parts[i].intersection(geometry).area
+                if area > CONFLICT_MIN_M2:
+                    c = parts[i].centroid
+                    rows.append({"at": [round(c.x, 1), round(c.y, 1)], "area_m2": round(area, 1)})
+        rows.sort(key=lambda r: -r["area_m2"])
+        out[name] = {"count": len(rows), "area_m2": round(sum(r["area_m2"] for r in rows), 1),
+                     "largest": rows[:25]}
+    return out
+
+
 def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=()):
     obstacles = set_precision(checked(obstacles, "obstacles"), OVERLAY_GRID_M)
     aerial = set_precision(checked(aerial, "aerial candidates"), OVERLAY_GRID_M)
     corridors = []
     curbed_regions = []
-    downtown_regions = []
+    roadside_regions = {}
+    gutter_regions = {}
     for plan in plans:
-        line = LineString(plan.full_centerline)
-        corridors.append(line.buffer(plan.half_w, cap_style="flat", join_style="round"))
+        corridors.append(plan_corridor(plan))
         if plan.has_curb:
-            region = line.buffer(plan.half_w + 8.0)
+            line = LineString(plan.full_centerline)
+            region = line.buffer(max(getattr(plan, "half_ws", None) or [plan.half_w]) + 8.0)
             curbed_regions.append(region)
-            if plan.downtown:
-                downtown_regions.append(region)
+            roadside_regions.setdefault(plan_roadside(plan), []).append(region)
+            gutter = round(getattr(plan, "gutter_w", GUTTER_WIDTH), 4)
+            if gutter > 0:
+                gutter_regions.setdefault(gutter, []).append(region)
     raw = checked(union(corridors), "road corridors")
     settings = {record["node_id"]: record for record in overrides.get("junctions", [])}
     missing = set(settings) - set(nodes)
@@ -196,7 +262,8 @@ def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=()):
 
     returns = []
     applied = []
-    residential_regions = []
+    forced = {}
+    profiles = {"downtown": (0.0, SIDEWALK_W_DOWNTOWN), "residential": (PARKWAY_GAP, SIDEWALK_W_RESIDENTIAL)}
     for node in nodes.values():
         if len(node.legs) < 3:
             continue
@@ -212,25 +279,45 @@ def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=()):
         returns.extend(polygon_parts(rounded.intersection(zone)))
         if record:
             applied.append(node.id)
-            if record.get("profile") == "downtown":
-                downtown_regions.append(zone)
-            elif record.get("profile") == "residential":
-                residential_regions.append(zone)
+            if record.get("profile") in profiles:
+                forced.setdefault(profiles[record["profile"]], []).append(zone)
     asphalt = checked(union(polygon_parts(raw.union(union(returns)))).simplify(
         BOUNDARY_SIMPLIFY_M, preserve_topology=True), "connected asphalt")
     curbed_region = union(curbed_regions)
-    downtown_region = union(downtown_regions).difference(union(residential_regions))
     curb_outer = asphalt.buffer(CURB_WIDTH, quad_segs=16)
     curb = curb_outer.difference(asphalt).intersection(curbed_region)
-    gutter = asphalt.difference(asphalt.buffer(-GUTTER_WIDTH, quad_segs=16)).intersection(curbed_region)
-    residential_inner = asphalt.buffer(CURB_WIDTH + PARKWAY_GAP, quad_segs=16)
-    residential_outer = asphalt.buffer(CURB_WIDTH + PARKWAY_GAP + SIDEWALK_W_RESIDENTIAL, quad_segs=16)
-    downtown_outer = asphalt.buffer(CURB_WIDTH + SIDEWALK_W_DOWNTOWN, quad_segs=16)
-    parkway = residential_inner.difference(curb_outer).intersection(
-        curbed_region).difference(downtown_region)
-    sidewalk = residential_outer.difference(residential_inner).intersection(
-        curbed_region).difference(downtown_region).union(
-            downtown_outer.difference(curb_outer).intersection(downtown_region).intersection(curbed_region))
+    # the gutter flag shows only where a template says it is not overlaid; the widest wins
+    gutter = union([asphalt.difference(asphalt.buffer(-width, quad_segs=16)).intersection(union(regions))
+                    for width, regions in gutter_regions.items()])
+    # parkway and sidewalk per roadside profile: a junction override's zone takes its profile,
+    # and otherwise the narrower parkway (downtown's none) wins where profiles' regions meet
+    forced_all = {key: union(zones) for key, zones in forced.items()}
+    claimed = Polygon()
+    parkway_parts, sidewalk_parts = [], []
+    for key in sorted(set(roadside_regions) | set(forced_all), key=lambda k: (k[0], -k[1])):
+        parkway_w, sidewalk_w = key
+        region = union(roadside_regions.get(key, []) + ([forced_all[key]] if key in forced_all else []))
+        others = union([zone for other, zone in forced_all.items() if other != key])
+        region = region.difference(others).difference(claimed).intersection(curbed_region)
+        if region.is_empty:
+            continue
+        claimed = union([claimed, region])
+        reach = CURB_WIDTH + parkway_w + sidewalk_w
+        local = asphalt.intersection(region.buffer(reach + 1.0))
+        inner = local.buffer(CURB_WIDTH + parkway_w, quad_segs=16)
+        outer = local.buffer(reach, quad_segs=16)
+        if parkway_w > 0:
+            parkway_parts.append(inner.difference(curb_outer).intersection(region))
+        sidewalk_parts.append(outer.difference(inner if parkway_w > 0 else curb_outer).intersection(region))
+    parkway = union(parkway_parts)
+    sidewalk = union(sidewalk_parts)
+    # a template's roadside is a typical section; where a building stands closer to the curb the
+    # walk and parkway stop at its face, and the conflict is listed for review (as is pavement
+    # or curb under a building, which says the width or the alignment is wrong there)
+    conflicts = roadside_conflicts({"asphalt": asphalt, "curb": curb, "parkway": parkway,
+                                    "sidewalk": sidewalk}, obstacles)
+    parkway = parkway.difference(obstacles)
+    sidewalk = sidewalk.difference(obstacles)
     small_parkways = union([part for part in polygon_parts(parkway) if part.area < 16.0])
     parkway = parkway.difference(small_parkways)
     sidewalk = sidewalk.union(small_parkways)
@@ -274,7 +361,8 @@ def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=()):
     surfaces["gutter"] = MultiPolygon(list(polygon_parts(
         surfaces["gutter"].intersection(surfaces["asphalt"]))))
     report = validate_layout(surfaces)
-    report.update({"applied_junction_overrides": applied, "rejected_lot_fragments": rejected})
+    report.update({"applied_junction_overrides": applied, "rejected_lot_fragments": rejected,
+                   "roadside_conflicts": conflicts})
     return surfaces, report
 
 
@@ -307,32 +395,84 @@ def save_layout(surfaces, report, path=LAYOUT_PATH):
                    "quality": report}, stream)
 
 
-def surface_triangles(geometry):
-    """Constrained triangulation preserves holes; local cells bound terrain spans."""
+CHUNK_M = 64.0
+
+
+def _chunk_pieces(geometry, x0, z0, size, out):
+    """Cuts `geometry` into the CHUNK_M squares of the size-wide square at (x0, z0) by quartering
+    it, so each cut is against an ever smaller piece rather than the whole network. Appends
+    (piece, chunk x0, chunk z0) to `out`."""
     if geometry.is_empty:
         return
+    if size <= CHUNK_M:
+        out.append((geometry, x0, z0))
+        return
+    half = size / 2
+    xs = np.array([x0, x0 + half, x0, x0 + half])
+    zs = np.array([z0, z0, z0 + half, z0 + half])
+    for quarter, qx, qz in zip(shapely.intersection(geometry, shapely.box(xs, zs, xs + half, zs + half)), xs, zs):
+        _chunk_pieces(quarter, qx, qz, half, out)
+
+
+def surface_triangles(geometry):
+    """(n, 3, 2) triangles covering `geometry`: cut into CHUNK_M chunks, then on the MESH_CELL_M
+    grid (cells bound terrain spans), each piece constrained-Delaunay triangulated (holes
+    preserved). Vectorised: the cells of every chunk, and the triangulations, at once."""
+    empty = np.empty((0, 3, 2))
+    if geometry.is_empty:
+        return empty
     min_x, min_z, max_x, max_z = geometry.bounds
-    for x in range(math.floor(min_x / 64), math.floor(max_x / 64) + 1):
-        for z in range(math.floor(min_z / 64), math.floor(max_z / 64) + 1):
-            chunk = geometry.intersection(box(x * 64, z * 64, (x + 1) * 64, (z + 1) * 64))
-            if chunk.is_empty or chunk.area < AREA_TOLERANCE:
-                continue
-            for cx in range(8):
-                for cz in range(8):
-                    cell = box(x * 64 + cx * MESH_CELL_M, z * 64 + cz * MESH_CELL_M,
-                               x * 64 + (cx + 1) * MESH_CELL_M, z * 64 + (cz + 1) * MESH_CELL_M)
-                    clipped = chunk.intersection(cell)
-                    for polygon in polygon_parts(clipped):
-                        if polygon.area < AREA_TOLERANCE:
-                            continue
-                        triangles = constrained_delaunay_triangles(polygon)
-                        if abs(triangles.area - polygon.area) > AREA_TOLERANCE:
-                            raise ValueError("transport layout: incomplete surface triangulation")
-                        for triangle in triangles.geoms:
-                            yield list(triangle.exterior.coords)[:3]
+    x0, z0 = math.floor(min_x / CHUNK_M) * CHUNK_M, math.floor(min_z / CHUNK_M) * CHUNK_M
+    size = CHUNK_M
+    while x0 + size <= max_x or z0 + size <= max_z:
+        size *= 2
+    chunks = []
+    _chunk_pieces(geometry, x0, z0, size, chunks)
+    pieces, cells = [], []
+    per = int(CHUNK_M / MESH_CELL_M)
+    offsets = np.arange(per) * MESH_CELL_M
+    ox, oz = (g.ravel() for g in np.meshgrid(offsets, offsets))
+    for chunk, bx, bz in chunks:
+        pieces.append(np.full(per * per, chunk, dtype=object))
+        cells.append(shapely.box(bx + ox, bz + oz, bx + ox + MESH_CELL_M, bz + oz + MESH_CELL_M))
+    if not chunks:
+        return empty
+    pieces = shapely.get_parts(shapely.intersection(np.concatenate(pieces), np.concatenate(cells)))
+    pieces = pieces[(shapely.get_type_id(pieces) == 3) & (shapely.area(pieces) >= AREA_TOLERANCE)]
+    if not len(pieces):
+        return empty
+    triangulated = shapely.constrained_delaunay_triangles(pieces)
+    if (np.abs(shapely.area(triangulated) - shapely.area(pieces)) > AREA_TOLERANCE).any():
+        raise ValueError("transport layout: incomplete surface triangulation")
+    triangles = shapely.get_parts(triangulated)
+    # each triangle's ring is 4 points, the last repeating the first
+    return shapely.get_coordinates(triangles).reshape(-1, 4, 2)[:, :3]
 
 
-def emit_layout(surfaces, hm, meshes):
+def _graded_bias(xs, zs, tree, bias):
+    """bias at a boundary of the tree's segments, falling to 0 at 1.5 m from it."""
+    out = np.zeros(len(xs))
+    if len(tree) == 0 or not len(xs):
+        return out
+    (src, _), dist = tree.query_nearest(shapely.points(xs, zs), max_distance=1.5,
+                                        return_distance=True, all_matches=False)
+    out[src] = bias * np.maximum(0.0, 1 - dist / 1.5)
+    return out
+
+
+def emit_layout(surfaces, hm, meshes, older_curb=None):
+    """Meshes the layout's surfaces. `older_curb` (older_curb_region) is where the curb, and so
+    the parkway and walk behind it, stands CURB_REVEAL_OLDER above the gutter instead."""
+    low = older_curb if older_curb is not None and not older_curb.is_empty else None
+    if low is not None:
+        shapely.prepare(low)
+
+    def top_bias(xs, zs):
+        top = np.full(len(xs), TOP_BIAS)
+        if low is not None:
+            top[shapely.contains_xy(low, xs, zs)] = ROAD_BIAS + CURB_REVEAL_OLDER
+        return top
+
     material = {"asphalt": "asphalt_road_plowed", "lots": "asphalt_road_plowed",
                 "gutter": "sidewalk_concrete", "curb": "curb_concrete",
                 "sidewalk": "sidewalk_concrete", "parkway": "grass_lawn", "verge": "grass_lawn",
@@ -345,59 +485,62 @@ def emit_layout(surfaces, hm, meshes):
         segments = []
         for polygon in polygon_parts(geometry):
             for ring in (polygon.exterior, *polygon.interiors):
-                segments.extend(LineString([a, b]) for a, b in zip(ring.coords, list(ring.coords)[1:]))
-        return STRtree(segments)
+                c = np.asarray(ring.coords)
+                segments.append(shapely.linestrings(np.stack([c[:-1], c[1:]], axis=1)))
+        return STRtree(np.concatenate(segments) if segments else [])
 
     raised_tree = boundary_tree(raised)
     road_tree = boundary_tree(surfaces["asphalt"])
 
-    def graded_bias(point, tree, bias):
-        if len(tree) == 0:
-            return 0.0
-        distance = point.distance(tree.geometries[tree.nearest(point)])
-        return bias * max(0.0, 1 - distance / 1.5)
-
     for name, geometry in surfaces.items():
         mesh = meshes.setdefault(material[name], MeshBuild())
         print(f"  meshing {name}: {geometry.area:.1f} m2")
-        expected_area = (paved if name == "asphalt" else geometry).area
-        emitted_area = 0.0
-        for points in surface_triangles(paved if name == "asphalt" else geometry):
-            indices = []
-            for x, z in points:
-                bias = TOP_BIAS if name in ("curb", "sidewalk", "parkway") else ROAD_BIAS
-                if name == "gutter":
-                    bias += 0.005
-                elif name == "verge":
-                    point = Point(x, z)
-                    bias = max(graded_bias(point, raised_tree, TOP_BIAS),
-                               graded_bias(point, road_tree, ROAD_BIAS))
-                elif name.startswith("path_"):
-                    bias = 0.03
-                indices.append(mesh.add_vertex(x, hm.sample(x, z) + bias, z, hm.normal(x, z)))
-            a, b, c = points
-            cross = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
-            emitted_area += abs(cross) / 2
-            mesh.add_tri(*(indices if cross > 0 else indices[::-1]))
+        target = paved if name == "asphalt" else geometry
+        tris = surface_triangles(target)
+        a, b, c = tris[:, 0], tris[:, 1], tris[:, 2]
+        cross = (b[:, 0] - a[:, 0]) * (c[:, 1] - a[:, 1]) - (b[:, 1] - a[:, 1]) * (c[:, 0] - a[:, 0])
+        emitted_area = float(np.abs(cross).sum() / 2)
+        expected_area = target.area
         if abs(emitted_area - expected_area) > max(AREA_TOLERANCE, expected_area * 1e-6):
             raise ValueError(f"transport layout: incomplete {name} mesh "
                              f"({emitted_area:.6f} vs {expected_area:.6f} m2)")
+        # wound counter-clockwise in (x, z): reversed where the triangulation left it clockwise
+        tris = np.where((cross > 0)[:, None, None], tris, tris[:, ::-1])
+        xs, zs = tris[..., 0].ravel(), tris[..., 1].ravel()
+        if name in ("curb", "sidewalk", "parkway"):
+            bias = top_bias(xs, zs)
+        elif name == "gutter":
+            bias = np.full(len(xs), ROAD_BIAS + 0.005)
+        elif name == "verge":
+            bias = np.maximum(_graded_bias(xs, zs, raised_tree, 1.0) * top_bias(xs, zs),
+                              _graded_bias(xs, zs, road_tree, ROAD_BIAS))
+        elif name.startswith("path_"):
+            bias = np.full(len(xs), 0.03)
+        else:
+            bias = np.full(len(xs), ROAD_BIAS)
+        xyz = np.column_stack([xs, hm.sample_many(xs, zs) + bias, zs])
+        mesh.add_triangles(xyz, hm.normal_many(xs, zs))
 
-    # Only the exposed asphalt/curb boundary is a vertical curb face.
+    # Only the exposed asphalt/curb boundary is a vertical curb face: a quad per 2.5 m segment,
+    # both sides (gutter level a, b; top b, a), as two triangles each way round
     mesh = meshes.setdefault("curb_concrete", MeshBuild())
     boundary = surfaces["asphalt"].boundary.intersection(surfaces["curb"].boundary)
-    lines = [boundary] if boundary.geom_type == "LineString" else getattr(boundary, "geoms", [])
+    lines = [line for line in shapely.get_parts(boundary) if line.geom_type == "LineString"]
+    pairs = []
     for line in lines:
-        if line.geom_type != "LineString":
-            continue
-        points = list(line.segmentize(2.5).coords)
-        for a, b in zip(points, points[1:]):
-            length = math.dist(a, b)
-            if length < 1e-8:
-                continue
-            normal = [(b[1] - a[1]) / length, 0.0, (a[0] - b[0]) / length]
-            indices = [mesh.add_vertex(x, hm.sample(x, z) + bias, z, normal)
-                       for (x, z), bias in ((a, ROAD_BIAS + 0.005), (b, ROAD_BIAS + 0.005),
-                                           (b, TOP_BIAS), (a, TOP_BIAS))]
-            mesh.add_quad(*indices)
-            mesh.add_quad(*indices[::-1])
+        c = np.asarray(line.segmentize(2.5).coords)
+        pairs.append(np.stack([c[:-1], c[1:]], axis=1))
+    if not pairs:
+        return
+    pairs = np.concatenate(pairs)
+    length = np.linalg.norm(pairs[:, 1] - pairs[:, 0], axis=1)
+    pairs, length = pairs[length >= 1e-8], length[length >= 1e-8]
+    pa, pb = pairs[:, 0], pairs[:, 1]
+    normal = np.column_stack([(pb[:, 1] - pa[:, 1]) / length, np.zeros(len(length)), (pa[:, 0] - pb[:, 0]) / length])
+    ya, yb = hm.sample_many(pa[:, 0], pa[:, 1]), hm.sample_many(pb[:, 0], pb[:, 1])
+    low_a = np.column_stack([pa[:, 0], ya + ROAD_BIAS + 0.005, pa[:, 1]])
+    low_b = np.column_stack([pb[:, 0], yb + ROAD_BIAS + 0.005, pb[:, 1]])
+    top_b = np.column_stack([pb[:, 0], yb + top_bias(pb[:, 0], pb[:, 1]), pb[:, 1]])
+    top_a = np.column_stack([pa[:, 0], ya + top_bias(pa[:, 0], pa[:, 1]), pa[:, 1]])
+    quad = np.stack([low_a, low_b, top_b, top_a], axis=1)            # (n, 4, 3)
+    mesh.add_quads_both_sides(quad, normal)
