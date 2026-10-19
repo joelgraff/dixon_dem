@@ -135,6 +135,9 @@ cross-slope.
 
 ## 5. Modular construction: a kit of parts
 
+How this is built, and how it replaces today's pipeline, is planned in
+[roads_module_plan.md](roads_module_plan.md) (phase 4).
+
 Your suggestion fits this model well, with one change. The modules should be **placed along
 stations and at intersection control points, not on a world grid**.
 
@@ -250,7 +253,7 @@ Each phase ships on its own and shows improvement against the baseline metrics.
 | 1 (done) | Routes, stationing, horizontal fit, OSM-deviation report; aerial curb-to-curb width survey per route | none (data only); review images over the aerial |
 | 2 (done) | Network vertical solve with shared junction elevations and fixed controls; `road_conform` reads design profiles instead of per-way moving averages | junction steps gone, grades smooth; the biggest win for the smallest change |
 | 3a (done) | Cross-section templates on station ranges; the transportation layout and the conformed heightmap built on the route alignments at template widths | real curb-to-curb widths; curb lines on the designed tangents and curves |
-| 4 | Crown warping at junctions (with the edge-of-pavement junction tie, see phase 2 results); sawtooth gutters on flat streets; TIN-based conformed heightmap with daylighting; linear and node module library replacing the polygon pipeline and fan fills; curated-module escape hatch. Takes in what was phase 3b. | clean junction surfaces; regular sidewalk panels and joints, consistent curb returns and ramps |
+| 4 | A new roads module built alongside the old pipeline, then switched in (steps 4.0–4.5 in [roads_module_plan.md](roads_module_plan.md)). Its core is phase 3b's design surface: crown warping at junctions with the edge-of-pavement tie, sawtooth gutters, daylight slopes and walls, and a conformed heightmap rasterised from the same surface. Linear modules sweep the template sections, and T and 4-leg node modules cover 379 of the 470 street junctions, with an interim fallback and curated modules for the rest. It switches over when the five gates pass, and the old polygon and mesh code is then deleted. | clean junction surfaces; regular sidewalk panels and joints, consistent curb returns and ramps; roads and terrain sharing one surface |
 | 5 | Bridges as station ranges; Composer edits PVIs; anchor and ramp code retired; clearance checks | approaches and decks share one profile |
 | 6 | Editor support: drag PIs, PVIs and template breaks in-game or in Composer, rebuilding per route | — |
 
