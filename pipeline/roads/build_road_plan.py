@@ -1751,15 +1751,11 @@ def main():
     if not os.path.exists(aerial_path):
         raise FileNotFoundError("missing aerial paving candidates; run pipeline/aerial/extract_paved_il.py")
     aerial = dissolve_aerial_paved_quads(load_json("aerial_paved.json")["quads"])
-    buildings = load_json("buildings.json")["buildings"]
-    obstacles = []
-    for building in buildings:
-        ring = building.get("footprint", [])
-        if len(ring) >= 3:
-            polygon = Polygon([(point["x"], point["z"]) for point in ring])
-            if not polygon.is_valid:
-                raise ValueError(f"invalid building footprint {building.get('id')}")
-            obstacles.append(polygon)
+    # every building the bake builds (OSM, curated, Microsoft, with Composer's footprint
+    # corrections), so the walk and parkway stop at each real face and the quality report
+    # lists every building on the street, not just OSM's 707
+    buildings = building_obstacles()
+    obstacles = list(buildings[0])
     water = load_json("water.json")
     for reach in water.get("reaches", []):
         ring = reach.get("polygon", [])
@@ -1770,9 +1766,13 @@ def main():
             obstacles.append(polygon)
     layout, layout_report = transport_layout.build_layout(
         plans, nodes, unary_union(aerial), unary_union(obstacles),
-        transport_layout.read_overrides(), split_ways,
+        transport_layout.read_overrides(), split_ways, buildings=buildings,
     )
     print(f"  rejected {len(layout_report['rejected_lot_fragments'])} aerial fragments")
+    for source, row in layout_report["building_conflicts"]["by_source"].items():
+        print(f"  {source} buildings on carriageway {row['carriageway']['count']} "
+              f"({row['carriageway']['area_m2']} m2), on walk/parkway {row['roadside']['count']} "
+              f"({row['roadside']['area_m2']} m2)")
     print("Meshing shared asphalt/curb/parkway/sidewalk/parking surfaces...")
     transport_layout.emit_layout(layout, hm, mb_by_mat, transport_layout.older_curb_region(plans))
 
@@ -1799,6 +1799,25 @@ def main():
     write_output(mb_by_mat, furniture)
     write_output(bridge_mb, bridge_furniture, BRIDGE_OUT_DIR)
     transport_layout.save_layout(layout, layout_report)
+
+
+def building_obstacles():
+    """Every building outline as shapely polygons, with a parallel list of (id, source)."""
+    from shapely.geometry import Polygon
+    from shapely.validation import make_valid as _valid
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "buildings"))
+    import footprints
+    polygons, ids = [], []
+    for record in footprints.all_outlines(pc.GAME_DATA):
+        polygon = Polygon(record["footprint"])
+        if not polygon.is_valid:
+            # Microsoft rings are simplified ML traces: a few self-touch; their area is still the building
+            polygon = _valid(polygon).buffer(0)
+        if polygon.is_empty or polygon.area < 1.0:
+            continue
+        polygons.append(polygon)
+        ids.append((record["id"], record["source"]))
+    return polygons, ids
 
 
 if __name__ == "__main__":

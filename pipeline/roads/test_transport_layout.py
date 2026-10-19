@@ -165,6 +165,26 @@ class TransportLayoutTests(unittest.TestCase):
         self.assertEqual(report["unintended_overlap_m2"], 0.0)
         self.assertEqual(layout.validate_layout(surfaces)["invalid_surfaces"], 0)
 
+    def test_building_conflicts_are_counted_by_source_before_the_walk_is_cut(self):
+        groups = {"carriageway": box(0, 0, 10, 100), "roadside": box(10, 0, 13, 100)}
+        houses = [box(11, 10, 20, 20),   # front 2 m into the walk
+                  box(8, 40, 20, 50),    # front on the pavement and across the walk
+                  box(14, 70, 20, 80)]   # behind the back of walk
+        report = layout.building_conflicts(groups, (houses, [("1", "ms"), ("2", "osm"), ("3", "ms")]))
+        self.assertEqual(report["by_source"]["ms"]["roadside"], {"count": 1, "area_m2": 20.0})
+        self.assertEqual(report["by_source"]["ms"]["carriageway"]["count"], 0)
+        self.assertEqual(report["by_source"]["osm"]["carriageway"], {"count": 1, "area_m2": 20.0})
+        self.assertEqual(report["by_source"]["osm"]["roadside"]["area_m2"], 30.0)
+        self.assertNotIn("3", {row["id"] for rows in report["largest"].values() for row in rows})
+        self.assertEqual([row["id"] for row in report["largest"]["carriageway"]], ["2"])
+
+    def test_every_building_footprint_is_a_valid_obstacle(self):
+        polygons, ids = roads.building_obstacles()
+        self.assertEqual(len(polygons), len(ids))
+        self.assertTrue({"osm", "ms"} <= {source for _, source in ids})
+        self.assertTrue(all(p.is_valid and p.area >= 1.0 for p in polygons))
+        self.assertNotIn("800002411", {bid for bid, _ in ids})   # MS false detection on the river
+
 
 if __name__ == "__main__":
     unittest.main()

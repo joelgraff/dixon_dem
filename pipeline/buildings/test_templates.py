@@ -225,6 +225,25 @@ def _check_houses():
     _cmain, cwing = archetypes.ell_bars(court, road)
     check("front court stays one bar", cwing is None, cwing)
 
+    # An odd footprint's bounding rectangle would stand far outside it (1013252878 stood on the
+    # parkway and the curb lane): the boxes are fitted inside instead, and cover most of it.
+    from shapely.geometry import Polygon as _P
+    for name, odd in (("skewed slab", [(0, 0), (6, 0), (26, 14), (20, 14)]),
+                      ("T", [(0, 0), (20, 0), (20, 6), (13, 6), (13, 16), (7, 16), (7, 6), (0, 6)])):
+        extras = []
+        main, wing = archetypes.corners_of(odd, road, {"form": "side_gable"}, extras)
+        bars = [_P(b) for b in [main] + ([wing] if wing else []) + extras]
+        built = bars[0].union(bars[1]) if len(bars) > 1 else bars[0]
+        for b in bars[2:]:
+            built = built.union(b)
+        spill = built.difference(_P(odd)).area
+        check(f"{name}: boxes stay inside the footprint", spill < 2.0, spill)
+        check(f"{name}: boxes cover most of it", built.area > 0.75 * _P(odd).area, (built.area, _P(odd).area))
+    plain = [(0, 0), (10, 0), (10, 8), (0, 8)]
+    extras = []
+    pmain, pwing = archetypes.corners_of(plain, road, {"form": "side_gable"}, extras)
+    check("a rectangle stays one box", pwing is None and not extras and abs(_P(pmain).area - 80) < 1e-6, pmain)
+
     forms = [
         ("side_gable", 1.5, "gable", "side", "stoop"),
         ("front_gable", 2, "gable", "front", "stoop"),

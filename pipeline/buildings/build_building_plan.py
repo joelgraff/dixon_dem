@@ -14,20 +14,19 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common_buildings import (
-    polygon_area_2d, polygon_centroid_2d, chunk_key, rng_for, PolyIndex, SegmentIndex,
+    polygon_area_2d, polygon_centroid_2d, chunk_key, rng_for, SegmentIndex, Sampler,
 )
 from common_buildings import MeshBuild
 import classify
 import archetypes
 import composed
 import composer
-import infill
 import palette
 import facade
 import templates as building_templates
 import footprints
 
-from shapely.geometry import Polygon, LineString
+from shapely.geometry import Polygon
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 GAME_DATA = os.path.join(ROOT, "game", "data")
@@ -168,47 +167,9 @@ def main(only_chunk=None):
         footprints.override_records(records, source, footprint_overrides)
     print(f"footprint overrides: {len(footprint_overrides)}")
     roads_data = load("roads.json")
-    water_data = load("water.json")
-    landuse_data = load("landuse.json")
-    rails_data = load("rails.json")
     origin_json = load("world_origin.json")
 
     print(f"loaded data in {time.time()-t0:.1f}s")
-
-    # -- exclusion index for infill (existing footprints, water, rails, non-residential landuse)
-    excl = PolyIndex(cell=80.0)
-    for b in buildings_data + curated + ms_records:
-        coords = footprint_coords(b)
-        if len(coords) >= 3:
-            excl.add(coords)
-    for area in landuse_data["areas"]:
-        tags = area.get("tags", {})
-        if tags.get("landuse") == "residential":
-            continue  # residential-zoned land is fair game for infill
-        coords = [(p["x"], p["z"]) for p in area["polygon"]]
-        if len(coords) >= 3:
-            excl.add(coords)
-    for reach in water_data["reaches"]:
-        coords = [(p["x"], p["z"]) for p in reach["polygon"]]
-        if len(coords) >= 3:
-            excl.add(coords)
-    for stream in water_data["streams"]:
-        verts = stream["vertices"]
-        if len(verts) < 2:
-            continue
-        line = LineString([(v["x"], v["z"]) for v in verts])
-        buf = line.buffer(5.0)
-        if not buf.is_empty:
-            excl.add(list(buf.exterior.coords)[:-1])
-    for way in rails_data["ways"]:
-        verts = way["vertices"]
-        if len(verts) < 2:
-            continue
-        line = LineString([(v["x"], v["z"]) for v in verts])
-        buf = line.buffer(7.0)
-        if not buf.is_empty:
-            excl.add(list(buf.exterior.coords)[:-1])
-    print(f"exclusion index built ({len(excl.polys)} polys) in {time.time()-t0:.1f}s")
 
     # -- road segment index (all roads) for house front-orientation
     road_idx = SegmentIndex(cell=100.0)
@@ -218,12 +179,16 @@ def main(only_chunk=None):
             a, b = verts[i], verts[i + 1]
             road_idx.add(a["x"], a["z"], b["x"], b["z"])
 
-    # -- ground height sampler for infill placement
+    # -- ground height sampler (the road-conformed play heightmap terrain.gd renders)
     r32_path = os.path.join(GAME_DATA, origin_json["heightmaps"]["play"]["road_conformed_file"])
-    sampler = infill.Sampler(origin_json, r32_path)
+    sampler = Sampler(origin_json, r32_path)
 
-    infill_records = infill.generate_infill(roads_data, excl, sampler)
-    print(f"infill: {len(infill_records)} records in {time.time()-t0:.1f}s")
+    # Procedural infill (houses placed along raw OSM centrelines, infill.py) was retired on
+    # 2026-10-19. With Microsoft's footprints covering the play area it only filled ground the
+    # aerial shows empty: 226 of its 900 houses stood on the carriageway and 333 on the walk,
+    # and inside the 2025 aerial a median 65% of each one's roof was lawn (11% for MS
+    # footprints). The 552 beyond the play heightmap took its clamped edge heights, a median
+    # 5 m and up to 28 m off the horizon terrain. See docs/buildings_notes.md "Infill (retired)".
 
     # Only footprints that a landmark scene actually models are skipped. buildings.json tags
     # EVERY footprint near a landmark with landmark_id (e.g. First Baptist Church and an
@@ -232,9 +197,9 @@ def main(only_chunk=None):
     # empty lots (user report 2026-09-20: empty lot north of the theatre).
     owned = [b for b in buildings_data if b.get("id") in LANDMARK_OWNED_IDS]
     generic = [b for b in buildings_data if b.get("id") not in LANDMARK_OWNED_IDS]
-    all_records = generic + curated + ms_records + infill_records
+    all_records = generic + curated + ms_records
     print(f"total to build: {len(all_records)} (landmark-owned skipped: {len(owned)}; "
-          f"curated {len(curated)}; microsoft {len(ms_records)}; infill {len(infill_records)})")
+          f"curated {len(curated)}; microsoft {len(ms_records)})")
     overrides = building_templates.load_overrides(os.path.join(GAME_DATA, "building_overrides.json"))
     template_of = building_templates.resolve_batch(all_records, road_idx, overrides)
     footprints.apply_override_porches(all_records, template_of, overrides)

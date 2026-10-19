@@ -2,8 +2,9 @@
 
 Owns `game/buildings/` (+ Python helpers in `pipeline/buildings/`). Procedurally
 generates every non-landmark building in `game/data/buildings.json` (707
-footprints minus 17 landmark-tagged ones) plus ~900 infill houses/garages on
-residential blocks OSM left empty, bakes them into one chunked scene.
+footprints minus the landmark-owned ones), the hand-traced curated footprint and
+Microsoft's 4,191 ML footprints, and bakes them into one chunked scene. (Procedural
+infill houses were retired on 2026-10-19; see "Infill (retired)".)
 
 ## 2026-09-19 "buildings invisible" bug -- root cause + fix
 
@@ -110,8 +111,8 @@ Source modules (`pipeline/buildings/`): `common_buildings.py` (indexed
 triangle-soup `MeshBuild` + polygon/grid-index helpers, mirrors
 `pipeline/roads/common_roads.py`'s convention), `facade.py` (wall/window/door/
 awning/cornice/roof primitives), `archetypes.py` (per-archetype building
-generators), `classify.py` (tag+location → archetype), `infill.py` (residential
-block filling), `palette.py` (material catalog + tint weights).
+generators), `classify.py` (tag+location → archetype), `encroachment.py` and `roof_audit.py` (buildings on the street, roofless
+footprints), `palette.py` (material catalog + tint weights).
 
 ## Templates
 
@@ -159,23 +160,61 @@ coordinates in `docs/pipeline_notes.md`).
 - **Garage** (`build_garage`): small rectangle, flat-fronted door quad, gable
   roof.
 
-## Infill (`infill.py`)
+## Infill (retired 2026-10-19)
 
-OSM only mapped 707 footprints across the 2.7km² play area — most residential
-blocks are empty. `generate_infill()` walks every `residential`/`unclassified`
-/`tertiary` road segment (skipping bridges and the downtown core), drops a
-candidate house every ~17m on both sides at a randomized 6-9m setback, and
-keeps it only if it doesn't overlap an existing footprint, non-residential
-landuse (parks/commercial/industrial/cemetery/etc., via
-`common_buildings.PolyIndex`), water/streams (5m buffer), rails (7m buffer),
-or another already-placed infill lot. ~22% of houses also get a small
-detached rear garage. Deterministic: every random choice is seeded from
-`rng_for(...)` keyed on rounded world position or building id, so reruns are
-stable. Result: 707 → 690 real buildings (17 landmarks skipped) + ~900 infill
-records = **1590 buildings built**, counts by archetype printed at the end of
-`build_building_plan.py`.
+`infill.py` used to place ~900 procedural houses and garages along raw OSM residential
+centrelines (6-9 m from a 6.5 m default-width line, measured to the house centre) wherever
+no real footprint stood. It dated from when OSM had only 707 footprints. Once Microsoft's
+footprints covered the play area (4,192 of them, 2026-09-20), it only filled ground that
+both the ML model and the aerial show empty:
 
-Ground level for every building (real and infill) is resampled from
+- Against the measured roads (transport_layout.json), 226 infill houses stood on the
+  carriageway (6,100 m2) and 333 on the walk or parkway (13,900 m2): every front landed
+  3-8 m from the centreline, inside the real ~9 m roadside.
+- Inside the 2025 aerial, a median 65% of each infill roof was lawn (11% for Microsoft
+  footprints). Even the least-green ones were on lawns, the riverbank, in streets, or
+  over real houses (`roof_audit.py`'s lawn test).
+- The 552 placed beyond the 1 m play heightmap took its clamped edge heights, a median 5 m
+  and up to 28 m off the horizon terrain they stand on.
+
+So it was removed, not repaired. Its height `Sampler` moved to `common_buildings.py`.
+Buildings beyond the play heightmap now come only from OSM. Microsoft's data covers that
+ground too, but `ms_footprints.py` clips it to the play area. Bringing it in needs the
+horizon heightmap for ground level.
+
+## Buildings on the street, and footprints with no roof
+
+- **House boxes stay inside the footprint** (`archetypes.corners_of`, 2026-10-19). A house
+  used to be built as a gabled box on its footprint's minimum rotated rectangle (or an ell's
+  two bars), whatever the footprint's shape, while its collision hull followed the footprint.
+  So an odd-shaped house drew walls well outside its outline: 9 houses reached the carriageway
+  (61 m2), 58 the walk (669 m2), 35 a neighbouring building (410 m2). Example: OSM 1013252878
+  at 932,-1696 stood on the parkway and in the curb lane. Now, where the boxes would stand
+  more than 4 m2 / 6% outside the footprint, `fit_bars` builds the largest rectangles that
+  fit inside it instead: a main bar, a wing, and up to three more, each sharing a wall with
+  one already placed. They are aligned with the bounding rectangle or one of the footprint's
+  longest walls, whichever covers more. 1,335 houses are refitted, covering a median 98% of
+  their footprints (10th percentile 83%). What still spills is within that tolerance:
+  4 houses / 9 m2 on the walk, 2 / 8 m2 into a neighbour, none on the carriageway. The
+  collision hull is now the outline of the boxes actually built (`built_outline`).
+  Churches and garages still use the bounding rectangle.
+
+- `encroachment.py` measures the baked hulls against the transportation layout, by
+  source (OSM, curated, Microsoft, and infill ids if an old bake is measured):
+  carriageway = asphalt + curb, roadside = sidewalk + parkway.
+- `pipeline/roads/build_road_plan.py` takes every footprint (`footprints.all_outlines()`:
+  OSM, curated, Microsoft, with Composer's corrections) as a layout obstacle. The walk
+  stops at each real face, and the layout's quality report has `building_conflicts` by
+  source with the largest listed.
+- `ms_footprints.py` drops Microsoft footprints standing mostly on a water reach. So far
+  that is one: 800002411, on the river by the Galena Ave bridge. Ids keep their old
+  positions.
+- `roof_audit.py` lists OSM/curated/Microsoft outlines whose inside is mostly lawn in
+  the 2025 aerial (`docs/footprint_aerial_audit/roofless_review.json`, with a contact
+  sheet). It is a review list and deletes nothing. Green metal roofs score as lawn too,
+  and a demolished building on a paved lot is not green.
+
+Ground level for every building is resampled from
 `heightmap_play_1m_road_conformed.r32` (the same file `terrain.gd` renders
 from, per `docs/terrain_notes.md`) rather than trusted from
 `buildings.json`'s own `ground_y_min`, so buildings sit flush with the live

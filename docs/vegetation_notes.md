@@ -15,7 +15,7 @@ Reads `game/data/{landuse,trees,roads,buildings,water,rails,world_origin}.json`
 `game/roads/_build/transport_layout.json` (missing/stale plans fail), **and**
 (read-only, cross-workstream)
 `game/buildings/_build/chunk_*.json` for the buildings team's baked collision
-hulls — these include the ~900 procedurally-infilled houses/garages that
+hulls — these include the Microsoft and curated footprints that
 `game/data/buildings.json` doesn't have (only the original 707 OSM
 footprints), so yard-tree/foundation-shrub placement and the general
 building exclusion buffer see the *real* as-built town, not just the OSM

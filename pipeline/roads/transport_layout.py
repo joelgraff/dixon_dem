@@ -81,8 +81,8 @@ def load_layout(path=LAYOUT_PATH):
 
 def input_fingerprints():
     paths = [ROOT / "game/data" / name
-             for name in ("roads.json", "buildings.json", "water.json", "aerial_paved.json",
-                          "alignments.json", "templates.json")]
+             for name in ("roads.json", "buildings.json", "buildings_curated.json", "buildings_ms.json",
+                          "water.json", "aerial_paved.json", "alignments.json", "templates.json")]
     paths.append(OVERRIDES_PATH)
     return {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in paths}
@@ -237,7 +237,36 @@ def roadside_conflicts(surfaces, obstacles):
     return out
 
 
-def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=()):
+def building_conflicts(groups, buildings, min_m2=CONFLICT_MIN_M2):
+    """Each building standing on a surface group, by footprint source. `buildings` is
+    (polygons, [(id, source), ...]); `groups` maps a name to its geometry."""
+    polygons, ids = buildings
+    tree = STRtree(polygons) if polygons else None
+    by_source, listed = {}, []
+    for group, geometry in groups.items():
+        areas = {}
+        if tree is not None and not geometry.is_empty:
+            for part in polygon_parts(geometry):
+                for i in tree.query(part, predicate="intersects"):
+                    areas[int(i)] = areas.get(int(i), 0.0) + polygons[int(i)].intersection(part).area
+        for i, area in areas.items():
+            if area <= min_m2:
+                continue
+            bid, source = ids[i]
+            row = by_source.setdefault(source, {g: {"count": 0, "area_m2": 0.0} for g in groups})
+            row[group]["count"] += 1
+            row[group]["area_m2"] = round(row[group]["area_m2"] + area, 1)
+            c = polygons[i].centroid
+            listed.append({"id": bid, "source": source, "surface": group, "area_m2": round(area, 1),
+                           "at": [round(c.x, 1), round(c.y, 1)]})
+    listed.sort(key=lambda r: -r["area_m2"])
+    return {"by_source": by_source,
+            "largest": {group: [r for r in listed if r["surface"] == group][:60] for group in groups}}
+
+
+def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=(), buildings=None):
+    """`buildings`, optional (polygons, [(id, source)]), only adds the by-source
+    building_conflicts to the report; `obstacles` already holds their geometry."""
     obstacles = set_precision(checked(obstacles, "obstacles"), OVERLAY_GRID_M)
     aerial = set_precision(checked(aerial, "aerial candidates"), OVERLAY_GRID_M)
     corridors = []
@@ -316,6 +345,8 @@ def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=()):
     # or curb under a building, which says the width or the alignment is wrong there)
     conflicts = roadside_conflicts({"asphalt": asphalt, "curb": curb, "parkway": parkway,
                                     "sidewalk": sidewalk}, obstacles)
+    by_building = building_conflicts({"carriageway": union([asphalt, curb]),
+                                      "roadside": union([parkway, sidewalk])}, buildings) if buildings else None
     parkway = parkway.difference(obstacles)
     sidewalk = sidewalk.difference(obstacles)
     small_parkways = union([part for part in polygon_parts(parkway) if part.area < 16.0])
@@ -363,6 +394,8 @@ def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=()):
     report = validate_layout(surfaces)
     report.update({"applied_junction_overrides": applied, "rejected_lot_fragments": rejected,
                    "roadside_conflicts": conflicts})
+    if by_building is not None:
+        report["building_conflicts"] = by_building
     return surfaces, report
 
 

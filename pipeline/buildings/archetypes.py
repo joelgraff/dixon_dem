@@ -5,7 +5,7 @@ if the footprint was too degenerate to build.
 """
 import math
 
-from shapely.geometry import Point, Polygon
+from shapely.geometry import MultiPoint, Point, Polygon
 
 from common_buildings import (
     ensure_ccw, dedupe_ring, min_rotated_rect, rect_from_center,
@@ -709,7 +709,8 @@ def build_residential_house(mb, mb_far, coords, ground_y, height_m, tags, rng, b
     ext, center, _width, _length, _yaw = min_rotated_rect(coords)
     from templates import front_from_road
     road_vec = front_from_road(center, road_index)
-    main, wing = corners_of(coords, road_vec, template)
+    extras = []
+    main, wing = corners_of(coords, road_vec, template, extras)
     if main is None:
         return None
     siding = _siding_for(template, rng)
@@ -739,6 +740,14 @@ def build_residential_house(mb, mb_far, coords, ground_y, height_m, tags, rng, b
         deeper = _edge_len(wing[1], wing[2]) > _edge_len(wing[0], wing[1])
         ridge_y = max(ridge_y, _raise_roof(
             mb, wing, eave_y, wing_template, siding, shingle, pitch, overhang, gable_front=deeper))
+    for bar in extras:
+        # further boxes of an irregular footprint (fit_bars): plain gabled masses, no door
+        _mass(mb, bar, ground_y, eave_y, floors, story, siding, rng, door=False, window=window, group=dress["group"])
+        bar_template = dict(template)
+        bar_template["roof"] = "gable"
+        ridge_y = max(ridge_y, _raise_roof(mb, bar, eave_y, bar_template, siding, shingle, pitch, overhang,
+                                           gable_front=_edge_len(bar[1], bar[2]) > _edge_len(bar[0], bar[1])))
+        far_box(mb_far, bar, ground_y, eave_y, palette.APPROX_COLOR.get(siding, (0.8, 0.8, 0.8)), window_glow=0.08)
     if template["form"] == "cross_gable" and wing is None:
         bar = _cross_bar(main)
         _mass(mb, bar, ground_y, eave_y, floors, story, siding, rng, door=False, window=window, group=dress["group"])
@@ -757,20 +766,161 @@ def build_residential_house(mb, mb_far, coords, ground_y, height_m, tags, rng, b
     far_box(mb_far, main, ground_y, eave_y, palette.APPROX_COLOR.get(siding, (0.8, 0.8, 0.8)), window_glow=0.12)
     if wing is not None:
         far_box(mb_far, wing, ground_y, eave_y, palette.APPROX_COLOR.get(siding, (0.8, 0.8, 0.8)), window_glow=0.08)
-    return {"hull": coords, "y0": ground_y, "y1": ridge_y}
+    return {"hull": built_outline(main, wing, extras), "y0": ground_y, "y1": ridge_y}
 
 
 def _edge_len(a, b):
     return math.hypot(b[0] - a[0], b[1] - a[1])
 
 
-def corners_of(coords, road_vec, template):
+# A house is built as gabled boxes. Where the footprint's bounding rectangle (or an ell's two
+# bars) would stand more than this far outside the footprint, the boxes are fitted inside it
+# instead (fit_bars): an odd-shaped footprint's rectangle reached into the walk, the street
+# and the next building (1013252878 at 932,-1696 stood on the parkway and in the curb lane).
+SPILL_TOL_M2 = 4.0
+SPILL_TOL_FRAC = 0.06
+FIT_CELL_M = 0.5
+MIN_BAR_M = 2.2
+
+
+def corners_of(coords, road_vec, template, extras=None):
+    """(main, wing) boxes for a house; a list passed as `extras` gets any further boxes
+    fit_bars needed to cover an irregular footprint."""
+    coords = ensure_ccw(dedupe_ring(list(coords)))
     if template.get("form") == "gabled_ell":
         main, wing = ell_bars(coords, road_vec)
+    else:
+        ext, _center, _w, _l, _yaw = min_rotated_rect(coords)
+        main, wing = _face_street(ext, road_vec), None
+    if main is None:
         return main, wing
-    coords = ensure_ccw(dedupe_ring(list(coords)))
-    ext, _center, _w, _l, _yaw = min_rotated_rect(coords)
-    return _face_street(ext, road_vec), None
+    poly = Polygon(coords)
+    if not poly.is_valid:
+        poly = poly.buffer(0)
+    if spill_area(poly, main, wing) > max(SPILL_TOL_M2, SPILL_TOL_FRAC * poly.area):
+        fitted_main, fitted_wing, more = fit_bars(poly, road_vec)
+        if fitted_main is not None:
+            if extras is not None:
+                extras.extend(more)
+            return fitted_main, fitted_wing
+    return main, wing
+
+
+def spill_area(poly, main, wing=None):
+    """How much of the boxes stands outside the footprint."""
+    built = Polygon(main)
+    if wing is not None:
+        built = built.union(Polygon(wing))
+    return built.difference(poly).area
+
+
+def built_outline(main, wing=None, extras=()):
+    """The ground outline of the boxes, for the collision hull."""
+    points = list(main) + (list(wing) if wing is not None else []) + [p for bar in extras for p in bar]
+    return list(MultiPoint(points).convex_hull.exterior.coords)[:-1]
+
+
+def _largest_rect(mask):
+    """(row0, col0, row1, col1) exclusive of the largest all-True rectangle in a 2D bool array."""
+    best, best_area = None, 0
+    heights = [0] * mask.shape[1]
+    for r in range(mask.shape[0]):
+        row = mask[r]
+        for c in range(mask.shape[1]):
+            heights[c] = heights[c] + 1 if row[c] else 0
+        stack = []
+        for c in range(mask.shape[1] + 1):
+            h = heights[c] if c < mask.shape[1] else 0
+            start = c
+            while stack and stack[-1][1] >= h:
+                start, sh = stack.pop()
+                if sh * (c - start) > best_area:
+                    best_area = sh * (c - start)
+                    best = (r - sh + 1, start, r + 1, c)
+            stack.append((start, h))
+    return best
+
+
+MAX_EXTRA_BARS = 3
+
+
+def fit_bars(poly, road_vec, cell=FIT_CELL_M):
+    """Boxes inside the footprint: the main bar is the largest rectangle inside it, the wing the
+    largest in what is left that touches it, and up to MAX_EXTRA_BARS more the same way (each
+    sharing a wall with one already placed). The boxes are aligned with the footprint's bounding
+    rectangle or with one of its longest walls, whichever covers most of it (a skewed footprint's
+    walls are not square to its bounding rectangle). Each box's first edge faces the street, as
+    corners_of's. Returns (main, wing, extras); (None, None, []) when nothing MIN_BAR_M wide fits."""
+    ring = list(poly.exterior.coords)[:-1]
+    frames = [min_rotated_rect(ring)[0]]
+    edges = sorted(((math.hypot(b[0] - a[0], b[1] - a[1]), math.atan2(b[1] - a[1], b[0] - a[0]))
+                    for a, b in zip(ring, ring[1:] + ring[:1])), reverse=True)
+    for _length, angle in edges[:3]:
+        frames.append(_bounding_rect_at(ring, angle))
+    best, best_cover = (None, None, []), 0.0
+    for corners in frames:
+        main, wing, extras = _fit_in_frame(poly, corners, road_vec, cell)
+        if main is None:
+            continue
+        cover = sum(Polygon(bar).area for bar in [main] + ([wing] if wing else []) + extras)
+        if cover > best_cover * 1.02:
+            best, best_cover = (main, wing, extras), cover
+    return best
+
+
+def _bounding_rect_at(ring, angle):
+    """The CCW rectangle around `ring` with its sides along `angle`."""
+    ca, sa = math.cos(angle), math.sin(angle)
+    us = [x * ca + z * sa for x, z in ring]
+    vs = [-x * sa + z * ca for x, z in ring]
+    u0, u1, v0, v1 = min(us), max(us), min(vs), max(vs)
+    world = [(u * ca - v * sa, u * sa + v * ca) for u, v in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))]
+    return ensure_ccw(world)
+
+
+def _fit_in_frame(poly, corners, road_vec, cell):
+    import numpy as np
+    from shapely import contains_xy
+    origin, u, v, width, depth = _frame(corners)
+    nu, nv = max(1, int(width / cell)), max(1, int(depth / cell))
+    su, sv = width / nu, depth / nv
+    uu, vv = np.meshgrid((np.arange(nu) + 0.5) * su, (np.arange(nv) + 0.5) * sv)
+    xs = origin[0] + u[0] * uu + v[0] * vv
+    zs = origin[1] + u[1] * uu + v[1] * vv
+    mask = contains_xy(poly, xs, zs)   # rows: v, columns: u
+
+    def box(found):
+        if found is None:
+            return None
+        r0, c0, r1, c1 = found
+        if (c1 - c0) * su < MIN_BAR_M or (r1 - r0) * sv < MIN_BAR_M:
+            return None
+        return _box_uv(origin, u, v, c0 * su, r0 * sv, c1 * su, r1 * sv), found
+
+    first = box(_largest_rect(mask))
+    if first is None:
+        return None, None, []
+    main, (r0, c0, r1, c1) = first
+    rest = mask.copy()
+    rest[r0:r1, c0:c1] = False
+    placed = [Polygon(main)]
+    bars = []
+    min_area = max(12.0, 0.05 * poly.area)
+    for _ in range(12):
+        if len(bars) >= 1 + MAX_EXTRA_BARS:
+            break
+        found = box(_largest_rect(rest))
+        if found is None or Polygon(found[0]).area < min_area:
+            break
+        candidate, (r0, c0, r1, c1) = found
+        rest[r0:r1, c0:c1] = False
+        shape_ = Polygon(candidate)
+        # a box must share a wall (not a corner) with one already placed
+        if any(shape_.intersection(other.buffer(cell * 0.5)).area > MIN_BAR_M * cell * 0.5 for other in placed):
+            placed.append(shape_)
+            bars.append(_face_street(candidate, road_vec))
+    wing = bars[0] if bars else None
+    return _face_street(main, road_vec), wing, bars[1:]
 
 
 def _place_porch(mb, template, main, wing, porch_edge, ground_y, rng, post_style="plain", coords=None):

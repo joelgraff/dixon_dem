@@ -15,7 +15,10 @@ Precedence, highest first:
   3. OSM                        - carries names/tags/levels, and its geometry is surveyed
   4. Microsoft                  - fills everything else
 A Microsoft footprint is dropped when it overlaps any higher-precedence footprint, so this
-only ever ADDS buildings.
+only ever ADDS buildings. One that stands mostly on a water.json reach is a false detection
+(800002411 was a 359 m2 rectangle on the river by the Galena Ave bridge) and is dropped too.
+Ids stay what they were before the water test, 800000000 + position among the rest, so the
+style overrides and footprint overrides keyed on them keep their buildings.
 
 Run: cd pipeline/buildings && ../../.venv/bin/python ms_footprints.py
 """
@@ -37,6 +40,7 @@ MIN_AREA_M2 = 12.0        # sheds smaller than this are noise
 MAX_AREA_M2 = 20000.0     # a merged blob, not a building
 SIMPLIFY_M = 0.35         # ML rings are jagged; keep corners, drop wobble
 OVERLAP_FRAC = 0.25       # drop if this much of the MS footprint is already covered
+WATER_FRAC = 0.5          # drop if this much of it is on a river/pond reach
 
 
 def load_existing():
@@ -59,6 +63,12 @@ def load_existing():
     return polys, why
 
 
+def load_water():
+    reaches = json.load(open(os.path.join(ROOT, "game", "data", "water.json"))).get("reaches", [])
+    polys = [Polygon([(p["x"], p["z"]) for p in r["polygon"]]) for r in reaches if len(r["polygon"]) >= 3]
+    return [p if p.is_valid else p.buffer(0) for p in polys]
+
+
 def main():
     if not os.path.exists(SRC):
         raise SystemExit(f"missing {SRC} - see the module docstring for the download URL")
@@ -68,8 +78,11 @@ def main():
 
     existing, _ = load_existing()
     tree = STRtree(existing) if existing else None
+    water = load_water()
+    water_tree = STRtree(water)
 
-    kept, dropped_overlap, dropped_size, scanned = [], 0, 0, 0
+    kept, dropped_overlap, dropped_size, dropped_water, scanned = [], 0, 0, [], 0
+    next_id = 800000000
     with gzip.open(SRC, "rt") as f:
         for line in f:
             try:
@@ -116,6 +129,12 @@ def main():
                 if hit:
                     dropped_overlap += 1
                     continue
+            bid = next_id
+            next_id += 1
+            wet = sum(poly.intersection(water[int(i)]).area for i in water_tree.query(poly))
+            if wet > WATER_FRAC * poly.area:
+                dropped_water.append(bid)
+                continue
             coords = list(poly.exterior.coords)[:-1]
             # CCW in (x, z) to match the rest of the buildings pipeline
             area2 = sum(coords[i][0] * coords[(i + 1) % len(coords)][1]
@@ -125,7 +144,7 @@ def main():
                 coords.reverse()
             h = feat["properties"].get("height")
             kept.append({
-                "id": 800000000 + len(kept),
+                "id": bid,
                 "source": "ms",
                 "footprint": [{"x": round(x, 2), "z": round(z, 2)} for x, z in coords],
                 "height_m": round(float(h), 1) if h and float(h) > 2.0 else None,
@@ -133,11 +152,13 @@ def main():
             })
 
     json.dump({"note": "Microsoft ML building footprints (ODbL), clipped to the play area "
-                       "and de-duplicated against OSM/curated/landmark footprints.",
+                       "de-duplicated against OSM/curated/landmark footprints, and with false "
+                       "detections on water dropped (ids keep their positions).",
                "buildings": kept}, open(OUT, "w"))
     with_h = sum(1 for b in kept if b["height_m"])
     print(f"scanned {scanned} features")
-    print(f"kept {len(kept)}  (dropped {dropped_overlap} overlapping existing, {dropped_size} bad size)")
+    print(f"kept {len(kept)}  (dropped {dropped_overlap} overlapping existing, {dropped_size} bad size, "
+          f"{len(dropped_water)} on water: {dropped_water})")
     print(f"heights on {with_h} of them")
     print(f"wrote {OUT}")
 

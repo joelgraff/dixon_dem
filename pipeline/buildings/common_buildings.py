@@ -463,3 +463,30 @@ class PolyIndex:
                     elif poly.contains(pt):
                         return True
         return False
+
+
+class Sampler:
+    """Bilinear height sampler for the road-conformed play heightmap,
+    mirroring game/terrain/terrain_height.gd's Grid.sample()."""
+
+    def __init__(self, origin_json, r32_path):
+        import numpy as np
+        play = origin_json["heightmaps"]["play"]
+        self.width = play["width"]
+        self.height = play["height"]
+        self.spacing = play["spacing_m"]
+        self.origin_x = play["origin_easting"] - origin_json["origin_easting"]
+        self.origin_z = -(play["origin_northing_top"] - origin_json["origin_northing"])
+        self.heights = np.fromfile(r32_path, dtype="<f4").reshape(self.height, self.width)
+
+    def sample(self, x, z):
+        col = min(max((x - self.origin_x) / self.spacing, 0.0), self.width - 1)
+        row = min(max((z - self.origin_z) / self.spacing, 0.0), self.height - 1)
+        c0, r0 = int(col), int(row)
+        c1, r1 = min(c0 + 1, self.width - 1), min(r0 + 1, self.height - 1)
+        fx, fz = col - c0, row - r0
+        h00 = self.heights[r0, c0]
+        h10 = self.heights[r0, c1]
+        h01 = self.heights[r1, c0]
+        h11 = self.heights[r1, c1]
+        return float((h00 * (1 - fx) + h10 * fx) * (1 - fz) + (h01 * (1 - fx) + h11 * fx) * fz)

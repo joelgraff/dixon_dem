@@ -253,9 +253,8 @@ commercial_prep = prep(commercial_union) if not commercial_union.is_empty else N
 # Buildings. Prefer the buildings workstream's own BAKED collision hulls
 # (game/buildings/_build/chunk_*.json -- read-only cross-workstream read,
 # see docs/buildings_notes.md) over game/data/buildings.json's raw OSM
-# footprints: the bake includes ~900 procedurally-infilled houses/garages on
-# blocks OSM never mapped (game/data/buildings.json only has the original
-# 707), and the hull is already the exact as-built rectangle (houses are
+# footprints: the bake includes Microsoft's ~4,200 footprints on blocks OSM
+# never mapped (game/data/buildings.json only has the original 707), and the hull is already the exact as-built rectangle (houses are
 # simplified to their min-rotated-rect there). Falls back to
 # game/data/buildings.json alone if the bake hasn't been run yet.
 building_recs = []  # dict: poly, area, is_house
@@ -288,7 +287,7 @@ if os.path.isdir(_build_dir):
                 and (commercial_prep is None or not commercial_prep.intersects(poly.centroid))
             )
             building_recs.append(dict(poly=poly, area=poly.area, is_house=is_house))
-print(f"  loaded {_hull_count} baked building hulls from game/buildings/_build/ (includes procedural infill)"
+print(f"  loaded {_hull_count} baked building hulls from game/buildings/_build/ (OSM, curated and Microsoft)"
       if _hull_count else "  no buildings bake found, falling back to buildings.json")
 
 if not building_recs:
