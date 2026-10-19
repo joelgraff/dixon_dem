@@ -250,8 +250,7 @@ Each phase ships on its own and shows improvement against the baseline metrics.
 | 1 (done) | Routes, stationing, horizontal fit, OSM-deviation report; aerial curb-to-curb width survey per route | none (data only); review images over the aerial |
 | 2 (done) | Network vertical solve with shared junction elevations and fixed controls; `road_conform` reads design profiles instead of per-way moving averages | junction steps gone, grades smooth; the biggest win for the smallest change |
 | 3a (done) | Cross-section templates on station ranges; the transportation layout and the conformed heightmap built on the route alignments at template widths | real curb-to-curb widths; curb lines on the designed tangents and curves |
-| 3b | Crown warping at junctions (with the edge-of-pavement junction tie, see phase 2 results); sawtooth gutters on flat streets; TIN-based conformed heightmap with daylighting | clean junction surfaces and curb returns |
-| 4 | Linear and node module library replacing the polygon pipeline and fan fills; curated-module escape hatch | regular sidewalk panels and joints, consistent curb returns and ramps |
+| 4 | Crown warping at junctions (with the edge-of-pavement junction tie, see phase 2 results); sawtooth gutters on flat streets; TIN-based conformed heightmap with daylighting; linear and node module library replacing the polygon pipeline and fan fills; curated-module escape hatch. Takes in what was phase 3b. | clean junction surfaces; regular sidewalk panels and joints, consistent curb returns and ramps |
 | 5 | Bridges as station ranges; Composer edits PVIs; anchor and ramp code retired; clearance checks | approaches and decks share one profile |
 | 6 | Editor support: drag PIs, PVIs and template breaks in-game or in Composer, rebuilding per route | — |
 
@@ -605,7 +604,7 @@ heightmap. Comparing old and new on the same instrument:
 - The middle column is why the instrument had to change: the phase 2 surface, measured at the
   new curb lines, falls outside its own painted pavement.
 - **The ratchet (`test_road_metrics.py`) fails against the phase 2 baseline**. By decision
-  (2026-10-18) the baseline stays as it is, and the regressions below are open items for 3b.
+  (2026-10-18) the baseline stays as it is, and the regressions below are open items for phase 4.
   Where the numbers are worse:
   - **Cross slope.** Split at the junctions (a box of the widest leg's half-width plus 1 m):
     - Outside the junctions, the deviation is better or level: p50 0.31 → 0.23%, p90 0.80 →
@@ -614,7 +613,7 @@ heightmap. Comparing old and new on the same instrument:
       from a single block with its centre 1.9 m off the alignment.
     - Inside the junctions, the adverse rate is unchanged at about 15% (173 of 1,192 samples,
       then 261 of 1,694). But the wider templates put 42% more stations inside junction boxes,
-      where the crown is undefined until 3b warps it.
+      where the crown is undefined until phase 4 warps it.
   - **Breaklines.** The extra one is the rail-berm drive's designed +32% climb (its phase 2
     PVI override). Measured along the OSM line, 0.5 m off the alignment, it was missed. The
     phase 2 surface shows the same three breaklines on the design lines.
@@ -643,7 +642,7 @@ block, downtown Galena and a curve):
 - Chuck Vail Drive (R21836045) is 15.85 m wide, from a single counted block whose centre is
   1.9 m off the alignment. It needs a look on the aerial, or an override.
 
-**Left for 3b:**
+**Left for phase 4** (which takes in what was planned as 3b):
 - Crown warping at junctions, sawtooth gutters, and the TIN surface with daylighting.
 - Bring the ratchet back to green against the unchanged phase 2 baseline, on the design-line
   instrument:
