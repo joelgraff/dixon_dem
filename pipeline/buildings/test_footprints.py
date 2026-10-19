@@ -182,6 +182,84 @@ def test_server_serves_the_aerial_and_outlines():
         server.server_close()
 
 
+def test_the_building_plan_takes_overrides_with_their_porches():
+    # the plan's own records: {"x", "z"} rings, closed
+    ring = lambda pts: [{"x": x, "z": z} for x, z in pts + pts[:1]]
+    osm = [{"id": 1, "footprint": ring([[0, 0], [10, 0], [10, 8], [0, 8]])},
+           {"id": 2, "footprint": ring([[50, 0], [60, 0], [60, 8], [50, 8]])}]
+    ms = [{"id": 800000000, "footprint": ring([[200, 200], [208, 200], [208, 207]])}]
+    porch = {"kind": "shed_full", "legs": [{"a": [10, 8], "b": [0, 8], "depth": 2.4}]}
+    overrides = {
+        "1": _override(1, [[0, 0], [10, 0], [10, 6], [0, 6]], porches=[porch],
+                       based_on={"source": "osm", "hash": footprints.outline_hash([[0, 0], [10, 0], [10, 8], [0, 8]])}),
+        # an override for the Microsoft id that now names a building 300 m away: skipped
+        "800000000": _override(800000000, [[500, 500], [508, 500], [508, 507]]),
+    }
+    warnings = []
+    footprints.override_records(osm, "osm", overrides, warnings.append)
+    footprints.override_records(ms, "ms", overrides, warnings.append)
+    assert osm[0]["footprint"] == ring([[0, 0], [10, 0], [10, 6], [0, 6]])
+    assert osm[0]["footprint_override"] is True
+    assert osm[0]["override_porches"] == [porch]
+    assert "footprint_override" not in osm[1] and "footprint_override" not in ms[0]
+    assert ms[0]["footprint"][0] == {"x": 200, "z": 200}
+    assert len(warnings) == 1 and "skipped" in warnings[0]
+
+    # the porches go to the template: the first one's kind, unless building_overrides.json names one
+    template_of = {1: {"form": "side_gable", "porch": "stoop"}, 2: {"form": "ranch", "porch": "stoop"}}
+    footprints.apply_override_porches(osm, template_of, {})
+    assert template_of[1]["porch"] == "shed_full"
+    assert template_of[1]["porch_legs"] == [{"a": [10, 8], "b": [0, 8], "depth": 2.4, "kind": "shed_full"}]
+    assert template_of[1]["form"] == "side_gable"
+    assert template_of[2] == {"form": "ranch", "porch": "stoop"}
+    named = {1: {"form": "side_gable"}}
+    footprints.apply_override_porches(osm, named, {1: {"porch": "gable_full"}})
+    assert named[1]["porch"] == "gable_full" and named[1]["porch_legs"]
+
+
+def _post(url, body, headers=None):
+    request = urllib.request.Request(url, data=body, method="POST",
+                                     headers={"Content-Type": "application/json", **(headers if headers is not None else {"X-Composer": "1"})})
+    try:
+        with urllib.request.urlopen(request) as reply:
+            return reply.status
+    except urllib.error.HTTPError as error:
+        return error.code
+
+
+def test_server_saves_a_footprint_override():
+    root, overrides = _game_data()
+    server, base = _serve(outlines=composer_server.Outlines(str(root), str(overrides)))
+    try:
+        override = {**_override(1, [[0, 0], [11, 0], [11, 8], [0, 8]]),
+                    "porches": [{"kind": "shed_full", "legs": [{"a": [11, 8], "b": [0, 8], "depth": 2.4}]}]}
+        assert _post(f"{base}/game-footprint/1", json.dumps(override).encode()) == 200
+        saved = json.loads((overrides / "1.json").read_text())
+        assert saved["porches"][0]["legs"][0]["depth"] == 2.4
+        # the saved outline is what the footprint editor and the build see from then on
+        with urllib.request.urlopen(f"{base}/game-footprints?x0=-1&z0=-1&x1=1&z1=1") as reply:
+            assert json.load(reply)["buildings"][0]["footprint"][1] == [11, 0]
+        # not from Composer, for another building, or not an outline: refused, and nothing written
+        assert _post(f"{base}/game-footprint/1", json.dumps(override).encode(), headers={}) == 403
+        assert _post(f"{base}/game-footprint/2", json.dumps(override).encode()) == 400
+        for bad in (
+            {**override, "footprint": [[0, 0], [1, 0]]},
+            {**override, "footprint": [[0, 0], [1, 0], [2, 0]]},
+            {**override, "footprint": [[0, 0], [10, 0], [10, None]]},
+            {**override, "porches": [{"kind": "veranda", "legs": override["porches"][0]["legs"]}]},
+            {**override, "porches": [{"kind": "stoop", "legs": [{"a": [0, 0], "b": [0, 0], "depth": 1}]}]},
+            {**override, "porches": [{"kind": "stoop", "legs": [{"a": [0, 0], "b": [1, 0], "depth": -1}]}]},
+            {**override, "format": "dixon-composed"},
+        ):
+            assert _post(f"{base}/game-footprint/1", json.dumps(bad).encode()) == 400, bad
+        assert _post(f"{base}/game-footprint/..%2Fx", json.dumps(override).encode()) == 400
+        assert json.loads((overrides / "1.json").read_text())["footprint"][1] == [11, 0]
+        assert sorted(p.name for p in overrides.iterdir()) == ["1.json"]
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
 def test_server_without_imagery_says_so():
     server, base = _serve(aerial=Aerial(tempfile.mkdtemp()))
     try:
@@ -205,4 +283,6 @@ if __name__ == "__main__":
     test_aerial_crop_places_a_tile_by_its_mapping()
     test_server_serves_the_aerial_and_outlines()
     test_server_without_imagery_says_so()
+    test_server_saves_a_footprint_override()
+    test_the_building_plan_takes_overrides_with_their_porches()
     print("footprints ok")

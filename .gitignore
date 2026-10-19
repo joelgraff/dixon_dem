@@ -24,3 +24,7 @@ game/*/*.scn
 game/roads/roads.tscn
 game/roads/bridges.tscn
 game/buildings/buildings.tscn
+
+# Python bytecode (rebuilt on every run)
+__pycache__/
+*.pyc

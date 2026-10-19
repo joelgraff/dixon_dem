@@ -9,7 +9,7 @@ dixon_dem/
   dems/            USGS NED 1/9" (ned19_*) source DEMs (read-only). Other files in dems/ are legacy, reference only.
   dixon_topo_v2.png  OSM-style reference render of Dixon (not georeferenced) — visual reference for road layout.
   data/raw/        downloads (OSM extracts, texture zips) — gitignored
-  pipeline/        Python data processing. Use ../.venv/bin/python (numpy, rasterio, pyproj, shapely, scipy, pillow, requests)
+  pipeline/        Python data processing. Use ../.venv/bin/python (numpy, rasterio, pyproj, shapely, scipy, pillow, requests: requirements.txt; game/tools/run_checks.sh creates the venv when it is missing)
   docs/            this file, ART_DIRECTION.md, references/*.md, workstream notes
   game/            Godot project (res://)
     autoload/      WorldState (season/weather/time contract)

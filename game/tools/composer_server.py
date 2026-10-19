@@ -37,6 +37,11 @@ For Composer's footprint editor (both read-only, boxes in game meters):
   GET /game-footprints?x0=&z0=&x1=&z1=   {"buildings": [{id, source,
       footprint, override?}]}, every outline meeting the box, corrections
       applied (pipeline/buildings/footprints.py)
+
+Its "Save footprint to game" POSTs a footprint override to
+/game-footprint/<id>, written to game/data/footprint_overrides/<id>.json
+(format `dixon-footprint-override`, see footprints.py), with the same
+same-origin checks as a save.
 """
 import argparse
 import json
@@ -60,6 +65,10 @@ import bridges_composed  # noqa: E402
 from aerial_crop import Aerial  # noqa: E402
 ID = re.compile(r"^[0-9A-Za-z_-]{1,40}$")
 MAX_BYTES = 32 * 1024 * 1024
+# a footprint override is an outline and a few porches
+MAX_FOOTPRINT_BYTES = 1024 * 1024
+MAX_CORNERS = 2000
+PORCH_KINDS = {"stoop", "shed_full", "gable_full", "wrap"}
 
 
 def validate(bid, body):
@@ -79,6 +88,11 @@ def validate(bid, body):
 
 def save(bid, body, directory=COMPOSED_DIR):
     validate(bid, body)
+    _write(bid, body, directory)
+
+
+def _write(bid, body, directory):
+    """Writes `body` as <directory>/<bid>.json, whole or not at all."""
     os.makedirs(directory, exist_ok=True)
     handle, temp = tempfile.mkstemp(dir=directory, suffix=".tmp")
     with os.fdopen(handle, "wb") as out:
@@ -662,6 +676,64 @@ def bridge_list(bridges_json=BRIDGES_JSON, directory=BRIDGES_DIR, sampler=None):
     return out
 
 
+def _point(value):
+    """A finite [x, z], or raises ValueError."""
+    if not isinstance(value, (list, tuple)) or len(value) != 2:
+        raise ValueError("a point is [x, z]")
+    try:
+        x, z = (float(v) for v in value)
+    except (TypeError, ValueError):
+        raise ValueError("a point is [x, z]")
+    if not all(map(math.isfinite, (x, z))):
+        raise ValueError("a point is [x, z]")
+    return [x, z]
+
+
+def validate_footprint(bid, body):
+    """The parsed override if `body` is a footprint override for `bid` (see
+    footprints.py: an outline of at least three corners enclosing some area,
+    and porches whose legs are an edge and a depth), else raises ValueError."""
+    if not ID.match(bid or ""):
+        raise ValueError("bad id")
+    try:
+        data = json.loads(body)
+    except ValueError:
+        raise ValueError("not JSON")
+    if not isinstance(data, dict) or data.get("format") != "dixon-footprint-override":
+        raise ValueError("not a footprint override")
+    if str(data.get("id")) != bid:
+        raise ValueError("the file is for another building")
+    corners = data.get("footprint")
+    if not isinstance(corners, list) or not 3 <= len(corners) <= MAX_CORNERS:
+        raise ValueError("the footprint needs 3 to %d corners" % MAX_CORNERS)
+    ring = [_point(p) for p in corners]
+    area = sum(x * ring[(i + 1) % len(ring)][1] - ring[(i + 1) % len(ring)][0] * z for i, (x, z) in enumerate(ring)) / 2
+    if abs(area) < 1.0:
+        raise ValueError("the footprint encloses no area")
+    porches = data.get("porches", [])
+    if not isinstance(porches, list):
+        raise ValueError("porches is a list")
+    for porch in porches:
+        if not isinstance(porch, dict) or porch.get("kind") not in PORCH_KINDS:
+            raise ValueError("a porch's kind is one of " + ", ".join(sorted(PORCH_KINDS)))
+        legs = porch.get("legs")
+        if not isinstance(legs, list) or not 1 <= len(legs) <= 4:
+            raise ValueError("a porch has 1 to 4 legs")
+        for leg in legs:
+            if not isinstance(leg, dict):
+                raise ValueError("a leg is {a, b, depth}")
+            a, b = _point(leg.get("a")), _point(leg.get("b"))
+            depth = leg.get("depth")
+            if a == b or not isinstance(depth, (int, float)) or not math.isfinite(depth) or not 0 < depth <= 20:
+                raise ValueError("a leg is an edge and a depth (0 to 20 m)")
+    return data
+
+
+def save_footprint(bid, body, directory=footprints.OVERRIDES_DIR):
+    validate_footprint(bid, body)
+    _write(bid, body, directory)
+
+
 class Outlines:
     """Every building outline, loaded once and again when a source or an override changes."""
 
@@ -779,6 +851,8 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
         def do_POST(self):
             routes = {
                 "/game-save/": (lambda bid, body: save(bid, body, composed_dir)),
+                # a corrected footprint, into the directory the outlines are read from
+                "/game-footprint/": (lambda bid, body: save_footprint(bid, body, outlines.overrides_dir)),
                 "/game-save-bridge/": (lambda bid, body: save_bridge(bid, body, bridges_dir)),
                 "/game-suppress-bridge/": (lambda bid, body: suppress_bridge(bid, body)),
                 "/game-delete-bridge/": (lambda bid, body: delete_bridge(bid, bridges_dir)),
@@ -796,7 +870,8 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                 length = int(self.headers.get("Content-Length", ""))
             except ValueError:
                 return self._reply(411, "length required")
-            if length < 0 or length > MAX_BYTES:
+            limit = MAX_FOOTPRINT_BYTES if route == "/game-footprint/" else MAX_BYTES
+            if length < 0 or length > limit:
                 return self._reply(413, "too large")
             body = self.rfile.read(length) if length else b""
             try:

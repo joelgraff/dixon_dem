@@ -25,6 +25,7 @@ import infill
 import palette
 import facade
 import templates as building_templates
+import footprints
 
 from shapely.geometry import Polygon, LineString
 
@@ -161,6 +162,11 @@ def main(only_chunk=None):
     buildings_data = load("buildings.json")["buildings"]
     curated = load_curated(buildings_data)       # may drop OSM footprints listed in "replaces"
     ms_records = load_ms_footprints()            # ML footprints for everything OSM never mapped
+    # outlines corrected in Building Composer's footprint editor (game/data/footprint_overrides/)
+    footprint_overrides = footprints.load_overrides()
+    for records, source in ((buildings_data, "osm"), (curated, "curated"), (ms_records, "ms")):
+        footprints.override_records(records, source, footprint_overrides)
+    print(f"footprint overrides: {len(footprint_overrides)}")
     roads_data = load("roads.json")
     water_data = load("water.json")
     landuse_data = load("landuse.json")
@@ -231,6 +237,7 @@ def main(only_chunk=None):
           f"curated {len(curated)}; microsoft {len(ms_records)}; infill {len(infill_records)})")
     overrides = building_templates.load_overrides(os.path.join(GAME_DATA, "building_overrides.json"))
     template_of = building_templates.resolve_batch(all_records, road_idx, overrides)
+    footprints.apply_override_porches(all_records, template_of, overrides)
     print(f"templates resolved: {len(template_of)}")
 
     chunks = {}  # (cx,cz) -> {"near": MeshBuild, "far": MeshBuild, "collisions": []}

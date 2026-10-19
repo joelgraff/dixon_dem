@@ -234,4 +234,8 @@ In Composer, **Send to game** (only for a building opened with X) POSTs the mode
 - **R** reverts to the generated building (`composed: false` in `building_overrides.json`); the design file stays, and I brings it back;
 - **X** again opens the outline in Composer; if a design was sent, it is carried along (`project`) and Composer reopens it. If the outline was changed in the game since, Composer says so and opens the fresh outline instead.
 
+### Correcting a footprint (Save footprint to game, O)
+
+In Composer's footprint mode (it opens first for a building with no design, or File › Edit footprint), correct the outline over the game's trace, the aerial, and the neighbors, and turn porches traced as part of the house into porches. **Save footprint to game** POSTs it to the server, which writes `game/data/footprint_overrides/<id>.json` (without the server it downloads the file; put it there). Press **Enter** in the building editor to rebuild the chunk: the generated building now stands on the corrected outline, with those porches where they were traced. **X** exports the corrected outline from then on; **O** sets the correction aside (`<id>.json.off`) and rebuilds on the traced outline. See `docs/buildings_notes.md`.
+
 Buildings that never went through Composer are untouched: the game keeps generating them from the footprint.
