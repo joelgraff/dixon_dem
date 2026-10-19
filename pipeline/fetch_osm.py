@@ -79,6 +79,15 @@ out body geom;
 );
 out body geom;
 """,
+    "parking": f"""
+[out:json][timeout:180];
+(
+  way["amenity"~"^(parking|parking_space|fuel)$"]({BBOX});
+  relation["amenity"="parking"]({BBOX});
+  way["area:highway"]({BBOX});
+);
+out body geom;
+""",
     "points": f"""
 [out:json][timeout:180];
 (

@@ -16,8 +16,15 @@ Two things changed and both matter:
     hold (OSM + Microsoft + curated). That is what makes this reliable: the earlier attempt
     leaked roofs because OSM only had 707 footprints and the rest were unmapped.
 
-Remaining colour test only has to separate pavement from dormant grass/bare earth:
-pavement is brighter and less saturated (val 0.52 / sat 0.21 vs lawn 0.24 / sat 0.37).
+Mapped car parks (OSM amenity=parking/fuel, data/raw/osm_parking.json) are taken outright.
+Elsewhere the colour test only has to separate pavement from dormant grass and bare earth.
+Saturation alone (the test until 2026-10-18) let gravel and dirt yards through and missed
+dark fresh asphalt; yellowness, (g - b) / max, separates all three (see YELLOW_MAX). A colour
+blob is then kept as a lot only if, as a whole, it is not yellow (gravel), is mostly
+LOT_CORE_M wide (not a track, shoulder or driveway) and reaches a road or a mapped car park.
+Texture was tried and does not help: parked cars make real lots as busy as gravel.
+The road mask takes the asphalt edges the aerial width survey measured (alignments.json),
+so the outer lanes of wide roads are not left behind as lots; rails mask their ballast.
 
 Rectangles are decomposed in STREET-GRID-ALIGNED space (Dixon's grid runs ~344 deg), so lot
 edges come out parallel to the streets instead of as north-up staircases.
@@ -49,9 +56,30 @@ MIN_RECT_M2 = 8.0
 ROAD_PAD_M = 2.0          # kerb + gutter
 BUILDING_PAD_M = 1.5      # eaves and the shadow skirt beside a wall
 
+# Colour of one pixel, after averaging over SMOOTH_PX (1.5 m) to quiet cars and paint.
+# "Yellowness" is (g - b) / max(r, g, b). Measured inside the OSM parking areas it holds at
+# ~0.15 at every brightness; dormant lawn is 0.20-0.37 and gravel/dirt yards 0.16-0.26.
+# That is what lets dark fresh asphalt (val 0.20-0.33) in: saturation alone could not
+# tell it from dark lawn.
 VAL_MIN, VAL_MAX = 0.33, 0.97
 SAT_MAX = 0.30
+YELLOW_MAX = 0.20
+DARK_VAL_MIN = 0.15            # fresh asphalt, val 0.15-0.33
+DARK_SAT_MAX = 0.32
+DARK_YELLOW_MAX = 0.21
+SMOOTH_PX = 3
+# Per lot: the median yellowness of a whole blob. OSM lots: p95 0.165; the gravel yard at
+# 1291,-59: 0.173.
+LOT_YELLOW_MAX = 0.168
+STRIP_M = 5.0                  # narrower than this is a sidewalk, a driveway or road edge, not a lot
+LOT_CORE_M = 10.0              # a lot is mostly this wide: one parking row and its aisle is ~12 m.
+LOT_CORE_FRACTION = 0.4        # share of a lot's area left by a LOT_CORE_M opening. Of 182 colour lots,
+                               # 154 keep over half. Below 0.4: the running track at 1041,-1794 (0.28,
+                               # wide only at its curve and start), building aprons, storage-unit aisles.
+CONNECT_M = 4.0                # a lot reaches a road or a mapped car park within this
+OSM_MIN_AREA_M2 = 40.0
 
+RAIL_HALF_M = 5.0             # track and ballast shoulders; ballast is dark and neutral, like asphalt
 HALF_W = {"motorway": 11.0, "trunk": 9.0, "primary": 9.0, "secondary": 8.0, "tertiary": 7.0,
           "residential": 5.5, "unclassified": 5.5, "living_street": 5.0, "service": 3.4,
           "track": 2.5, "pedestrian": 3.0, "footway": 1.2, "cycleway": 1.2, "path": 1.0}
@@ -77,7 +105,7 @@ def street_bearing():
 
 
 def build_masks(size_m):
-    """Pavement-coloured pixels and imagery coverage on the MPP world grid.
+    """Pavement-coloured pixels, imagery coverage and yellowness on the MPP world grid.
 
     Each tile is placed by its `pixel_from_world` affine (georef_affine.py) via
     aerial_crop.Aerial, not by its requested box: the tiles are Web Mercator, turned
@@ -87,6 +115,7 @@ def build_masks(size_m):
     n = int(size_m / MPP)
     paved = np.zeros((n, n), dtype=bool)
     got = np.zeros((n, n), dtype=bool)
+    yellow = np.zeros((n, n), dtype=np.float32)
     aerial = aerial_crop.Aerial()
     step = int(TILE_M / MPP)
     for iz in range(0, n, step):
@@ -96,13 +125,18 @@ def build_masks(size_m):
             crop = aerial.crop(x0, z0, x0 + w * MPP, z0 + h * MPP, mpp=SOURCE_MPP)
             a = np.asarray(crop.resize((w, h), Image.BILINEAR), dtype=np.float32)
             rgb, alpha = a[..., :3], a[..., 3]
+            covered = alpha > 250       # tile edges blend with transparency; drop them
+            rgb = ndimage.uniform_filter(rgb, size=(SMOOTH_PX, SMOOTH_PX, 1))
             mx, mn = rgb.max(-1), rgb.min(-1)
             val = mx / 255.0
             sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1), 0)
-            covered = alpha > 250       # tile edges blend with transparency; drop them
-            paved[iz:iz + h, ix:ix + w] = (val > VAL_MIN) & (val < VAL_MAX) & (sat < SAT_MAX) & covered
+            yel = (rgb[..., 1] - rgb[..., 2]) / np.maximum(mx, 1)
+            light = (val > VAL_MIN) & (val < VAL_MAX) & (sat < SAT_MAX) & (yel < YELLOW_MAX)
+            dark = (val >= DARK_VAL_MIN) & (val <= VAL_MIN) & (sat < DARK_SAT_MAX) & (yel < DARK_YELLOW_MAX)
+            paved[iz:iz + h, ix:ix + w] = (light | dark) & covered
             got[iz:iz + h, ix:ix + w] = covered
-    return paved, got
+            yellow[iz:iz + h, ix:ix + w] = yel
+    return paved, got, yellow
 
 
 def draw_world_polys(n, size_m, polys, pad_px):
@@ -133,12 +167,36 @@ def building_polys():
     return out
 
 
-def road_mask(n, size_m):
+def parking_polys():
+    """OSM amenity=parking / fuel areas (data/raw/osm_parking.json, fetch_osm.py) as world rings."""
+    sys.path.insert(0, os.path.join(ROOT, "pipeline"))
+    from osm_common import load_osm, relation_multipolygon_utm, way_polygon_utm
+    from shapely.geometry import MultiPolygon
+
+    origin = json.load(open(os.path.join(ROOT, "game", "data", "world_origin.json")))
+    e0, n0 = origin["origin_easting"], origin["origin_northing"]
+    out = []
+    for el in load_osm("parking"):
+        tags = el.get("tags") or {}
+        if tags.get("amenity") not in ("parking", "fuel") or tags.get("parking") in ("underground", "multi-storey"):
+            continue
+        g = way_polygon_utm(el) if el["type"] == "way" else relation_multipolygon_utm(el)
+        if g is None:
+            continue
+        for poly in (g.geoms if isinstance(g, MultiPolygon) else [g]):
+            out.append([(e - e0, -(nn - n0)) for e, nn in poly.exterior.coords])
+    return out
+
+
+def road_mask(n, size_m, service=True):
+    """OSM centrelines at the class half-width, widened to the asphalt edges the aerial width
+    survey measured (alignments.json, measured_road_polys): divided arterials run wider than
+    their class, and the extra lanes used to come out as long strips of "lot"."""
     img = Image.new("1", (n, n), 0)
     d = ImageDraw.Draw(img)
     for w in json.load(open(os.path.join(ROOT, "game", "data", "roads.json")))["ways"]:
         cls = (w.get("tags") or {}).get("highway")
-        if cls not in HALF_W:
+        if cls not in HALF_W or (cls == "service" and not service):
             continue
         width_px = max(1, int(2 * (HALF_W[cls] + ROAD_PAD_M) / MPP))
         vs = w["vertices"]
@@ -146,7 +204,51 @@ def road_mask(n, size_m):
             a = (vs[i]["x"] / MPP, (vs[i]["z"] + size_m) / MPP)
             b = (vs[i + 1]["x"] / MPP, (vs[i + 1]["z"] + size_m) / MPP)
             d.line([a, b], fill=1, width=width_px)
+    for poly in measured_road_polys():
+        d.polygon([(x / MPP, (z + size_m) / MPP) for x, z in poly], fill=1)
     return np.array(img, dtype=bool)
+
+
+def rail_mask(n, size_m):
+    img = Image.new("1", (n, n), 0)
+    d = ImageDraw.Draw(img)
+    for w in json.load(open(os.path.join(ROOT, "game", "data", "rails.json")))["ways"]:
+        pts = [(v["x"] / MPP, (v["z"] + size_m) / MPP) for v in w["vertices"]]
+        d.line(pts, fill=1, width=int(2 * (RAIL_HALF_M + ROAD_PAD_M) / MPP), joint="curve")
+    return np.array(img, dtype=bool)
+
+
+def measured_road_polys(step=2.0, chunk=20.0):
+    """The asphalt edges the aerial width survey measured, padded by ROAD_PAD_M, as bands
+    along each route. Edges are taken at the middle of each counted block and interpolated
+    between them (held flat past the ends), so junction gaps and blocks whose fit failed get
+    their neighbours' width rather than falling back to the class half-width."""
+    path = os.path.join(ROOT, "game", "data", "alignments.json")
+    if not os.path.exists(path):
+        return []
+    sys.path.insert(0, os.path.join(ROOT, "pipeline", "roads"))
+    import alignment as al
+
+    out = []
+    for r in json.load(open(path))["routes"]:
+        blocks = [b for b in (r.get("width") or {}).get("block_detail", []) if b.get("counts")]
+        if not blocks:
+            continue
+        a = al.Alignment(r["pis"], r["radii"])
+        mids = [(b["sta"][0] + b["sta"][1]) / 2 for b in blocks]
+        rights = [b["right"] for b in blocks]
+        lefts = [b["left"] for b in blocks]
+        # short overlapping chunks, so a band never folds over itself on a curve
+        for s0 in np.arange(0.0, a.length, chunk):
+            stas = np.linspace(s0, min(s0 + chunk + step, a.length), max(2, int(chunk / step) + 1))
+            right_side, left_side = [], []
+            for s in stas:
+                x, z, h = a.point_at(s)
+                for side, o in ((right_side, np.interp(s, mids, rights) - ROAD_PAD_M),
+                                (left_side, np.interp(s, mids, lefts) + ROAD_PAD_M)):
+                    side.append((x + h[1] * o, z - h[0] * o))
+            out.append(right_side + left_side[::-1])
+    return out
 
 
 def maximal_rectangles(mask, min_px):
@@ -198,7 +300,7 @@ def main():
     n = int(size_m / MPP)
 
     print("building masks from tiles...", flush=True)
-    paved, got = build_masks(size_m)
+    paved, got, yellow = build_masks(size_m)
     print(f"imagery covers {100.0 * got.mean():.0f}% of the play area")
 
     bld = draw_world_polys(n, size_m, building_polys(), int(BUILDING_PAD_M / MPP))
@@ -208,21 +310,48 @@ def main():
     water = json.load(open(os.path.join(ROOT, "game", "data", "water.json")))
     wpolys = [[(q["x"], q["z"]) for q in r.get("polygon", [])] for r in water.get("reaches", [])]
     wet = draw_world_polys(n, size_m, [w for w in wpolys if len(w) >= 3], int(2.0 / MPP))
-    cand = paved & got & ~bld & ~rd & ~wet
+    cand = paved & got & ~bld & ~rd & ~wet & ~rail_mask(n, size_m)
     print(f"paved pixels after removing {bld.sum()/ (1/MPP)**2:,.0f} m2 of buildings and roads: "
           f"{cand.sum() * MPP * MPP:,.0f} m2")
 
+    # Mapped car parks are lots outright, whatever their colour (OSM gives no surface for
+    # any of them here). Their service aisles stay in: the road plan cuts its own roads out.
+    park = draw_world_polys(n, size_m, parking_polys(), 0)
+    osm = park & got & ~bld & ~wet & ~road_mask(n, size_m, service=False)
+    osm = ndimage.binary_opening(osm, iterations=1)
+    lbl, nlab = ndimage.label(osm)
+    sizes = ndimage.sum(osm, lbl, range(1, nlab + 1)) * MPP * MPP
+    osm = np.isin(lbl, 1 + np.flatnonzero(sizes >= OSM_MIN_AREA_M2))
+    print(f"OSM parking: {int((sizes >= OSM_MIN_AREA_M2).sum())} areas, {osm.sum() * MPP * MPP:,.0f} m2")
+
+    cand &= ~park
     cand = ndimage.binary_opening(cand, iterations=1)
     cand = ndimage.binary_closing(cand, structure=np.ones((9, 9), bool))
-    cand = ndimage.binary_opening(cand, iterations=2)
+    # A disc STRIP_M across: sidewalks, driveways and the outer lanes of a road wider than
+    # its mask are narrower than any lot.
+    r = int(STRIP_M / MPP / 2)
+    disc = np.hypot(*np.mgrid[-r:r + 1, -r:r + 1]) <= r
+    cand = ndimage.binary_opening(cand, structure=disc)
 
     lbl, nlab = ndimage.label(cand)
-    keep = np.zeros_like(cand)
-    kept = 0
-    for i, size in enumerate(ndimage.sum(cand, lbl, range(1, nlab + 1)), start=1):
-        if size * MPP * MPP >= MIN_AREA_M2:
-            keep |= lbl == i
-            kept += 1
+    idx = np.arange(1, nlab + 1)
+    area = ndimage.sum(cand, lbl, idx) * MPP * MPP
+    yel = ndimage.median(yellow, lbl, idx)
+    reach = ndimage.binary_dilation(rd | osm, iterations=int(CONNECT_M / MPP) + 1)
+    touches = ndimage.maximum(reach, lbl, idx) > 0
+    r = int(LOT_CORE_M / MPP / 2)
+    disc = np.hypot(*np.mgrid[-r:r + 1, -r:r + 1]) <= r
+    core = ndimage.binary_opening(cand, structure=disc)
+    wide = ndimage.sum(core, lbl, idx) * MPP * MPP >= LOT_CORE_FRACTION * area
+    big = area >= MIN_AREA_M2
+    colour = big & (yel < LOT_YELLOW_MAX)
+    good = colour & touches & wide
+    print(f"colour blobs >= {MIN_AREA_M2:.0f} m2: {int(big.sum())}; dropped {int((big & ~colour).sum())} "
+          f"as gravel/dirt/lawn (median yellowness), {int((colour & ~wide).sum())} mostly narrower than "
+          f"{LOT_CORE_M:.0f} m, {int((colour & wide & ~touches).sum())} with no road or car park "
+          f"within {CONNECT_M:.0f} m")
+    keep = np.isin(lbl, idx[good]) | osm
+    kept = ndimage.label(keep)[1]
 
     # Decompose in street-grid space so lot edges run parallel to the streets.
     # The transform is written explicitly rather than using ndimage.rotate(reshape=True),
@@ -260,7 +389,7 @@ def main():
                "quads": quads}, open(OUT_JSON, "w"))
 
     area = keep.sum() * MPP * MPP
-    print(f"kept {kept} lots of {nlab} blobs   area {area:,.0f} m2   rects {len(quads)}   "
+    print(f"kept {kept} lots ({int(good.sum())} from colour) of {nlab} blobs   area {area:,.0f} m2   rects {len(quads)}   "
           f"(grid bearing {bearing:.0f} deg)")
     print("wrote", OUT_JSON)
 
