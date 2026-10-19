@@ -4,8 +4,10 @@
 Supersedes extract_paved.py (which worked off the single rotated Google aerial).
 
 Two things changed and both matter:
-  * The imagery is exactly georeferenced and north-up, so there is no fitting step -- a
-    pixel maps to world coordinates with a multiply and an add.
+  * The imagery is exactly georeferenced, so there is no fitting step. It is NOT north-up
+    in game space, though: each tile is Web Mercator, turned ~1.7 deg against the UTM grid,
+    and is placed by its `pixel_from_world` affine (georef_affine.py, via aerial_crop.py).
+    Until 2026-10-18 this placed tiles by their requested box instead, up to ~15 m off.
   * Colour alone CANNOT separate pavement from roofs on this imagery. Measured on
     tile_03_02: Galena Ave asphalt val 0.52, courthouse roof val 0.26, theatre roof 0.99.
     Roofs sit on both sides of asphalt. It is also leaf-off, so dormant lawn is brown
@@ -22,7 +24,6 @@ edges come out parallel to the streets instead of as north-up staircases.
 
 Run: cd pipeline/aerial && ../../.venv/bin/python extract_paved_il.py
 """
-import glob
 import json
 import math
 import os
@@ -32,14 +33,17 @@ import numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage
 
+import aerial_crop
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 
-TILE_DIR = os.path.join(ROOT, "data", "raw", "il2025")
 OUT_JSON = os.path.join(ROOT, "game", "data", "aerial_paved.json")
 OUT_PREVIEW = os.path.join(ROOT, "captures", "aerial", "paved_il_preview.png")
 
 MPP = 0.5                 # working resolution of the mask, metres per pixel
+SOURCE_MPP = 0.25         # the tiles' own resolution, sampled before reducing to MPP
+TILE_M = 512.0            # world block cut from the imagery per crop
 MIN_AREA_M2 = 150.0       # below this it is a driveway or an apron, not a lot
 MIN_RECT_M2 = 8.0
 ROAD_PAD_M = 2.0          # kerb + gutter
@@ -73,31 +77,31 @@ def street_bearing():
 
 
 def build_masks(size_m):
+    """Pavement-coloured pixels and imagery coverage on the MPP world grid.
+
+    Each tile is placed by its `pixel_from_world` affine (georef_affine.py) via
+    aerial_crop.Aerial, not by its requested box: the tiles are Web Mercator, turned
+    ~1.7 deg against the UTM grid, and the box alone is up to ~15 m off at two corners.
+    The world is cut in TILE_M blocks at the tiles' own 0.25 m, then reduced to MPP.
+    """
     n = int(size_m / MPP)
     paved = np.zeros((n, n), dtype=bool)
     got = np.zeros((n, n), dtype=bool)
-
-    for meta_path in sorted(glob.glob(os.path.join(TILE_DIR, "*_georef.json"))):
-        m = json.load(open(meta_path))
-        png = os.path.join(TILE_DIR, m["tile"] + ".png")
-        if not os.path.exists(png):
-            continue
-        img = Image.open(png).convert("RGB")
-        tw = int(round((m["world_x1"] - m["world_x0"]) / MPP))
-        th = int(round((m["world_z1"] - m["world_z0"]) / MPP))
-        img = img.resize((tw, th), Image.BILINEAR)
-        a = np.asarray(img, dtype=np.float32)
-        mx, mn = a.max(-1), a.min(-1)
-        val = mx / 255.0
-        sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1), 0)
-        tile_paved = (val > VAL_MIN) & (val < VAL_MAX) & (sat < SAT_MAX)
-
-        ix = int(round(m["world_x0"] / MPP))
-        iz = int(round((m["world_z0"] + size_m) / MPP))
-        h, w = tile_paved.shape
-        ix1, iz1 = min(ix + w, n), min(iz + h, n)
-        paved[iz:iz1, ix:ix1] = tile_paved[:iz1 - iz, :ix1 - ix]
-        got[iz:iz1, ix:ix1] = True
+    aerial = aerial_crop.Aerial()
+    step = int(TILE_M / MPP)
+    for iz in range(0, n, step):
+        for ix in range(0, n, step):
+            w, h = min(step, n - ix), min(step, n - iz)
+            x0, z0 = ix * MPP, iz * MPP - size_m
+            crop = aerial.crop(x0, z0, x0 + w * MPP, z0 + h * MPP, mpp=SOURCE_MPP)
+            a = np.asarray(crop.resize((w, h), Image.BILINEAR), dtype=np.float32)
+            rgb, alpha = a[..., :3], a[..., 3]
+            mx, mn = rgb.max(-1), rgb.min(-1)
+            val = mx / 255.0
+            sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1), 0)
+            covered = alpha > 250       # tile edges blend with transparency; drop them
+            paved[iz:iz + h, ix:ix + w] = (val > VAL_MIN) & (val < VAL_MAX) & (sat < SAT_MAX) & covered
+            got[iz:iz + h, ix:ix + w] = covered
     return paved, got
 
 

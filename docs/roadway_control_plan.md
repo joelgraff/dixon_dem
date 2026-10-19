@@ -372,7 +372,14 @@ north–south by up to about 14 m near tile edges:
   - `extract_paved_il.py`, which ignores the affine entirely and places tiles by their requested
     boxes, so the parking lots in `aerial_paved.json` may be off by up to 15 m.
 
-  Both need a follow-up.
+  Both followed up:
+  - The footprint audit (`docs/footprint_aerial_audit/`) found no footprint traced on the shifted
+    backdrop.
+  - `extract_paved_il.py` now samples each tile through its affine. Lots went from 736 to 408
+    (469,000 to 321,000 m²). The old run had shifted street pavement and roof edges out from
+    under the road and footprint masks, and they leaked out as lots. Lots found by both runs
+    moved a median 3.5 m (p90 8.7 m). The colour test itself still takes gravel yards for
+    pavement and misses dark fresh asphalt, so lot classification needs its own pass.
 
 ## Phase 2 results
 
