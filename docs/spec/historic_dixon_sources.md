@@ -46,6 +46,37 @@ Research notes for building a dated, historic version of the Dixon model. Captur
   - https://geo.btaa.org/catalog/999-0011-illinois
 - **ProQuest Digital Sanborn Maps 1867–1970**: commercial database, 660,000+ maps of 12,000+ towns. Check local library access.
 
+## Historic photographs
+
+- **Illinois Digital Archives — Dixon History Documents and Photographs** (Dixon Public Library). Postcards and photos spanning 1869–circa 2001. Personal/educational use allowed; commercial use needs permission from the library (221 S. Hennepin Ave, Dixon, IL 61021, 815-284-7261, history@dixonpubliclibrary.org).
+  - Collection: http://www.idaillinois.org/digital/collection/p16614coll77
+  - Highlights:
+    - Dixon's first library, 1872 — city/fire hall at Second and Hennepin, maintained by Dixon Hose Company No. 1. http://www.idaillinois.org/digital/collection/p16614coll77/id/106/
+    - Truesdell Bridge dedication, June 21, 1869. http://www.idaillinois.org/digital/collection/p16614coll77/id/ (search "Truesdell")
+    - View of Dixon from IC Railway tracks, north side — postcard postmarked Dec 9, 1908. http://www.idaillinois.org/digital/collection/p16614coll77/id/ (search "IC Ry")
+    - First Street looking west, 1911 — Leake Bros. Co. postcard. http://www.idaillinois.org/digital/collection/p16614coll77/id/50/
+    - Dixon fire station, 1913 — housed in east portion of City Hall at 121 W. 2nd Street. http://www.idaillinois.org/digital/collection/p16614coll77/id/ (search "fire station 1913")
+    - Elk's Home, Dixon — postcard mailed Nov 1913; building no longer exists. http://www.idaillinois.org/digital/collection/p16614coll77/id/ (search "Elk's Home")
+    - Dixon Theatre, circa 1922 — opened March 1922, owned by Leonard Rorer. http://www.idaillinois.org/digital/collection/p16614coll77/id/ (search "Dixon Theatre")
+    - Aerial view of Dixon showing Galena Avenue Bridges, courthouse, and City Hall. http://www.idaillinois.org/digital/collection/p16614coll77/id/ (search "aerial view")
+    - Multiple views: courthouse, public library, high school, Normal College, Galena Street, Rock River Military Academy, KSB hospital, Rock River, Old Settlers Cabin, Assembly Park, Fuller's Cave.
+- **Genealogy Trails — Gallery of Historic Photos and Postcards, Lee County IL**. Contributed mostly by Karen Holt; Dixon section includes:
+  - Galena Street, 1915; Galena Avenue from between courthouse and Nachusa House (from Frank E. Stevens, History of Lee County, Vol 1, 1914).
+  - Galena Avenue Bridge, 1907 (contributed by Tom Hess).
+  - Dixon Memorial Bridge, opened July 26, 1930 (contributed by Ed Cleary).
+  - Truesdale Bridge dedicated Jan 1, 1869; bridge collapse May 4, 1873 (contributed by Ed Cleary).
+  - Dixon City Hall, Dixon Courthouse, Dixon 1st Street, Dam and Power House, Whirlpool Rock, 2nd Street Arch, Dixon Theater, Masonic Temple, Lowell Springs at Lowell Park, Dixon Public Hospital, Dixon Post Office.
+  - Gallery: https://www.genealogytrails.com/ill/lee/gallery.html
+- **Library of Congress Prints & Photographs**:
+  - Bain News Service photo titled simply "Dixon" — digital ID ggbain.35689. https://www.loc.gov/pictures/resource/ggbain.35689
+  - Rock River view near Dixon, ca. 1866. Via PICRYL public-domain mirror: https://loc.getarchive.net/topics/dixon+ill
+  - Ronald Reagan Childhood Home, Dixon, 1920–1930 (Carol M. Highsmith).
+  - LOC Prints & Photographs search for Illinois: https://www.loc.gov/pictures/?q=Dixon+Illinois
+- **NYPL Robert Dennis Collection of Stereoscopic Views — Stereoscopic views of northern Illinois** (ca. 1865–1920). Includes Dixon: bridge leading to business district, a home with target hanging from tree, rooftops and churches. Restricted on-site access; catalog: https://www.nypl.org/research/research-catalog/bib/b11707440
+- **University of Michigan — Lincoln Highway Digital Image Collection**: "Rock River, Dixon, Illinois," n.d., 500 dpi scan (4,855 x 3,339). https://quod.lib.umich.edu/l/linchigh/x-lhc1372/lhc1372
+- **Bob Gibler, Dixon, Illinois (Images of America, Arcadia, 1998)**: 200+ historic photographs, mostly late 1800s–mid 1900s. Print and Kindle.
+- **Facebook group "Vintage Dixon, IL"**: community-shared mid-century downtown photos (e.g., downtown stores from ~half a century ago).
+
 ## Notes for the spec layer
 
 - Sanborn maps are drawn at 50 feet to the inch — far more precise for individual structures than any DEM or aerial.
@@ -53,3 +84,5 @@ Research notes for building a dated, historic version of the Dixon model. Captur
 - A dated canon entry can carry from-year / to-year fields so any renderer can slice the world by era.
 - The 1885 and 1897 Dixon sets are the best starting points for an 1800s game world; the 1926 set extends coverage into the early auto era.
 - Pre-Sanborn coverage (before ~1885) will rely on atlas plates like the 1876 Warner & Beers and township plats — coarser, but enough for roads, rail, and major landmarks.
+- Photos pair with Sanborns: a Sanborn sheet gives you the footprint and material; a contemporaneous photo gives you facade detail, signage, and street furniture the map omits.
+- Rights vary: LOC and NYPL stereographs are public domain; Illinois Digital Archives items are personal/educational use only; Genealogy Trails is contributor-sourced.
