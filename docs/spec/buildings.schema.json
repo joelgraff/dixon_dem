@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dixon Building Entry",
+  "type": "object",
+  "required": ["id", "footprint", "style", "confidence"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable identifier, matches the 3D model node and OSM way ID where available"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name; may be empty for unnamed structures"
+    },
+    "footprint": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": "number" },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "minItems": 3,
+      "description": "Polygon vertices in world coordinates [x, z]"
+    },
+    "height": {
+      "type": "number",
+      "description": "Estimated or measured height in meters"
+    },
+    "style": {
+      "type": "string",
+      "description": "Template key from the building composer, e.g. hip_roof_gable_dormer"
+    },
+    "roof": {
+      "type": "string",
+      "enum": ["gable", "hip", "flat", "shed", "mansard", "unknown"]
+    },
+    "material_hint": {
+      "type": "string",
+      "description": "Visual cue for low-fidelity renderers: brick, vinyl, wood, stone"
+    },
+    "adjacent_roads": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of roads touching this footprint"
+    },
+    "canon_ref": {
+      "type": "string",
+      "description": "Path into the canon layer for this building's history, if any"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "0 = style template only, 1 = verified against aerial and ground truth"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the data came from: osm, aerial, composer, manual"
+    }
+  }
+}
