@@ -11,6 +11,10 @@ Writes:
   game/data/alignments.json               routes, alignments, stations, junctions, widths
   game/roads/_build/alignment_report.json deviations from OSM, junction shifts, fit notes
 
+Routes pinned in alignment_overrides.json's `horizontal` section take their hand-set PIs and
+radii instead of the fit (horizontal_overrides.py); the editor in Bridge Composer writes them.
+Each route record carries its OSM line (`osm`) for that editor and, where pinned, `pinned`.
+
 Run: ../../.venv/bin/python build_alignments.py [--overlay]
 `--overlay` also draws review images over the aerial into captures/roads/alignments/.
 """
@@ -25,6 +29,8 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import alignment as al  # noqa: E402
+import alignment_geom as geom  # noqa: E402
+import horizontal_overrides as ho  # noqa: E402
 import routes as rt  # noqa: E402
 import road_metrics as rm  # noqa: E402
 from build_road_plan import DOWNTOWN_BOUNDS, clip_ways_to_bounds  # noqa: E402
@@ -97,8 +103,9 @@ def load_routes(standards):
     return out
 
 
-def fit_all(recs, standards):
+def fit_all(recs, standards, pins=None):
     hz = standards["horizontal"]
+    pins = pins or {}
     # pass 1 without snapping finds the street grid; pass 2 snaps to it
     tangents = []
     for rec in recs:
@@ -116,7 +123,82 @@ def fit_all(recs, standards):
         rec["alignment"], rec["fit"] = al.fit(rec["points"], tol=tol, grid=grid,
                                               snap_deg=hz["bearing_snap_deg"],
                                               rounding=[tuple(r) for r in hz["radius_rounding"]])
+        if rec["id"] in pins:
+            apply_pins(rec, pins[rec["id"]])
     return grid
+
+
+def _counts(a):
+    curves = sum(1 for r in a.radii[1:-1] if r > 0)
+    return {"tangents": sum(1 for e in a.elements if e["type"] == "tangent"), "curves": curves,
+            "angle_points": len(a.pis) - 2 - curves, "snapped_tangents": 0}
+
+
+def apply_pins(rec, pins, dense_step=0.5):
+    """Replaces the fitted geometry of `rec` with the pinned horizontal geometry in `pins`
+    (alignment_overrides.json `horizontal` entries for the route; see horizontal_overrides.py).
+
+    Sets rec["pin_idx"] ([(first PI, last PI, note)] in the new chain), rec["pinned_ends"] and
+    refreshes rec["fit"]."""
+    whole = [e for e in pins if "sta" not in e]
+    if whole:
+        e = whole[-1]
+        a = al.Alignment(e["pis"], e["radii"])
+        if not a.valid:
+            raise ValueError("%s: pinned curves overlap" % rec["id"])
+        rec["alignment"] = a
+        rec["pin_idx"] = [(0, len(a.pis) - 1, e["note"])]
+        rec["pinned_ends"] = (True, True)
+        rec["fit"] = dict(_counts(a), pinned=True)
+        return
+    partial = sorted(pins, key=lambda e: e["sta"][0])
+    for e1, e2 in zip(partial, partial[1:]):
+        if e2["sta"][0] < e1["sta"][1]:
+            raise ValueError("%s: pinned stretches overlap" % rec["id"])
+    fitted = rec["alignment"]
+    dense = al.densify(rec["points"], dense_step)
+    cum = np.r_[0.0, np.cumsum(np.hypot(*np.diff(dense, axis=0).T))]
+    osm_sta = [float(cum[i]) for i in al._pi_indices(fitted.pis, dense)]
+    items = []          # (osm station, order, pi, radius, pin index or None)
+    for i, (p, r) in enumerate(zip(fitted.pis, fitted.radii)):
+        if not any(e["sta"][0] - 1e-6 <= osm_sta[i] <= e["sta"][1] + 1e-6 for e in partial):
+            items.append((osm_sta[i], 0, p, r, None))
+    for k, e in enumerate(partial):
+        for j, (p, r) in enumerate(zip(e["pis"], e["radii"])):
+            items.append((e["sta"][0], 1 + j, tuple(p), r, k))
+    items.sort(key=lambda t: (t[0], t[1]))
+    pis = [t[2] for t in items]
+    radii = [t[3] for t in items]
+    frozen = [i for i, t in enumerate(items) if t[4] is not None]
+    radii[0] = radii[-1] = 0.0
+    # an end of the route that is not pinned stays its fitted end
+    radii = al._resolve_overlaps(pis, radii, frozen)
+    a = al.Alignment(pis, radii)
+    rec["alignment"] = a
+    rec["pin_idx"] = []
+    for k, e in enumerate(partial):
+        idx = [i for i, t in enumerate(items) if t[4] == k]
+        rec["pin_idx"].append((idx[0], idx[-1], e["note"]))
+    rec["pinned_ends"] = (items[0][4] is not None, items[-1][4] is not None)
+    rec["fit"] = dict(_counts(a), pinned=True)
+    # a joint between pinned and fitted geometry should be a curve (tangent-continuous)
+    rec["joint_kinks"] = []
+    for first, last, _ in rec["pin_idx"]:
+        for i in (first, last):
+            if 0 < i < len(a.pis) - 1 and a.radii[i] <= 0:
+                d = abs(math.degrees(geom.curve_data(a.pis, a.radii, i)["delta"]))
+                if d > 0.5:
+                    rec["joint_kinks"].append({"pi": i, "at": [round(v, 1) for v in a.pis[i]], "deg": round(d, 1)})
+
+
+def pinned_stretches(rec):
+    """[{sta: [from, to], whole, note}] of the route's pinned geometry, in alignment stations."""
+    a = rec["alignment"]
+    out = []
+    for first, last, note in rec.get("pin_idx", ()):
+        out.append({"sta": [round(a.pi_sta[first][0], 2), round(a.pi_sta[last][1], 2)],
+                    "whole": first == 0 and last == len(a.pis) - 1, "note": note})
+    return out
 
 
 def station_features(rec):
@@ -204,8 +286,10 @@ def junctions(recs, node_xy):
             rec = recs[i]
             a = rec["alignment"]
             is_end = (i, s) in ending
-            if is_end and through:
-                start = s < a.length / 2
+            start = s < a.length / 2
+            # a pinned end is authoritative: the other routes' ends meet it, not the reverse
+            pinned_end = rec.get("pinned_ends", (False, False))[0 if start else 1]
+            if is_end and through and not pinned_end:
                 x, z, h = a.point_at(0.0 if start else a.length)
                 ti, ts = through[0]
                 hit = _line_hit((x, z), h, recs[ti], ts)
@@ -252,7 +336,12 @@ def _skip_ranges(rec, shared):
 def main(argv):
     standards = rm.load_standards()
     recs = load_routes(standards)
-    grid = fit_all(recs, standards)
+    pins = ho.pins_by_route(ho.load()) if os.path.exists(ho.OVERRIDES_PATH) else {}
+    unknown = sorted(set(pins) - {r["id"] for r in recs})
+    if unknown:
+        print("  pinned routes that do not exist (ids change when OSM ways do): " + ", ".join(unknown))
+    pins = {k: v for k, v in pins.items() if k not in unknown}
+    grid = fit_all(recs, standards, pins)
     node_xy = {}
     with open(os.path.join(pc.GAME_DATA, "roads.json")) as handle:
         for w in json.load(handle)["ways"]:
@@ -266,7 +355,7 @@ def main(argv):
     juncs = junctions(recs, node_xy)
 
     # deviation from OSM, after the junction moves
-    flagged = []
+    flagged, pinned_dev = [], []
     hz = standards["horizontal"]
     for rec in recs:
         dense = al.densify(rec["points"], 0.5)
@@ -279,6 +368,12 @@ def main(argv):
         tol = np.where([in_downtown(x, z) for x, z in pts],
                        hz["osm_deviation_max_downtown"], hz["osm_deviation_max"])
         over = d > tol + 1e-9
+        if rec["id"] in pins:       # hand-pinned geometry is authoritative: reported, not flagged
+            pinned_dev.append({"route": rec["id"], "name": rec["names"][0] if rec["names"] else None,
+                               "max_m": round(float(d.max()), 2), "whole": rec["pin_idx"][0][0] == 0
+                               and rec["pin_idx"][0][1] == len(rec["alignment"].pis) - 1,
+                               "note": rec["pin_idx"][0][2], "joint_kinks": rec.get("joint_kinks", [])})
+            over = np.zeros_like(over)
         rec["deviation"] = {"max_m": round(float(d.max()), 3), "p95_m": round(float(np.percentile(d, 95)), 3),
                             "over_tol": bool(over.any())}
         if over.any():
@@ -314,6 +409,9 @@ def main(argv):
                    "deviation": rec["deviation"], "fit": {k: (round(v, 3) if isinstance(v, float) else v)
                                                           for k, v in rec["fit"].items()}}
         rec_out.update(rec["alignment"].to_json())
+        rec_out["osm"] = [[round(float(x), 2), round(float(z), 2)] for x, z in rec["points"]]
+        if rec.get("pin_idx"):
+            rec_out["pinned"] = pinned_stretches(rec)
         if rec["id"] in widths:
             rec_out["width"] = widths[rec["id"]]
         routes_out.append(rec_out)
@@ -322,9 +420,16 @@ def main(argv):
     data = {"format": "dixon-alignments", "version": 1,
             "inputs": {"roads.json+design_standards.json": fingerprint(inputs)},
             "grid_bearings_deg": [round(g, 3) for g in grid],
-            "routes": routes_out, "junctions": juncs}
+            "routes": routes_out, "junctions": juncs,
+            # counted blocks whose pavement centre is off the alignment, for the review queue (the
+            # report below lives in game/roads/_build, which build_road_plan.py clears)
+            "off_centre_blocks": sorted(recentre, key=lambda r: -abs(r["centre_m"]))}
     with open(OUT_PATH, "w") as handle:
         json.dump(data, handle, separators=(",", ":"))
+
+    if survey:
+        import alignment_metrics
+        alignment_metrics.append(alignment_metrics.snapshot(data, ho.load() if os.path.exists(ho.OVERRIDES_PATH) else None))
 
     shifts = np.array([j["shift_m"] for j in juncs]) if juncs else np.zeros(1)
     moved = [m for j in juncs for m in j["ends_moved_m"]]
@@ -339,6 +444,7 @@ def main(argv):
         "deviation_max_m": {k: round(float(np.percentile([r["deviation"]["max_m"] for r in routes_out], p)), 3)
                             for k, p in (("p50", 50), ("p90", 90), ("max", 100))},
         "routes_over_tolerance": len(flagged),
+        "pinned_routes": sorted(pinned_dev, key=lambda r: r["route"]),
         "junctions": len(juncs),
         "junction_shift_m": {k: round(float(np.percentile(shifts, p)), 3)
                              for k, p in (("p50", 50), ("p90", 90), ("max", 100))},

@@ -27,6 +27,10 @@ for test in test_templates test_composer test_composed test_palette test_footpri
 done
 echo "== test_bridges_composed"
 "$python" "$root/pipeline/roads/test_bridges_composed.py"
+for test in test_horizontal test_alignment_editor; do
+	echo "== $test"
+	"$python" -W ignore "$root/pipeline/roads/$test.py"
+done
 
 godot=${GODOT:-}
 if [ -z "$godot" ]; then

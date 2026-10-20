@@ -495,3 +495,73 @@ Verified with `game/tools/probe_ground.gd` across the arch crossing (1618,-1214)
 in the log are the player capsule itself standing on the probe line. Visually confirmed in
 `world.tscn` at eye height: continuous sidewalk slabs both sides with the grass parkway between curb
 and walk.
+
+## Editing alignments and reviewing roads (Bridge Composer, 2026-10-19)
+
+Phase 6 of [roadway_control_plan.md](roadway_control_plan.md), started early: an **Alignments** mode
+in Bridge Composer (`../bridge-composer/alignments.html`, linked from the Bridges page) to set a
+street's horizontal alignment the way curves are developed in practice, and a **Review** tab to
+check the roads against the aerial.
+
+**Run it.** `npm run serve` in `../bridge-composer` (composer_server.py on :8001), then open
+`http://localhost:8001/alignments.html` (`?route=R21838771` opens a route). It needs
+`game/data/alignments.json`, which carries each route's OSM line since 2026-10-19 (run
+`pipeline/roads/build_alignments.py` once if yours is older).
+
+**Editing a route.** Pick it in the list, or click its line on the aerial. Tangents are cyan, curves
+magenta, the OSM line red, the template's curb lines green, PIs yellow dots, PC and PT triangles.
+- Drag a **PI**. It holds its radius (T changes) or, with the *Drag PI* menu or the **T** key held,
+  its tangent length (R = T / tan(Δ/2)); hold **R** to force the radius.
+- Drag a **PC or PT** along its tangent: T becomes the distance from the PI, R = T / tan(Δ/2).
+- Type **R** in the side panel (0 makes the PI an angle point).
+- **Add PI** (click the dashed PI chain) and **Remove PI** (Delete). Undo is Ctrl+Z.
+- The panel reads R, T, Δ, L, the PC/PT/PI stations and degree of curve, and the deviation of the
+  OSM line from your alignment. Curves that need more tangent than there is are refused.
+- The side panel is the sequence: **1 Adjust** (drag; drag a green curb line to set the width), **2 Why**
+  (one line, optional), **3 Apply** (saves the alignment pin and/or the width pin to
+  `pipeline/roads/alignment_overrides.json`; in Review it also records the place as *fixed*),
+  **4 Publish** (runs `build_alignments.py`, then `rebuild_transportation.sh` and the bridge bake, about
+  6 minutes; restart the game afterwards). Apply does not change the game; edit as many places as you
+  like, then Publish once. The panel says when saved changes have not been published. *Unpin route*
+  removes a route's pin; *Pin only a stretch* (under Apply) pins just PIs a to b, padded 0.5 m on the OSM line.
+  The editor opens a route as it was last built, or as last saved if that has not been published.
+- A dragged curb line sets the width of the **block between intersections** it is on (white diamonds mark the
+  ends; drag them or type From/To, and they snap to intersections). Widths are per stretch, so one street can
+  change width at an intersection; a later, narrower stretch overrides an earlier wider one.
+- Units default to feet (stationing 3+46); the Units menu switches to metres.
+
+**Whole-model check.** The *Whole model* card at the top of the side panel shows the aerial survey's
+accuracy at the last publish and the change since the one before: blocks whose pavement centre is more than 2 m
+off the alignment, the median and 90th-percentile offset, the share within 1 m, and how many hand pins exist.
+`build_alignments.py` appends a snapshot (`alignment_metrics.py`) to `docs/review/alignment_metrics.json` at
+every run, so a few edits followed by one Publish show whether the model improved and how many flagged places
+cleared (press Load queue to drop them). Width pins do not show here: the survey measures centres, not widths.
+
+**What a pin does.** `build_alignments.py` takes the pinned PIs and radii instead of the fit.
+Everything after reads `alignments.json`, and pinned stretches are recorded in each route's
+`pinned`: `templates.design_roads` follows a pinned stretch even where it is more than
+`SEGMENT_MAX_DEV_M` from OSM (it used to leave such a run on the OSM line, which is why Harrison
+Avenue needed a correction to OSM itself), and the ends of a pinned route at a junction stay where
+the pin puts them (other routes' ends still move onto a pinned through route). A pin may cover
+only a stretch (`"sta": [from, to]`, metres along the route's OSM line; in the editor tick *only PIs a to b*
+before Save: the stretch is those PIs, padded 0.5 m on the OSM line, and the rest is fitted as before; the
+first and last pinned PIs keep their radii so a curve joins the pinned stretch to the fitted line;
+`alignment_report.json` lists `joint_kinks` where it does not). Pins are not checked against
+OSM: `pinned_routes` in the alignment report lists how far each is. Station-keyed overrides of the
+same route (`templates`, `profile`) are not moved when a pin changes its stations: re-check them.
+`osm_corrections.json` is still the right place to fix OSM itself; the editor shows its result.
+
+**Review.** The Review tab loads a queue: a seeded random sample of surveyed street blocks
+(default 25; the same seed gives the same blocks until `alignments.json` is rebuilt) and the
+flagged places the audits list (`alignment_report.json` off-centre blocks, the footprint audit's
+`roofless_review.json` and `street_overlaps.json`). Each opens the view on the aerial at that spot
+with a cross-hair and its route loaded: **Looks right** (ok) or **Wrong, leave it** record a verdict and
+advance; fixing it and pressing Apply records *fixed*. The Why note is stored with the verdict. Verdicts go to
+`docs/review/alignment_review.json` (tracked): `{id: {status, note, kind, route, sta, at,
+reviewed}}`, to calibrate the aerial scorecard (paving precision) against a labelled sample later.
+
+**Code.** `pipeline/roads/alignment_geom.py` (the construction, no numpy: `alignment.py` and the
+server share it), `horizontal_overrides.py`, `game/tools/alignment_editor.py` (server side),
+`../bridge-composer/js/alignment.js` (geometry port, parity fixture from
+`dump_alignment_parity.py`) and `js/alignments.js`. Tests: `test_horizontal.py`,
+`test_alignment_editor.py`, `test_templates.py`, and `npm test` in bridge-composer.

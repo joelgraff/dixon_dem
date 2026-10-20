@@ -393,9 +393,15 @@ class _RouteGeom:
         self.ranges = ranges
         self.a = al.Alignment(rec["pis"], rec["radii"])
         self.stas, self.pts, _ = self.a.sample(0.25)
+        self.pinned = [tuple(p["sta"]) for p in rec.get("pinned", ())]    # hand-pinned station ranges
         self.way_ranges = {}
         for w in rec["ways"]:
             self.way_ranges.setdefault(w["id"], []).append(w["sta"])
+
+    def is_pinned(self, s0, s1=None):
+        """Whether the station (or the stretch's middle) lies in a hand-pinned range."""
+        s = 0.5 * (s0 + (s0 if s1 is None else s1))
+        return any(a - 0.5 <= s <= b + 0.5 for a, b in self.pinned)
 
     def end_candidates(self, xy, leg_stations=(), past_edge=False):
         """Stations a run's end may take on this route: each place the route passes nearest to it
@@ -403,7 +409,8 @@ class _RouteGeom:
         past the play edge the route's own ends."""
         d = np.hypot(self.pts[:, 0] - xy[0], self.pts[:, 1] - xy[1])
         lo = np.r_[True, d[1:] <= d[:-1]] & np.r_[d[:-1] <= d[1:], True]
-        keep = lo & (d <= min(d.min() + 2.0, 8.0))
+        # a hand-pinned route may lie further from OSM than the 8 m reach: it is authoritative
+        keep = lo & (d <= (d.min() + 2.0 if self.pinned else min(d.min() + 2.0, 8.0)))
         out = list(self.stas[keep]) + list(leg_stations)
         if past_edge:
             out += [0.0, self.a.length]
@@ -475,7 +482,7 @@ def design_roads(roads=None, alignments=None, templates=None, bounds=None):
     the route (of those that list the way) it lies closest to, and replaced by that route's
     alignment between the run's end stations. Run ends at a junction sit on the junction's
     control point; other shared ends are averaged. A run further than SEGMENT_MAX_DEV_M from
-    every route, or with a vertex outside `bounds` (the play heightmap), keeps its OSM vertices.
+    every route (a hand-pinned stretch is exempt: it is authoritative wherever OSM draws the street), or with a vertex outside `bounds` (the play heightmap), keeps its OSM vertices.
     Every vertex gets `hw`, half the template's curb-to-curb width (OSM width tag on runs that
     kept their OSM line), and the way's `tags.width_m` becomes twice the median of those.
 
@@ -538,7 +545,8 @@ def design_roads(roads=None, alignments=None, templates=None, bounds=None):
                             fit = g.stretch_fit(s0, s1, probe)
                             if fit is not None and (best is None or fit < best[0]):
                                 best = (fit, rid, s0, s1)
-                if best is not None and best[0] <= SEGMENT_MAX_DEV_M:
+                # a hand-pinned stretch is the road wherever OSM draws it, however far off
+                if best is not None and (best[0] <= SEGMENT_MAX_DEV_M or geoms[best[1]].is_pinned(best[2], best[3])):
                     run.update(route=best[1], s0=best[2], s1=best[3])
             runs.append(run)
 
@@ -556,10 +564,12 @@ def design_roads(roads=None, alignments=None, templates=None, bounds=None):
                 x, z, _ = g.a.point_at(s)
                 legs = [l for l in cps.get(nid, {}).get("through", {}).get(run["route"], [])]
                 through = nid not in cps or any(legs)
-                occ.setdefault(nid, []).append((x, z, through))
+                occ.setdefault(nid, []).append((x, z, through, not through and g.is_pinned(s)))
     node_xz = {}
     for nid, pts in occ.items():
-        held = [(x, z) for x, z, t in pts if t] or [(x, z) for x, z, _ in pts]
+        # a pinned route's end is authoritative: the junction sits where it ends
+        held = ([(x, z) for x, z, _, pin in pts if pin] or [(x, z) for x, z, t, _ in pts if t]
+                or [(x, z) for x, z, _, _ in pts])
         node_xz[nid] = tuple(np.mean(held, axis=0))
     # bridge decks are built from their OSM ways, so an approach ends exactly on the deck's end
     for w in roads["ways"]:

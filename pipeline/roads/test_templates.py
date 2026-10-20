@@ -170,6 +170,29 @@ class DesignRoads(unittest.TestCase):
         length = sum(math.hypot(q["x"] - p["x"], q["z"] - p["z"]) for p, q in zip(stem_out, stem_out[1:]))
         self.assertAlmostEqual(length, 50.0, places=6)
 
+    def _offset_street(self, pinned):
+        # OSM draws the street 5 m south of its pavement (Harrison Avenue's trouble), the alignment
+        # is where the pavement is; the cross street ends on it at the pavement
+        main = way(1, [vert(0, -95.0, 10), vert(100, -95.0, 11), vert(200, -95.0, 12)])
+        side = way(2, [vert(100, -150, 13), vert(100, -95.0, 11)])
+        roads = {"ways": [main, side], "junction_nodes": [{"node_id": 11, "x": 100.0, "z": -95.0, "way_ids": [1, 2]}]}
+        r1 = route("R1", [(0, -100), (200, -100)], [{"id": 1, "sta": [0.0, 200.0]}])
+        r2 = route("R2", [(100, -150), (100, -100)], [{"id": 2, "sta": [0.0, 50.0]}])
+        if pinned:
+            r1["pinned"] = [{"sta": [0.0, 200.0], "whole": True, "note": "traced"}]
+        alignments = {"routes": [r1, r2], "junctions": [
+            {"node_id": 11, "x": 100.0, "z": -100.0,
+             "legs": [{"route": "R1", "sta": 100.0, "through": True}, {"route": "R2", "sta": 50.0, "through": False}]}]}
+        out, _ = tp.design_roads(roads, alignments, tp.build(alignments, roads, STANDARDS, {}), BOUNDS)
+        return out["ways"]
+
+    def test_a_far_off_osm_run_keeps_its_osm_line_unless_the_route_is_pinned(self):
+        a, _ = self._offset_street(pinned=False)
+        self.assertTrue(all(v["z"] == -95.0 for v in a["vertices"]))      # 5 m off: left on OSM
+        a, b = self._offset_street(pinned=True)
+        self.assertTrue(all(abs(v["z"] + 100.0) < 1e-9 for v in a["vertices"]))
+        self.assertAlmostEqual(b["vertices"][-1]["z"], -100.0, places=6)   # the cross street ends on it
+
 
 def plan(points, hw, **kw):
     base = dict(full_centerline=points, half_w=hw, has_curb=True, downtown=False)

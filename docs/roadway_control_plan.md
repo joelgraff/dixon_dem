@@ -255,7 +255,7 @@ Each phase ships on its own and shows improvement against the baseline metrics.
 | 3a (done) | Cross-section templates on station ranges; the transportation layout and the conformed heightmap built on the route alignments at template widths | real curb-to-curb widths; curb lines on the designed tangents and curves |
 | 4 | A new roads module built alongside the old pipeline, then switched in (steps 4.0–4.5 in [roads_module_plan.md](roads_module_plan.md)). Its core is phase 3b's design surface: crown warping at junctions with the edge-of-pavement tie, sawtooth gutters, daylight slopes and walls, and a conformed heightmap rasterised from the same surface. Linear modules sweep the template sections, and T and 4-leg node modules cover 379 of the 470 street junctions, with an interim fallback and curated modules for the rest. It switches over when the five gates pass, and the old polygon and mesh code is then deleted. | clean junction surfaces; regular sidewalk panels and joints, consistent curb returns and ramps; roads and terrain sharing one surface |
 | 5 | Bridges as station ranges; Composer edits PVIs; anchor and ramp code retired; clearance checks | approaches and decks share one profile |
-| 6 | Editor support: drag PIs, PVIs and template breaks in-game or in Composer, rebuilding per route | — |
+| 6 (horizontal part done early) | Editor support: drag PIs, PVIs and template breaks in-game or in Composer, rebuilding per route. Horizontal alignments and a review queue are in Composer's Alignments mode ([roads_notes.md](roads_notes.md#editing-alignments-and-reviewing-roads-bridge-composer-2026-10-19)) | — |
 
 Phase 2 can run on today's OSM centrelines, before phase 1's horizontal fit lands, if a quick win is
 wanted first.

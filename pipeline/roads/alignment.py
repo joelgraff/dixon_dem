@@ -17,23 +17,11 @@ import math
 import numpy as np
 from scipy.spatial import cKDTree
 
-EPS = 1e-9
-SLACK_M = 0.005     # curves may overrun their tangent by this much (coordinates are stored to the mm)
+import alignment_geom as geom  # noqa: E402  (the construction, shared with composer_server.py)
 
-
-def _unit(v):
-    n = math.hypot(v[0], v[1])
-    return (v[0] / n, v[1] / n) if n > EPS else (0.0, 0.0)
-
-
-def _deflection(din, dout):
-    """Signed angle from din to dout, radians; positive turns right in plan view (z south)."""
-    return math.atan2(din[0] * dout[1] - din[1] * dout[0], din[0] * dout[0] + din[1] * dout[1])
-
-
-def _right(d):
-    """The right-hand normal of a heading, in plan view."""
-    return (-d[1], d[0])
+EPS = geom.EPS
+SLACK_M = geom.SLACK_M
+_unit, _deflection, _right = geom.unit, geom.deflection, geom.right
 
 
 class Alignment:
@@ -52,50 +40,7 @@ class Alignment:
 
     # -- construction ------------------------------------------------------------------------
     def _build(self):
-        p = self.pis
-        self.elements = []
-        self.overlaps = []          # PIs whose curves need more tangent than there is
-        cur = p[0]
-        sta = 0.0
-        for i in range(1, len(p) - 1):
-            din = _unit((p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]))
-            dout = _unit((p[i + 1][0] - p[i][0], p[i + 1][1] - p[i][1]))
-            delta = _deflection(din, dout)
-            r = self.radii[i]
-            if r > 0 and abs(delta) > 1e-6:
-                t = r * math.tan(abs(delta) / 2.0)
-                tc = (p[i][0] - din[0] * t, p[i][1] - din[1] * t)
-                ct = (p[i][0] + dout[0] * t, p[i][1] + dout[1] * t)
-                # the tangent before this curve must not run backwards
-                along = (tc[0] - cur[0]) * din[0] + (tc[1] - cur[1]) * din[1]
-                if along < -SLACK_M:
-                    self.overlaps.append(i)
-                if along > 0:
-                    sta = self._add_tangent(cur, tc, sta)
-                side = 1.0 if delta > 0 else -1.0
-                rn = _right(din)
-                center = (tc[0] + rn[0] * r * side, tc[1] + rn[1] * r * side)
-                length = r * abs(delta)
-                self.elements.append({"type": "arc", "sta": (sta, sta + length), "start": tc, "end": ct,
-                                      "center": center, "radius": r, "delta": delta, "pi": i})
-                sta += length
-                cur = ct
-            else:
-                sta = self._add_tangent(cur, p[i], sta)
-                cur = p[i]
-        dl = _unit((p[-1][0] - p[-2][0], p[-1][1] - p[-2][1]))
-        last = (p[-1][0] - cur[0]) * dl[0] + (p[-1][1] - cur[1]) * dl[1]
-        if len(p) > 2 and last < -SLACK_M:
-            self.overlaps.append(len(p) - 2)
-        if last > 0 or len(p) == 2:
-            sta = self._add_tangent(cur, p[-1], sta)
-        self.length = sta
-
-    def _add_tangent(self, a, b, sta):
-        length = math.hypot(b[0] - a[0], b[1] - a[1])
-        if length > 1e-9:
-            self.elements.append({"type": "tangent", "sta": (sta, sta + length), "start": a, "end": b})
-        return sta + length
+        self.elements, self.overlaps, self.length, self.pi_sta = geom.build(self.pis, self.radii)
 
     @property
     def valid(self):
@@ -104,26 +49,11 @@ class Alignment:
     # -- evaluation --------------------------------------------------------------------------
     def point_at(self, sta):
         """(x, z, heading) at a station; clamped to the alignment."""
-        sta = min(max(sta, 0.0), self.length)
-        for e in self.elements:
-            if sta <= e["sta"][1] + 1e-9 or e is self.elements[-1]:
-                u = sta - e["sta"][0]
-                if e["type"] == "tangent":
-                    d = _unit((e["end"][0] - e["start"][0], e["end"][1] - e["start"][1]))
-                    return e["start"][0] + d[0] * u, e["start"][1] + d[1] * u, d
-                return self._arc_point(e, u)
-        x, z = self.pis[-1]
-        return x, z, (1.0, 0.0)
+        return geom.point_at(self.elements, self.length, self.pis[-1], sta)
 
     @staticmethod
     def _arc_point(e, u):
-        c, r, delta = e["center"], e["radius"], e["delta"]
-        side = 1.0 if delta > 0 else -1.0
-        a0 = math.atan2(e["start"][1] - c[1], e["start"][0] - c[0])
-        a = a0 + side * u / r
-        x, z = c[0] + r * math.cos(a), c[1] + r * math.sin(a)
-        d = (-math.sin(a) * side, math.cos(a) * side)
-        return x, z, d
+        return geom.arc_point(e, u)
 
     def sample(self, step=0.25):
         """Stations, points (n, 2) and unit headings (n, 2) every `step`, ends included."""
@@ -643,15 +573,21 @@ def _window(dense, idx, i, j):
     return dense[a:b + 1]
 
 
-def _resolve_overlaps(pis, radii):
-    """Shrinks radii until no two curves claim the same tangent."""
+def _resolve_overlaps(pis, radii, frozen=()):
+    """Shrinks radii until no two curves claim the same tangent. PIs in `frozen` (pinned by hand)
+    keep their radius; if their curves alone overlap, ValueError."""
     radii = list(radii)
+    frozen = set(frozen)
     for _ in range(50):
         al = Alignment(pis, radii)
         if al.valid:
             return radii
         for i in al.overlaps:
-            radii[i] *= 0.85
-            if i - 1 >= 1:
-                radii[i - 1] *= 0.85
+            movable = [k for k in (i, i - 1) if 1 <= k <= len(pis) - 2 and k not in frozen]
+            if frozen and not any(radii[k] > 0 for k in movable):
+                raise ValueError("the pinned curves at PIs %d and %d overlap" % (i - 1, i))
+            for k in movable:
+                radii[k] *= 0.85
+    if frozen:
+        raise ValueError("could not resolve overlapping curves around the pinned PIs")
     return [0.0 if 0 < k < len(pis) - 1 else r for k, r in enumerate(radii)]

@@ -1,7 +1,103 @@
 {
   "format": "dixon-alignment-overrides",
   "version": 1,
-  "_about": "Hand-set design controls the solvers must honour (docs/roadway_control_plan.md \u00a78). profile: per route (alignments.json id), 'ignore_ground': [[from_sta, to_sta], ...] leaves DEM samples there out of the vertical fit; 'pins': [{'sta': m, 'elevation': game Y of the top of pavement, 'grade': fraction (optional)}] are fixed controls; 'pvi_stations': [m, ...] fixes the route's PVI stations (the ends are added; each curve is as long as its shorter straight, and refinement leaves the route alone). Stations are the route's, metres from its 0+00. templates: per route and station range, cross-section fields that replace the template's (templates.py OVERRIDE_KEYS: curb_to_curb_ft/m, lanes, parking, section, sidewalk_m, ...), each with its 'note'; entries with source 'building_faces' are derived, and rewritten, by templates.py --faces.",
+  "_about": "Hand-set design controls the solvers must honour (docs/roadway_control_plan.md \u00a78). horizontal: per route, pinned PIs and radii ('pis': [[x, z], ...], 'radii': one per PI, 'note', optional 'sta': [from, to] metres along the route's OSM line to pin only that stretch): build_alignments.py uses them instead of the fit, and they are authoritative downstream (horizontal_overrides.py); Bridge Composer's Alignments mode writes them. profile: per route (alignments.json id), 'ignore_ground': [[from_sta, to_sta], ...] leaves DEM samples there out of the vertical fit; 'pins': [{'sta': m, 'elevation': game Y of the top of pavement, 'grade': fraction (optional)}] are fixed controls; 'pvi_stations': [m, ...] fixes the route's PVI stations (the ends are added; each curve is as long as its shorter straight, and refinement leaves the route alone). Stations are the route's, metres from its 0+00. templates: per route and station range, cross-section fields that replace the template's (templates.py OVERRIDE_KEYS: curb_to_curb_ft/m, lanes, parking, section, sidewalk_m, ...), each with its 'note'; entries with source 'building_faces' are derived, and rewritten, by templates.py --faces.",
+  "horizontal": [
+    {
+      "route": "R21836760",
+      "pis": [
+        [
+          1976.927,
+          -426.884
+        ],
+        [
+          1999.121,
+          -428.489
+        ],
+        [
+          2016.746,
+          -428.753
+        ],
+        [
+          2083.345,
+          -422.216
+        ],
+        [
+          2083.372,
+          -424.154
+        ],
+        [
+          2347.431,
+          -413.846
+        ],
+        [
+          2362.008,
+          -408.302
+        ],
+        [
+          2365.489,
+          -405.946
+        ]
+      ],
+      "radii": [
+        0.0,
+        300.0,
+        160.0,
+        0.0,
+        0.0,
+        85.0,
+        0.0,
+        0.0
+      ],
+      "note": "shifted centerline, adjusted width"
+    },
+    {
+      "route": "R21838766",
+      "pis": [
+        [
+          1868.072,
+          -2006.489
+        ],
+        [
+          1828.92,
+          -2147.768
+        ],
+        [
+          1666.095,
+          -2699.684
+        ]
+      ],
+      "radii": [
+        0.0,
+        5750.0,
+        0.0
+      ],
+      "note": "Set in the alignment editor 2026-10-20 (alignment, width 33.5 ft); no reason given."
+    },
+    {
+      "route": "R21840383",
+      "pis": [
+        [
+          2653.342,
+          -212.297
+        ],
+        [
+          2661.65,
+          -220.356
+        ],
+        [
+          2669.94,
+          -397.314
+        ]
+      ],
+      "radii": [
+        0.0,
+        12.011,
+        0.0
+      ],
+      "note": "Set in the alignment editor 2026-10-20 (alignment); no reason given."
+    }
+  ],
   "profile": [
     {
       "route": "R1020578833",
@@ -92,6 +188,24 @@
       "curb_to_curb_ft": 41,
       "source": "building_faces",
       "note": "Building faces: the 16.46 m osm_tag width put the curb into the buildings at sta 1462-1496 (nearest face 6.2 m from the centreline); narrowed to 12.50 m (41 ft, the travel lanes at minimum width), held 20 m past the faces for the taper. templates.py --faces"
+    },
+    {
+      "route": "R21836760",
+      "sta": [
+        0.0,
+        390.6
+      ],
+      "curb_to_curb_ft": 27.0,
+      "note": "shifted centerline, reduced width"
+    },
+    {
+      "route": "R21838766",
+      "sta": [
+        0.0,
+        722.2
+      ],
+      "curb_to_curb_ft": 33.5,
+      "note": "Set in the alignment editor 2026-10-20 (alignment, width 33.5 ft); no reason given."
     }
   ]
 }

@@ -27,6 +27,23 @@ Bridge Composer (docs/bridge_composer_schema.md) uses the same server:
                                 pipeline/roads/bridges_composed.py builds in place
                                 of the generated deck; same checks as /game-save
 
+Alignments mode (docs/roads_notes.md, "Editing alignments"; game/tools/alignment_editor.py):
+  GET  /game-alignments            every route in short (id, name, class, length, bbox, pinned); with
+                                x0=&z0=&x1=&z1= the full records of the routes meeting the box (PIs, radii,
+                                elements, OSM line, template widths, a saved-but-unbuilt `override`)
+  GET  /game-alignment/<route id>  one route in full
+  GET  /game-metrics               accuracy snapshots, one per build (alignment_metrics.py)
+  POST /game-save-alignment/<id>   {pis, radii, note[, sta]}: pins the route's horizontal geometry in
+                                pipeline/roads/alignment_overrides.json (validated; see horizontal_overrides.py)
+  POST /game-delete-alignment/<id> unpins it (back to the fit)
+  POST /game-save-width/<id>       {sta, curb_to_curb_ft, note}: pins a station range's curb-to-curb width (a
+                                `templates` entry in alignment_overrides.json)
+  POST /game-rebuild {"mode": "alignments"}  build_alignments.py, then the whole transportation rebuild (minutes)
+  GET  /game-review-queue?sample=25&seed=1&kinds=sample,off_centre,roofless,street_overlap
+                                the places to check, with any recorded verdicts
+  POST /game-review            {id, status: ok|wrong|fixed|"" , note, kind, route, sta, at}: records a verdict in
+                                docs/review/alignment_review.json
+
 GET /game-materials serves game/data/materials_manifest.json, the game's
 material names (pipeline/buildings/palette.py manifest()), so Composer offers
 only finishes the game has.
@@ -59,9 +76,12 @@ MATERIALS_MANIFEST = os.path.join(ROOT, "game", "data", "materials_manifest.json
 BRIDGES_DIR = os.path.join(ROOT, "game", "data", "bridges_composed")
 BRIDGES_JSON = os.path.join(ROOT, "game", "data", "bridges.json")
 sys.path[:0] = [os.path.join(ROOT, "pipeline", "buildings"), os.path.join(ROOT, "pipeline", "aerial"),
-                os.path.join(ROOT, "pipeline", "roads"), os.path.join(ROOT, "pipeline")]
+                os.path.join(ROOT, "pipeline", "roads"), os.path.join(ROOT, "pipeline"), os.path.dirname(__file__)]
 import footprints  # noqa: E402
 import bridges_composed  # noqa: E402
+import alignment_editor  # noqa: E402
+import horizontal_overrides  # noqa: E402
+import alignment_metrics  # noqa: E402
 from aerial_crop import Aerial  # noqa: E402
 ID = re.compile(r"^[0-9A-Za-z_-]{1,40}$")
 MAX_BYTES = 32 * 1024 * 1024
@@ -461,11 +481,12 @@ _REBUILD = {"proc": None, "log": None, "started": None, "finished": None}
 
 def rebuild_start(script=REBUILD_SCRIPT, log_path=None, mode="full"):
     """Starts pipeline/roads/rebuild_bridges.sh in the background, `fast` (bridges only, seconds) or
-    `full` (heightmap, road plan, bakes; minutes). Raises ValueError if one is running."""
+    `full` (heightmap, road plan, bakes; minutes) or `alignments` (build_alignments.py, then the whole
+    transportation rebuild; many minutes). Raises ValueError if one is running."""
     import subprocess
     import time
-    if mode not in ("fast", "full"):
-        raise ValueError("mode is fast or full")
+    if mode not in ("fast", "full", "alignments"):
+        raise ValueError("mode is fast, full or alignments")
     proc = _REBUILD["proc"]
     if proc is not None and proc.poll() is None:
         raise ValueError("a rebuild is already running")
@@ -767,9 +788,12 @@ def _box(query, keys=("x0", "z0", "x1", "z1")):
 
 
 def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST, aerial=None, outlines=None,
-                 bridges_dir=BRIDGES_DIR):
+                 bridges_dir=BRIDGES_DIR, routes=None, overrides_path=horizontal_overrides.OVERRIDES_PATH,
+                 review_path=alignment_editor.REVIEW_PATH, report_path=alignment_editor.REPORT_PATH,
+                 audit_dir=alignment_editor.AUDIT_DIR, metrics_path=alignment_metrics.METRICS_PATH):
     aerial = aerial or Aerial()
     outlines = outlines or Outlines()
+    alignment_routes = routes or alignment_editor.Routes(overrides_path=overrides_path)
 
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -839,6 +863,48 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                     return self._reply(404, "no composed design for this bridge")
                 with open(file, "rb") as handle:
                     return self._send(handle.read(), "application/json")
+            if path == "/game-alignments":
+                try:
+                    if "x0" in parse_qs(query):
+                        body = {"routes": alignment_routes.in_box(*_box(query))}
+                    else:
+                        body = {"routes": alignment_routes.summaries(), "unpublished": alignment_routes.unpublished()}
+                except ValueError as error:
+                    return self._reply(400, str(error))
+                except FileNotFoundError as error:
+                    return self._reply(404, str(error))
+                return self._send(json.dumps(body, separators=(",", ":")).encode(), "application/json")
+            if path.startswith("/game-alignment/"):
+                rid = path[len("/game-alignment/"):]
+                if not horizontal_overrides.ROUTE_ID.match(rid):
+                    return self._reply(400, "bad route id")
+                try:
+                    view = alignment_routes.view(rid)
+                except FileNotFoundError as error:
+                    return self._reply(404, str(error))
+                if view is None:
+                    return self._reply(404, "no such route")
+                return self._send(json.dumps(view, separators=(",", ":")).encode(), "application/json")
+            if path == "/game-metrics":
+                doc = alignment_metrics.load(metrics_path)
+                return self._send(json.dumps({"history": doc["history"][-12:]}).encode(), "application/json")
+            if path == "/game-review-queue":
+                values = parse_qs(query)
+                try:
+                    sample = int(values.get("sample", ["25"])[0])
+                    seed = int(values.get("seed", ["1"])[0])
+                except ValueError:
+                    return self._reply(400, "sample and seed are integers")
+                kinds = [k for k in values.get("kinds", [",".join(alignment_editor.REVIEW_KINDS)])[0].split(",") if k]
+                if not 0 <= sample <= 500 or any(k not in alignment_editor.REVIEW_KINDS for k in kinds):
+                    return self._reply(400, "bad sample or kinds")
+                if alignment_routes.get() is None:
+                    return self._reply(404, "no alignments.json (run pipeline/roads/build_alignments.py)")
+                items, notes = alignment_editor.build_queue(
+                    alignment_routes.get(), alignment_editor._read(report_path), audit_dir, sample, seed, kinds, review_path)
+                return self._send(json.dumps({"items": items, "notes": notes, "sample": sample, "seed": seed,
+                                              "reviewed_total": len(alignment_editor.load_review(review_path)["items"])},
+                                             separators=(",", ":")).encode(), "application/json")
             if path == "/game-footprints":
                 try:
                     box = _box(query)
@@ -858,6 +924,10 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                 "/game-delete-bridge/": (lambda bid, body: delete_bridge(bid, bridges_dir)),
                 "/game-new-bridge": None,
                 "/game-rebuild": None,
+                "/game-save-alignment/": None,
+                "/game-delete-alignment/": None,
+                "/game-save-width/": None,
+                "/game-review": None,
             }
             route = next((r for r in routes if self.path == r or (r.endswith("/") and self.path.startswith(r))), None)
             if route is None:
@@ -870,7 +940,7 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                 length = int(self.headers.get("Content-Length", ""))
             except ValueError:
                 return self._reply(411, "length required")
-            limit = MAX_FOOTPRINT_BYTES if route == "/game-footprint/" else MAX_BYTES
+            limit = MAX_FOOTPRINT_BYTES if route in ("/game-footprint/", "/game-save-alignment/", "/game-save-width/", "/game-review") else MAX_BYTES
             if length < 0 or length > limit:
                 return self._reply(413, "too large")
             body = self.rfile.read(length) if length else b""
@@ -882,6 +952,38 @@ def make_handler(directory, composed_dir, materials_manifest=MATERIALS_MANIFEST,
                         mode = "full"
                     rebuild_start(mode=mode)
                     return self._reply(200, "started")
+                if route == "/game-save-alignment/":
+                    rid = self.path[len(route):]
+                    try:
+                        data = json.loads(body)
+                    except ValueError:
+                        raise ValueError("not JSON")
+                    if not isinstance(data, dict):
+                        raise ValueError("expected an object")
+                    if data.get("route", rid) != rid:
+                        raise ValueError("the file is for another route")
+                    if alignment_routes.get() is not None and rid not in alignment_routes.by_id:
+                        raise ValueError("no such route")
+                    entry = horizontal_overrides.save(dict(data, route=rid), overrides_path)
+                    return self._send(json.dumps(entry).encode(), "application/json")
+                if route == "/game-save-width/":
+                    rid = self.path[len(route):]
+                    try:
+                        data = json.loads(body)
+                    except ValueError:
+                        raise ValueError("not JSON")
+                    if not isinstance(data, dict):
+                        raise ValueError("expected an object")
+                    if alignment_routes.get() is not None and rid not in alignment_routes.by_id:
+                        raise ValueError("no such route")
+                    entry = horizontal_overrides.save_width(dict(data, route=rid), overrides_path)
+                    return self._send(json.dumps(entry).encode(), "application/json")
+                if route == "/game-delete-alignment/":
+                    removed = horizontal_overrides.remove(self.path[len(route):], overrides_path)
+                    return self._reply(200, "removed" if removed else "nothing to remove")
+                if route == "/game-review":
+                    item = alignment_editor.save_review(body, review_path)
+                    return self._send(json.dumps({"item": item}).encode(), "application/json")
                 if route == "/game-new-bridge":
                     design = new_bridge(body, bridges_dir)
                     return self._send(json.dumps(design).encode(), "application/json")

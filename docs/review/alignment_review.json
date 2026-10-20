@@ -1,0 +1,51 @@
+{
+ "format": "dixon-alignment-review",
+ "version": 1,
+ "items": {
+  "block:R21836760:209-285": {
+   "status": "fixed",
+   "note": "shifted centerline, reduced width",
+   "kind": "sample",
+   "route": "R21836760",
+   "at": [
+    2223.2,
+    -416.4
+   ],
+   "sta": [
+    209.3,
+    285.0
+   ],
+   "reviewed": "2026-10-19"
+  },
+  "block:R21838766:289-373": {
+   "status": "fixed",
+   "note": "",
+   "kind": "sample",
+   "route": "R21838766",
+   "at": [
+    1777.0,
+    -2324.8
+   ],
+   "sta": [
+    289.2,
+    373.0
+   ],
+   "reviewed": "2026-10-19"
+  },
+  "block:R21840383:14-94": {
+   "status": "fixed",
+   "note": "",
+   "kind": "sample",
+   "route": "R21840383",
+   "at": [
+    2665.9,
+    -263.4
+   ],
+   "sta": [
+    14.0,
+    94.0
+   ],
+   "reviewed": "2026-10-19"
+  }
+ }
+}
