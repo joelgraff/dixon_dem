@@ -514,6 +514,11 @@ magenta, the OSM line red, the template's curb lines green, PIs yellow dots, PC 
   its tangent length (R = T / tan(Δ/2)); hold **R** to force the radius.
 - Drag a **PC or PT** along its tangent: T becomes the distance from the PI, R = T / tan(Δ/2).
 - Type **R** in the side panel (0 makes the PI an angle point).
+- **Add break** (click the line at an intersection): the street on either side of a cross street may not line up, so
+  this puts two PIs 10 m apart on the straight there (it snaps to a street that meets the line). Nothing moves; then
+  drag the tangent beside the break to shift that side alone. The 10 m between the two PIs is a short link through
+  the intersection, so the line stays one continuous alignment and nothing downstream changes. Break both ends of a
+  block to shift just that block. Remove a break by removing its two PIs.
 - **Add PI** (click the dashed PI chain) and **Remove PI** (Delete). Undo is Ctrl+Z.
 - The panel reads R, T, Δ, L, the PC/PT/PI stations and degree of curve, and the deviation of the
   OSM line from your alignment. Curves that need more tangent than there is are refused.
