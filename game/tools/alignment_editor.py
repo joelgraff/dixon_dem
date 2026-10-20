@@ -116,7 +116,7 @@ class Routes(_Cached):
         pins = self._overrides() if pins is None else pins
         templ = (self.templates.get() or {}).get("routes", {}).get(rid, [])
         out = {k: r[k] for k in ("id", "name", "class", "highway", "oneway", "closed", "length", "pis", "radii",
-                                 "elements", "deviation") if k in r}
+                                 "elements", "deviation", "breaks") if k in r}
         out["osm"] = r.get("osm", [])
         out["pinned"] = r.get("pinned", [])
         out["ranges"] = [{"sta": t["sta"], "curb_to_curb_m": t["curb_to_curb_m"], "section": t["section"],

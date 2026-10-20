@@ -4,6 +4,7 @@ Each entry pins a route's PIs and radii, over the whole route or a stretch of it
 
   {"route": "R21838771",
    "pis": [[x, z], ...], "radii": [0, R, ..., 0],      # game metres, one radius per PI
+   "breaks": [i, ...],                                  # optional: PI i to PI i+1 is a break (jog at an intersection)
    "sta": [from, to],                                   # optional: metres along the route's OSM line
    "note": "why"}
 
@@ -58,6 +59,7 @@ def clean_entry(body):
         raise ValueError("bad route id")
     partial = body.get("sta") is not None
     pis, radii = geom.validate(body.get("pis"), body.get("radii"), keep_ends=partial)
+    breaks = geom.validate_breaks(body.get("breaks"), radii)
     note = body.get("note")
     if not isinstance(note, str) or not note.strip():
         raise ValueError("a pinned alignment needs a note saying why")
@@ -65,6 +67,8 @@ def clean_entry(body):
         raise ValueError("the note is too long")
     out = {"route": route, "pis": [[round(x, 3), round(z, 3)] for x, z in pis],
            "radii": [round(r, 3) for r in radii], "note": note.strip()}
+    if breaks:
+        out["breaks"] = breaks
     sta = body.get("sta")
     if sta is not None:
         if (not isinstance(sta, list) or len(sta) != 2

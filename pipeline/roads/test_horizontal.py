@@ -78,6 +78,42 @@ class Geometry(unittest.TestCase):
             self.assertAlmostEqual(p[1], q[1], places=2)
 
 
+class Breaks(unittest.TestCase):
+    PIS = [(0, 0), (100, 0), (100.3, 1.4), (200, 1.4)]
+
+    def test_a_break_flags_its_link_and_nothing_else(self):
+        a = al.Alignment(self.PIS, [0, 0, 0, 0], breaks=[1])
+        flagged = [e for e in a.elements if e.get("break")]
+        self.assertEqual(len(flagged), 1)
+        self.assertEqual((flagged[0]["start"], flagged[0]["end"]), ((100.0, 0.0), (100.3, 1.4)))
+        doc = a.to_json()
+        self.assertEqual(doc["breaks"], [1])
+        self.assertEqual([e.get("break", False) for e in doc["elements"]], [False, True, False])
+        self.assertNotIn("breaks", al.Alignment(self.PIS).to_json())
+
+    def test_breaks_are_validated(self):
+        self.assertEqual(geom.validate_breaks([2, 1, 1], [0, 0, 0, 0]), [1, 2])
+        for bad in ([3], [-1], ["a"], [True], "x", [1]):
+            radii = [0, 20, 0, 0] if bad == [1] else [0, 0, 0, 0]
+            with self.assertRaises(ValueError, msg=str(bad)):
+                geom.validate_breaks(bad, radii)
+
+    def test_a_pinned_entry_keeps_its_breaks_through_the_build(self):
+        e = ho.clean_entry({"route": "R1", "pis": [list(p) for p in self.PIS], "radii": [0, 0, 0, 0], "breaks": [1], "note": "n"})
+        self.assertEqual(e["breaks"], [1])
+        rec = rec_for([(0, 0), (200, 0)], [(0, 0), (200, 0)], [0, 0])
+        ba.apply_pins(rec, [e])
+        self.assertEqual(rec["alignment"].breaks, [1])
+        # a partial pin among fitted PIs: the break index follows the combined chain
+        pts = [(-100, 0), (0, 0), (200, 1.4), (300, 1.4)]
+        rec = rec_for(pts, pts, [0, 0, 0, 0])
+        e2 = dict(e, sta=[-1, 201], radii=[0, 0, 0, 0])
+        ba.apply_pins(rec, [e2])
+        a = rec["alignment"]
+        i = a.breaks[0]
+        self.assertEqual((a.pis[i], a.pis[i + 1]), ((100.0, 0.0), (100.3, 1.4)))
+
+
 class Overrides(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()

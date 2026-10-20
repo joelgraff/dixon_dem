@@ -143,7 +143,7 @@ def apply_pins(rec, pins, dense_step=0.5):
     whole = [e for e in pins if "sta" not in e]
     if whole:
         e = whole[-1]
-        a = al.Alignment(e["pis"], e["radii"])
+        a = al.Alignment(e["pis"], e["radii"], e.get("breaks", ()))
         if not a.valid:
             raise ValueError("%s: pinned curves overlap" % rec["id"])
         rec["alignment"] = a
@@ -162,10 +162,10 @@ def apply_pins(rec, pins, dense_step=0.5):
     items = []          # (osm station, order, pi, radius, pin index or None)
     for i, (p, r) in enumerate(zip(fitted.pis, fitted.radii)):
         if not any(e["sta"][0] - 1e-6 <= osm_sta[i] <= e["sta"][1] + 1e-6 for e in partial):
-            items.append((osm_sta[i], 0, p, r, None))
+            items.append((osm_sta[i], 0, p, r, None, None))
     for k, e in enumerate(partial):
         for j, (p, r) in enumerate(zip(e["pis"], e["radii"])):
-            items.append((e["sta"][0], 1 + j, tuple(p), r, k))
+            items.append((e["sta"][0], 1 + j, tuple(p), r, k, j))
     items.sort(key=lambda t: (t[0], t[1]))
     pis = [t[2] for t in items]
     radii = [t[3] for t in items]
@@ -173,7 +173,9 @@ def apply_pins(rec, pins, dense_step=0.5):
     radii[0] = radii[-1] = 0.0
     # an end of the route that is not pinned stays its fitted end
     radii = al._resolve_overlaps(pis, radii, frozen)
-    a = al.Alignment(pis, radii)
+    where = {(t[4], t[5]): i for i, t in enumerate(items) if t[4] is not None}
+    breaks = [where[(k, b)] for k, e in enumerate(partial) for b in e.get("breaks", ())]
+    a = al.Alignment(pis, radii, breaks)
     rec["alignment"] = a
     rec["pin_idx"] = []
     for k, e in enumerate(partial):
@@ -296,7 +298,7 @@ def junctions(recs, node_xy):
                 if hit is not None and math.hypot(hit[0][0] - x, hit[0][1] - z) <= JUNCTION_SNAP_M:
                     pis = list(a.pis)
                     pis[0 if start else -1] = (float(hit[0][0]), float(hit[0][1]))
-                    cand = al.Alignment(pis, a.radii)
+                    cand = al.Alignment(pis, a.radii, a.breaks)
                     if cand.valid and cand.length > 1.0:
                         moved.append(round(math.hypot(hit[0][0] - x, hit[0][1] - z), 3))
                         rec["alignment"] = cand

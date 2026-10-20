@@ -27,7 +27,7 @@ _unit, _deflection, _right = geom.unit, geom.deflection, geom.right
 class Alignment:
     """Tangents and arcs through `pis` with `radii` (one per PI; the two ends are ignored)."""
 
-    def __init__(self, pis, radii=None):
+    def __init__(self, pis, radii=None, breaks=()):
         self.pis = [tuple(map(float, p)) for p in pis]
         if len(self.pis) < 2:
             raise ValueError("an alignment needs at least two points")
@@ -36,11 +36,12 @@ class Alignment:
         if len(self.radii) != n:
             raise ValueError("one radius per PI")
         self.radii[0] = self.radii[-1] = 0.0
+        self.breaks = sorted(set(int(i) for i in breaks))
         self._build()
 
     # -- construction ------------------------------------------------------------------------
     def _build(self):
-        self.elements, self.overlaps, self.length, self.pi_sta = geom.build(self.pis, self.radii)
+        self.elements, self.overlaps, self.length, self.pi_sta = geom.build(self.pis, self.radii, self.breaks)
 
     @property
     def valid(self):
@@ -108,6 +109,8 @@ class Alignment:
         for e in self.elements:
             rec = {"type": e["type"], "sta": [r(e["sta"][0]), r(e["sta"][1])],
                    "start": [r(e["start"][0]), r(e["start"][1])], "end": [r(e["end"][0]), r(e["end"][1])]}
+            if e.get("break"):
+                rec["break"] = True
             if e["type"] == "tangent":
                 rec["bearing_deg"] = r(bearing_deg((e["end"][0] - e["start"][0], e["end"][1] - e["start"][1])))
             else:
@@ -115,8 +118,11 @@ class Alignment:
                             "turn": "R" if e["delta"] > 0 else "L",
                             "delta_deg": r(math.degrees(abs(e["delta"])))})
             out.append(rec)
-        return {"pis": [[r(x), r(z)] for x, z in self.pis], "radii": [r(v) for v in self.radii],
-                "length": r(self.length), "elements": out}
+        doc = {"pis": [[r(x), r(z)] for x, z in self.pis], "radii": [r(v) for v in self.radii],
+               "length": r(self.length), "elements": out}
+        if self.breaks:
+            doc["breaks"] = list(self.breaks)
+        return doc
 
 
 def bearing_deg(d):

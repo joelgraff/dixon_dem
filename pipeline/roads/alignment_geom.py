@@ -29,12 +29,13 @@ def right(d):
     return (-d[1], d[0])
 
 
-def build(pis, radii):
+def build(pis, radii, breaks=()):
     """(elements, overlaps, length, pi_sta) of the alignment through `pis` with `radii`.
 
     elements: dicts {type: tangent|arc, sta: (s0, s1), start, end} plus, for an arc, center,
     radius, delta (signed radians) and pi (the PI's index). overlaps: indices of PIs whose curve
-    needs more tangent than the neighbouring curves leave. pi_sta[i]: (s0, s1), the stations of
+    needs more tangent than the neighbouring curves leave. `breaks` are PI indices i whose segment to PI i+1 is
+    a break (a jog through an intersection): its tangent element carries "break": True. pi_sta[i]: (s0, s1), the stations of
     PI i's curve (PC, PT), or of the PI itself twice where it is an angle point or an end."""
     p = pis
     n = len(p)
@@ -85,6 +86,10 @@ def build(pis, radii):
     if last > 0 or n == 2:
         sta = tangent(cur, p[-1], sta)
     pi_sta[-1] = (sta, sta)
+    for i in breaks:
+        for e in elements:
+            if e["type"] == "tangent" and e["start"] == p[i] and e["end"] == p[i + 1]:
+                e["break"] = True
     return elements, overlaps, sta, pi_sta
 
 
@@ -119,6 +124,23 @@ def curve_data(pis, radii, i):
     if r <= 0 or abs(delta) <= 1e-6:
         return {"R": 0.0, "T": 0.0, "delta": delta, "L": 0.0}
     return {"R": r, "T": r * math.tan(abs(delta) / 2.0), "delta": delta, "L": r * abs(delta)}
+
+
+def validate_breaks(breaks, radii):
+    """The sorted unique PI indices of `breaks` (segment i -> i+1 is a break), or ValueError. A break's two PIs
+    are angle points (radius 0)."""
+    if breaks is None:
+        return []
+    if not isinstance(breaks, list) or len(breaks) > 100:
+        raise ValueError("breaks is a list of PI indices")
+    out = []
+    for i in breaks:
+        if not isinstance(i, int) or isinstance(i, bool) or not 0 <= i < len(radii) - 1:
+            raise ValueError("a break is the index of a PI that has a next PI")
+        if radii[i] > 0 or radii[i + 1] > 0:
+            raise ValueError("the PIs of a break must have radius 0")
+        out.append(i)
+    return sorted(set(out))
 
 
 def validate(pis, radii, keep_ends=False):
