@@ -1,7 +1,7 @@
 {
   "format": "dixon-alignment-overrides",
   "version": 1,
-  "_about": "Hand-set design controls the solvers must honour (docs/roadway_control_plan.md \u00a78). profile: per route (alignments.json id), 'ignore_ground': [[from_sta, to_sta], ...] leaves DEM samples there out of the vertical fit; 'pins': [{'sta': m, 'elevation': game Y of the top of pavement, 'grade': fraction (optional)}] are fixed controls; 'pvi_stations': [m, ...] fixes the route's PVI stations (the ends are added; each curve is as long as its shorter straight, and refinement leaves the route alone). Stations are the route's, metres from its 0+00.",
+  "_about": "Hand-set design controls the solvers must honour (docs/roadway_control_plan.md \u00a78). profile: per route (alignments.json id), 'ignore_ground': [[from_sta, to_sta], ...] leaves DEM samples there out of the vertical fit; 'pins': [{'sta': m, 'elevation': game Y of the top of pavement, 'grade': fraction (optional)}] are fixed controls; 'pvi_stations': [m, ...] fixes the route's PVI stations (the ends are added; each curve is as long as its shorter straight, and refinement leaves the route alone). Stations are the route's, metres from its 0+00. templates: per route and station range, cross-section fields that replace the template's (templates.py OVERRIDE_KEYS: curb_to_curb_ft/m, lanes, parking, section, sidewalk_m, ...), each with its 'note'; entries with source 'building_faces' are derived, and rewritten, by templates.py --faces.",
   "profile": [
     {
       "route": "R1020578833",
@@ -21,6 +21,68 @@
         30.0,
         36.0
       ]
+    }
+  ],
+  "templates": [
+    {
+      "route": "R21837872",
+      "sta": [
+        56.9,
+        87.1
+      ],
+      "curb_to_curb_ft": 18,
+      "source": "building_faces",
+      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 70-74 (nearest face 2.6 m from the centreline); narrowed to 5.49 m (18 ft, the travel lanes at minimum width), held 11 m past the faces for the taper. templates.py --faces"
+    },
+    {
+      "route": "R21837892",
+      "sta": [
+        381.4,
+        400.6
+      ],
+      "curb_to_curb_ft": 25,
+      "source": "building_faces",
+      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 388-394 (nearest face 4.0 m from the centreline); narrowed to 7.62 m (25 ft), held 6 m past the faces for the taper. templates.py --faces"
+    },
+    {
+      "route": "R21838522",
+      "sta": [
+        167.9,
+        233.1
+      ],
+      "curb_to_curb_ft": 18,
+      "source": "building_faces",
+      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 176-220 (nearest face 1.7 m from the centreline); narrowed to 5.49 m (18 ft, the travel lanes at minimum width), held 11 m past the faces for the taper. templates.py --faces"
+    },
+    {
+      "route": "R21838771",
+      "sta": [
+        31.9,
+        67.1
+      ],
+      "curb_to_curb_ft": 18,
+      "source": "building_faces",
+      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 44-54 (nearest face 2.0 m from the centreline); narrowed to 5.49 m (18 ft, the travel lanes at minimum width), held 11 m past the faces for the taper. templates.py --faces"
+    },
+    {
+      "route": "R21840201",
+      "sta": [
+        91.9,
+        115.1
+      ],
+      "curb_to_curb_ft": 23,
+      "source": "building_faces",
+      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 100-106 (nearest face 3.7 m from the centreline); narrowed to 7.01 m (23 ft), held 7 m past the faces for the taper. templates.py --faces"
+    },
+    {
+      "route": "R51389016",
+      "sta": [
+        1439.9,
+        1517.3
+      ],
+      "curb_to_curb_ft": 41,
+      "source": "building_faces",
+      "note": "Building faces: the 16.46 m osm_tag width put the curb into the buildings at sta 1462-1496 (nearest face 6.2 m from the centreline); narrowed to 12.50 m (41 ft, the travel lanes at minimum width), held 20 m past the faces for the taper. templates.py --faces"
     }
   ]
 }

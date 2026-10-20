@@ -264,9 +264,97 @@ def building_conflicts(groups, buildings, min_m2=CONFLICT_MIN_M2):
             "largest": {group: [r for r in listed if r["surface"] == group][:60] for group in groups}}
 
 
+TRIM_DEPTH_M = 1.5        # a curbed carriageway gives way to a building reaching no further into it,
+NICK_DEPTH_M = 2.5        # ... or to a corner (a bite of at most NICK_M2) reaching no further than this
+NICK_M2 = 12.0
+YIELD_FRAGMENT_M2 = 4.0   # pavement left this small by a building cut is dropped
+
+
+SPANS_STREET = {"1010774113"}   # Dixon Memorial Arch: stands over the street (landmark-owned)
+
+
+def _bite_depth(bite, carriageway, step=0.1):
+    """How far `bite` (a building's overlap with the carriageway) reaches in from the
+    carriageway's edge: the farthest of its points, on a `step` grid, from that edge."""
+    x0, z0, x1, z1 = bite.bounds
+    xs, zs = np.meshgrid(np.arange(x0, x1 + step, step), np.arange(z0, z1 + step, step))
+    inside = shapely.contains_xy(bite, xs, zs)
+    if not inside.any():
+        return 0.0
+    return float(shapely.distance(shapely.points(xs[inside], zs[inside]), carriageway.boundary).max())
+
+
+def yield_to_buildings(asphalt, plans, buildings):
+    """Pavement that gives way to the buildings standing on it, where the building is right and the
+    pavement is the estimate: (asphalt, the buildings it gave way to, report).
+
+    - An uncurbed drive (service, alley: OSM draws them through lots, round buildings and into
+      garages, at the importer's 3.96 m default width) stops at every footprint: its pavement
+      outside every curbed street's carriageway is cut by the footprint.
+    - A curbed street's pavement is trimmed a curb width back from a building reaching no more
+      than TRIM_DEPTH_M into its carriageway (a front at the curb: footprints are roof outlines
+      and include the eaves, and the alignment and the outline are each good to about a metre)
+      or a corner of at most NICK_M2 reaching no more than NICK_DEPTH_M (a corner on a curve, a
+      Microsoft outline's driveway tail), so the curb runs along the face. A deeper or larger
+      bite is not a nick: the footprint or the street there is wrong (or its width an estimate,
+      which templates.py --faces narrows), and it is left standing and listed for review.
+    """
+    polygons, ids = buildings
+    curbed_core = union([plan_corridor(plan) for plan in plans if plan.has_curb])
+    uncurbed = [(plan, plan_corridor(plan)) for plan in plans if not plan.has_curb]
+    drives = asphalt.difference(curbed_core)
+    carriageway = asphalt.buffer(CURB_WIDTH, quad_segs=4)
+    curbed = asphalt.intersection(curbed_core).buffer(CURB_WIDTH, quad_segs=4)
+    tree = STRtree(polygons)
+    service, trims, deep, cut, gave_way = [], [], [], [], []
+    for i in sorted(int(i) for i in tree.query(carriageway, predicate="intersects")):
+        polygon, (bid, source) = polygons[i], ids[i]
+        if str(bid) in SPANS_STREET:
+            continue
+        c = polygon.centroid
+        row = {"id": bid, "source": source, "at": [round(c.x, 1), round(c.y, 1)]}
+        yielded = False
+        on_drive = polygon.intersection(drives)
+        if on_drive.area > CONFLICT_MIN_M2:
+            ways = sorted({str(plan.way["id"]) for plan, corridor in uncurbed if corridor.intersects(polygon)})
+            service.append(dict(row, area_m2=round(on_drive.area, 1), ways=ways))
+            cut.append(polygon)
+            yielded = True
+        bite = polygon.intersection(curbed)
+        if bite.area > CONFLICT_MIN_M2:
+            depth = _bite_depth(bite, curbed)
+            row = dict(row, area_m2=round(bite.area, 1), depth_m=round(depth, 2))
+            if depth <= TRIM_DEPTH_M or (bite.area <= NICK_M2 and depth <= NICK_DEPTH_M):
+                trims.append(row)
+                # cut back a curb width, so the curb rebuilt round the cut stands at the face
+                cut.append(polygon.buffer(CURB_WIDTH, quad_segs=4))
+                yielded = True
+            else:
+                deep.append(row)
+        if yielded:
+            gave_way.append(polygon)
+    report = {"trim_depth_m": TRIM_DEPTH_M, "nick_m2": NICK_M2, "nick_depth_m": NICK_DEPTH_M, "service": service, "curb_trims": trims, "left_for_review": deep}
+    for key in report:
+        if isinstance(report[key], list):
+            report[key].sort(key=lambda r: -r["area_m2"])
+    report["service_cut_m2"] = round(sum(r["area_m2"] for r in service), 1)
+    report["curb_trim_m2"] = round(sum(r["area_m2"] for r in trims), 1)
+    if not cut:
+        return asphalt, Polygon(), report
+    before = [part for part in polygon_parts(asphalt) if part.area < YIELD_FRAGMENT_M2]
+    keep = []
+    for part in polygon_parts(asphalt.difference(union(cut))):
+        # a sliver the cut left between a building and the edge of the pavement
+        if part.area < YIELD_FRAGMENT_M2 and not any(p.equals_exact(part, 1e-6) for p in before):
+            continue
+        keep.append(part)
+    return checked(union(keep), "asphalt yielded to buildings"), union(gave_way), report
+
+
 def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=(), buildings=None):
-    """`buildings`, optional (polygons, [(id, source)]), only adds the by-source
-    building_conflicts to the report; `obstacles` already holds their geometry."""
+    """`buildings`, optional (polygons, [(id, source)]): the pavement gives way to them
+    (yield_to_buildings) and the report lists them by source (building_conflicts);
+    `obstacles` already holds their geometry."""
     obstacles = set_precision(checked(obstacles, "obstacles"), OVERLAY_GRID_M)
     aerial = set_precision(checked(aerial, "aerial candidates"), OVERLAY_GRID_M)
     corridors = []
@@ -313,8 +401,14 @@ def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=(), build
     asphalt = checked(union(polygon_parts(raw.union(union(returns)))).simplify(
         BOUNDARY_SIMPLIFY_M, preserve_topology=True), "connected asphalt")
     curbed_region = union(curbed_regions)
+    building_yield = None
+    if buildings:
+        asphalt, yielded_to, building_yield = yield_to_buildings(asphalt, plans, buildings)
     curb_outer = asphalt.buffer(CURB_WIDTH, quad_segs=16)
     curb = curb_outer.difference(asphalt).intersection(curbed_region)
+    if building_yield is not None:
+        # no curb along a drive's cut face, nor into a trimmed building
+        curb = checked(curb.difference(yielded_to), "curb yielded to buildings")
     # the gutter flag shows only where a template says it is not overlaid; the widest wins
     gutter = union([asphalt.difference(asphalt.buffer(-width, quad_segs=16)).intersection(union(regions))
                     for width, regions in gutter_regions.items()])
@@ -396,6 +490,8 @@ def build_layout(plans, nodes, aerial, obstacles, overrides, path_ways=(), build
                    "roadside_conflicts": conflicts})
     if by_building is not None:
         report["building_conflicts"] = by_building
+    if building_yield is not None:
+        report["building_yield"] = building_yield
     return surfaces, report
 
 

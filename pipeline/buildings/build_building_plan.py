@@ -26,6 +26,7 @@ import facade
 import templates as building_templates
 import footprints
 
+import shapely
 from shapely.geometry import Polygon
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -46,14 +47,43 @@ def footprint_coords(b):
     return pts
 
 
-def convex_hull(coords):
+def _is_convex(poly, tol=1e-6):
+    return poly.convex_hull.area - poly.area <= tol * max(poly.area, 1.0)
+
+
+def convex_parts(coords):
+    """The built outline as convex rings that together cover it: its constrained
+    Delaunay triangles, merged across shared edges while the union stays convex.
+    A convex outline is returned as it is. The collision follows the outline, so a
+    concave building (an L, a U, a courtyard) does not wall off its notch."""
     poly = Polygon(coords)
     if not poly.is_valid:
         poly = poly.buffer(0)
-    hull = poly.convex_hull
-    if hull.is_empty or hull.geom_type != "Polygon":
-        return coords
-    return list(hull.exterior.coords)[:-1]
+    polys = [g for g in getattr(poly, "geoms", [poly]) if g.geom_type == "Polygon" and not g.is_empty]
+    if not polys:
+        return [list(coords)]
+    if len(polys) == 1 and not polys[0].interiors and _is_convex(polys[0]):
+        return [list(coords)]
+    parts = []
+    for g in polys:
+        tris = [t for t in shapely.constrained_delaunay_triangles(g).geoms if t.area > 1e-6]
+        merged = True
+        while merged:
+            merged = False
+            for i in range(len(tris)):
+                for j in range(i + 1, len(tris)):
+                    if tris[i].intersection(tris[j]).length <= 1e-9:
+                        continue
+                    u = tris[i].union(tris[j])
+                    if u.geom_type == "Polygon" and _is_convex(u):
+                        tris[i] = u
+                        del tris[j]
+                        merged = True
+                        break
+                if merged:
+                    break
+        parts.extend(tris)
+    return [list(t.exterior.coords)[:-1] for t in parts]
 
 
 # OSM building ids that game/landmarks/tools/build_landmarks.gd models itself. Keep in sync.
@@ -260,17 +290,18 @@ def main(only_chunk=None):
         if res:
             # Close the gap under the building where terrain falls away (see facade.terrain_skirt).
             low = facade.terrain_skirt(c["near"], res["hull"], res["y0"], sampler)
-            hull = convex_hull(res["hull"])
-            collision = {
-                "id": bid,
-                "hull": [[round(p[0], 2), round(p[1], 2)] for p in hull],
-                "y0": round(min(res["y0"], low) - 0.05, 2),
-                "y1": round(res["y1"], 2),
-            }
+            y0 = round(min(res["y0"], low) - 0.05, 2)
+            y1 = round(res["y1"], 2)
             if res.get("faces"):
-                # a walk-in composed building collides with its surfaces, not its hull
-                collision["faces"] = [round(v, 3) for v in res["faces"]]
-            c["collisions"].append(collision)
+                # a walk-in composed building collides with its surfaces (the hull is kept for measuring)
+                ring = [[round(p[0], 2), round(p[1], 2)] for p in res["hull"]]
+                c["collisions"].append({"id": bid, "hull": ring, "y0": y0, "y1": y1,
+                                        "faces": [round(v, 3) for v in res["faces"]]})
+            else:
+                # one convex shape per part: Godot's convex shapes would wall off a concave outline's notch
+                for part in convex_parts(res["hull"]):
+                    ring = [[round(p[0], 2), round(p[1], 2)] for p in part]
+                    c["collisions"].append({"id": bid, "hull": ring, "y0": y0, "y1": y1})
 
     print("archetype counts:", counts)
 

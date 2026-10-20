@@ -199,6 +199,17 @@ horizon heightmap for ground level.
   collision hull is now the outline of the boxes actually built (`built_outline`).
   Churches and garages still use the bounding rectangle.
 
+- **Collision follows the built outline** (`build_building_plan.convex_parts`, 2026-10-19).
+  A concave building's collision used to be one convex hull, so an L or U shaped store, or a
+  courtyard, walled off its notch: OSM 444853753 (1113,-1740) put an invisible 700 m2 wall over
+  a service drive. Now the outline is cut into constrained Delaunay triangles that are merged
+  across shared edges while the union stays convex, and each part is its own collision entry
+  with the building's `id` (a convex outline is still one entry; a walk-in composed building
+  still collides with its `faces` and keeps its outline as `hull`). `encroachment.py` and
+  `place_vegetation.py` join the parts by id. 4,893 buildings now bake 5,328 shapes, and the
+  `hull` cause in `street_overlaps.json` is 0 (carriageway overlaps 12 -> 7). House boxes
+  (`built_outline`) are still the convex hull of the bars.
+
 - `encroachment.py` measures the baked hulls against the transportation layout, by
   source (OSM, curated, Microsoft, and infill ids if an old bake is measured):
   carriageway = asphalt + curb, roadside = sidewalk + parkway.
@@ -209,10 +220,36 @@ horizon heightmap for ground level.
 - `ms_footprints.py` drops Microsoft footprints standing mostly on a water reach. So far
   that is one: 800002411, on the river by the Galena Ave bridge. Ids keep their old
   positions.
-- `roof_audit.py` lists OSM/curated/Microsoft outlines whose inside is mostly lawn in
-  the 2025 aerial (`docs/footprint_aerial_audit/roofless_review.json`, with a contact
-  sheet). It is a review list and deletes nothing. Green metal roofs score as lawn too,
-  and a demolished building on a paved lot is not green.
+- `roof_audit.py` lists OSM/curated/Microsoft outlines whose inside is mostly open ground
+  in the 2025 aerial (`docs/footprint_aerial_audit/roofless_review.json`, with a contact
+  sheet): lawn, or bare ground (tan dirt, gravel, a weathered lot: luma 0.40-0.72 and warm,
+  r - b > 0.06), lawn + bare at least 0.6. Only the part of an outline no other outline
+  covers is sampled, so a Microsoft blob over a dirt lot and the OSM building inside it
+  (800000171) is judged by the lot. It is a review list and deletes nothing: green metal
+  roofs score lawn, and gravel or tan flat roofs score bare (about half the bare flags).
+- **Pavement gives way to buildings** (`transport_layout.yield_to_buildings`, 2026-10-19).
+  Uncurbed drives (service, alley; OSM draws them through lots and garages at the importer's
+  3.96 m default) stop at every footprint. A curbed street is trimmed a curb width back from
+  a building reaching at most 1.5 m into it, or from a corner of at most 12 m2 reaching at
+  most 2.5 m (footprints are roof outlines and include the eaves; the alignment and the
+  outline are each good to about a metre), so the curb runs along the face. A deeper bite
+  stays and is listed (`building_yield` in the layout report: service, curb_trims,
+  left_for_review). The Dixon Memorial Arch spans the street and is skipped.
+- **Estimated widths narrowed to the faces** (`pipeline/roads/templates.py --faces`). Where a
+  curbed street whose width is an estimate (OSM tag, class median) runs its curb into
+  buildings, a template override narrows it over that station range to what the faces leave
+  (downtown: face-to-face less the 3.6 m walk each side; residential: the curb at the face),
+  never under the travel lanes at minimum lane width, held half a taper past the faces. The
+  overrides are written to `alignment_overrides.json` (`source: building_faces`, each with
+  its reason). Faces of roofless-flagged outlines do not count; a face nearer than the floor
+  plus the 1.5 m trim can clear is left for review (the alignment is off there). 2026-10-19:
+  Galena 16.46 -> 12.50 m at First St (sta 1440-1517), and five class-median residential spots.
+- `encroachment.py --review` writes `docs/footprint_aerial_audit/street_overlaps.{json,png}`:
+  each baked building still on the carriageway, the street there, its roofless flag, a cause,
+  and a `manual_review` list (everything but `hull`, a concave building's convex collision
+  hull reaching a street its footprint does not).
+- Order after footprints change: `roof_audit.py`, `templates.py --faces`,
+  `rebuild_transportation.sh`, `encroachment.py --review`.
 
 Ground level for every building is resampled from
 `heightmap_play_1m_road_conformed.r32` (the same file `terrain.gd` renders

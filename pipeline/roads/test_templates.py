@@ -177,6 +177,23 @@ def plan(points, hw, **kw):
     return SimpleNamespace(**base)
 
 
+class BuildingFaces(unittest.TestCase):
+    def test_estimated_widths_narrow_to_the_faces_and_measured_ones_do_not(self):
+        overrides, rows = tp.face_overrides(exclude=tp.roofless_ids())
+        self.assertEqual(len(overrides), len(rows))
+        for o, row in zip(overrides, rows):
+            self.assertEqual(o["source"], tp.FACE_SOURCE)
+            self.assertIn("Building faces", o["note"])
+            self.assertIn(row["width_source"], tp.FACE_ESTIMATES)       # never an aerial survey width
+            self.assertLess(row["to_m"], row["from_m"])
+            self.assertLessEqual(o["sta"][0], row["faces_sta"][0])
+            self.assertGreaterEqual(o["sta"][1], row["faces_sta"][1])
+        # downtown Galena at First: 16.46 m (54 ft OSM tag) between fronts 13.3 m apart; four
+        # lanes at the 3.05 m minimum hold it at 41 ft
+        galena = [o for o in overrides if o["route"] == "R51389016" and o["sta"][0] < 1470 < o["sta"][1]]
+        self.assertEqual([o["curb_to_curb_ft"] for o in galena], [41])
+
+
 class Layout(unittest.TestCase):
     EMPTY = {"version": 1, "junctions": [], "lots": [], "exclude_paving": []}
 

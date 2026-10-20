@@ -9,6 +9,12 @@ rounded to the foot, or the OSM width tag where the survey fell back to it), the
 design_standards.json's `roadside` profiles, and anything can be overridden per route and
 station range in alignment_overrides.json's `templates`.
 
+`--faces` derives such overrides from the building faces (face_overrides): where a curbed street
+whose width is an estimate (OSM tag, class median) runs its curb into buildings, its template is
+narrowed to what the faces leave, and the overrides (`source: building_faces`) are rewritten in
+alignment_overrides.json, each with its reason. Run it after pipeline/buildings/roof_audit.py
+(footprints listed there as roofless do not count) and before rebuild_transportation.sh.
+
 `design_roads(roads)` is what the consumers read: roads.json with every drivable way that lies on
 a route re-drawn along the route's alignment (tangents and arcs, densified) instead of its OSM
 nodes, ending at the junction control points, and with each vertex's template half-width
@@ -18,7 +24,7 @@ Writes:
   game/data/templates.json                 template ranges per route
   game/roads/_build/templates_report.json  width sources, sections, tapers, design-road fit
 
-Run: ../../.venv/bin/python templates.py
+Run: ../../.venv/bin/python templates.py [--faces]
 """
 import hashlib
 import json
@@ -48,7 +54,7 @@ CURBED = {"residential", "primary", "secondary", "tertiary", "unclassified",
 DOWNTOWN_STREET_WORDS = ("galena", "1st", "first", "2nd", "second", "3rd", "third", "hennepin", "peoria")
 DOWNTOWN_BOUNDS = (1330.0, -1780.0, 1920.0, -1030.0)  # x0,z0,x1,z1
 OVERRIDE_KEYS = {"route", "sta", "note", "curb_to_curb_m", "curb_to_curb_ft", "lanes", "parking",
-                 "gutter", "curb", "section", "parkway_m", "sidewalk_m"}
+                 "gutter", "curb", "section", "parkway_m", "sidewalk_m", "source"}
 
 TANGENT_STEP_M = 2.0       # design vertices along a tangent
 ARC_CHORD_ERR_M = 0.02     # ... and along an arc, as close as this to the true curve
@@ -656,7 +662,167 @@ def summarize(doc, design_report, route_class):
             "design_roads": design_report}
 
 
+# ---------------------------------------------------------------------------------------------
+# Widths from building faces
+# ---------------------------------------------------------------------------------------------
+FACE_SOURCE = "building_faces"
+FACE_ESTIMATES = ("osm_tag", "class_median", "class_lanes")   # widths no survey measured
+FACE_STEP_M = 1.0          # stations probed along the range
+FACE_RUN_GAP_M = 10.0      # conflicting stations this close are one run
+FACE_SKIP = {"1010774113"}  # Dixon Memorial Arch: stands over the street
+FACE_EAVE_M = 0.3          # a face this little past the curb line is an eave over it: left to the layout
+FACE_TRIM_M = 1.5          # transport_layout.TRIM_DEPTH_M: the layout trims a curb this far round a face
+
+
+def _face_distances(a, s, tree, polys, reach):
+    """Distance from the alignment at `s` to the nearest building face on its left and right
+    (None where there is none within `reach`)."""
+    from shapely.geometry import LineString, Point
+    x, z, _ = a.point_at(s)
+    x2, z2, _ = a.point_at(min(s + 0.25, a.length)) if s + 0.25 <= a.length else a.point_at(s)
+    if (x2, z2) == (x, z):
+        xb, zb, _ = a.point_at(s - 0.25)
+        dx, dz = x - xb, z - zb
+    else:
+        dx, dz = x2 - x, z2 - z
+    d = math.hypot(dx, dz) or 1.0
+    nx, nz = dz / d, -dx / d
+    out = []
+    for side in (1, -1):
+        ray = LineString([(x, z), (x + side * nx * reach, z + side * nz * reach)])
+        best = None
+        for i in tree.query(ray, predicate="intersects"):
+            dist = Point(x, z).distance(polys[i].intersection(ray))
+            best = dist if best is None else min(best, dist)
+        out.append(best)
+    return out
+
+
+def face_overrides(alignments=None, standards=None, outlines=None, exclude=()):
+    """Template overrides narrowing estimated widths to the building faces, and the report rows.
+
+    Over each curbed, non-bridge range whose width is an estimate (FACE_ESTIMATES), the nearest
+    building face either side is probed every FACE_STEP_M. A station conflicts where the curb
+    (curb-to-curb / 2 + curb width) reaches a face. There the faces allow
+      both sides:  face-to-face less the curbs and the section's walk each side (downtown 3.6 m;
+                   a residential front can stand at the curb, so none), and never the curb into
+                   the nearer face (the template is symmetric about the alignment);
+      one side:    the curb at that face.
+    Each run of conflicting stations takes the least of those, rounded down to the foot but not
+    under its travel lanes at the class's minimum lane width (parking goes first: lane_split),
+    over the run widened by half its taper each side, so the full narrowing reaches the faces.
+    A face nearer than even those lanes and the layout's trim (FACE_TRIM_M) can clear is not a
+    width: the footprint or the alignment is wrong there, and the station is left out (the
+    layout lists the building for review). Faces of `exclude` (ids roof_audit.py lists as roofless) and FACE_SKIP do not count."""
+    from shapely.geometry import Polygon
+    from shapely.strtree import STRtree
+    alignments = alignments or load_json(ALIGNMENTS_PATH)
+    standards = standards or load_json(STANDARDS_PATH)
+    if outlines is None:
+        sys.path.insert(0, os.path.join(os.path.dirname(HERE), "buildings"))
+        import footprints
+        outlines = footprints.all_outlines()
+    skip = {str(i) for i in exclude} | FACE_SKIP
+    polys = []
+    for rec in outlines:
+        if str(rec["id"]) in skip:
+            continue
+        poly = Polygon(rec["footprint"])
+        polys.append(poly if poly.is_valid else poly.buffer(0))
+    tree = STRtree(polys)
+    cs = standards["cross_section"]
+    curb_w = cs["curb_width"]
+    ft = 0.3048
+    kept = {r: [o for o in os_ if o.get("source") != FACE_SOURCE] for r, os_ in load_overrides().items()}
+    doc = build(alignments=alignments, standards=standards, overrides=kept)
+    out, rows = [], []
+    for rec in alignments["routes"]:
+        a = None
+        cls = rec["class"]
+        speed = standards["classes"][cls]["design_speed_mph"]
+        for r in doc["routes"].get(rec["id"], []):
+            if r["section"] == "uncurbed" or r["bridge"] or r["width_source"] not in FACE_ESTIMATES:
+                continue
+            a = a or al.Alignment(rec["pis"], rec["radii"])
+            c2c = r["curb_to_curb_m"]
+            walk = r["sidewalk_m"] if r["section"] == "downtown" else 0.0
+            reach = c2c / 2 + curb_w + walk + 2.0
+            floor_ft = math.ceil(r["lanes"] * cs["lane_width_min"][cls] / ft - 1e-6)
+            floor_half = floor_ft * ft / 2
+            hits = []
+            for s in np.arange(r["sta"][0] + FACE_STEP_M / 2, r["sta"][1], FACE_STEP_M):
+                left, right = _face_distances(a, float(s), tree, polys, reach)
+                near = min((d for d in (left, right) if d is not None), default=None)
+                if near is None or near >= c2c / 2 + curb_w or floor_half + curb_w - near > FACE_TRIM_M:
+                    continue
+                if left is not None and right is not None:
+                    allowed = min(left + right - 2 * (curb_w + walk), 2 * (near - curb_w))
+                else:
+                    allowed = 2 * (near - curb_w)
+                hits.append((float(s), allowed, near))
+            runs = []
+            for h in hits:
+                if runs and h[0] - runs[-1][-1][0] <= FACE_RUN_GAP_M:
+                    runs[-1].append(h)
+                else:
+                    runs.append([h])
+            for run in runs:
+                allowed = min(h[1] for h in run)
+                width_ft = max(floor_ft, math.floor(allowed / ft + 1e-6))
+                width = round(width_ft * ft, 3)
+                if width >= c2c - 1e-3:
+                    continue
+                taper = taper_length((c2c - width) / 2, speed, cs)
+                s0 = max(r["sta"][0], run[0][0] - FACE_STEP_M / 2 - taper / 2 - 1.0)
+                s1 = min(r["sta"][1], run[-1][0] + FACE_STEP_M / 2 + taper / 2 + 1.0)
+                face = min(h[2] for h in run)
+                if c2c / 2 + curb_w - face <= FACE_EAVE_M:
+                    continue
+                first = run[0][0]
+                if out and out[-1]["route"] == rec["id"] and s0 <= out[-1]["sta"][1]:
+                    prev, row = out.pop(), rows.pop()
+                    s0, width_ft = prev["sta"][0], min(width_ft, prev["curb_to_curb_ft"])
+                    width = round(width_ft * ft, 3)
+                    face, first = min(face, row["nearest_face_m"]), row["faces_sta"][0]
+                    taper = taper_length((c2c - width) / 2, speed, cs)
+                note = (f"Building faces: the {c2c:.2f} m {r['width_source']} width put the curb into the "
+                        f"buildings at sta {first:.0f}-{run[-1][0]:.0f} (nearest face {face:.1f} m from "
+                        f"the centreline); narrowed to {width:.2f} m ({width_ft} ft"
+                        + (", the travel lanes at minimum width" if width_ft == floor_ft else "")
+                        + f"), held {taper / 2:.0f} m past the faces for the taper. templates.py --faces")
+                out.append({"route": rec["id"], "sta": [round(s0, 1), round(s1, 1)], "curb_to_curb_ft": width_ft,
+                            "source": FACE_SOURCE, "note": note})
+                rows.append({"route": rec["id"], "name": rec["name"], "class": cls, "section": r["section"],
+                             "sta": [round(s0, 1), round(s1, 1)], "faces_sta": [round(first, 1), round(run[-1][0], 1)],
+                             "from_m": c2c, "to_m": width,
+                             "width_source": r["width_source"], "nearest_face_m": round(face, 2),
+                             "at_floor": width_ft == floor_ft})
+    return out, rows
+
+
+def write_face_overrides(overrides, path=OVERRIDES_PATH):
+    """Replaces the building_faces entries of alignment_overrides.json's `templates`."""
+    data = load_json(path)
+    data["templates"] = [o for o in data.get("templates", []) if o.get("source") != FACE_SOURCE] + overrides
+    with open(path, "w") as handle:
+        json.dump(data, handle, indent=2)
+        handle.write("\n")
+
+
+def roofless_ids():
+    path = os.path.join(pc.ROOT, "docs", "footprint_aerial_audit", "roofless_review.json")
+    return {str(f["id"]) for f in load_json(path)["flagged"]} if os.path.exists(path) else set()
+
+
 def main(argv):
+    if "--faces" in argv:
+        overrides, rows = face_overrides(exclude=roofless_ids())
+        write_face_overrides(overrides)
+        for row in rows:
+            print(f"  {row['route']} {row['name'] or ''} sta {row['sta'][0]:.0f}-{row['sta'][1]:.0f}: "
+                  f"{row['from_m']:.2f} -> {row['to_m']:.2f} m ({row['width_source']}, face {row['nearest_face_m']} m"
+                  + (", lane floor" if row["at_floor"] else "") + ")")
+        print(f"{len(overrides)} building-face overrides written to {OVERRIDES_PATH}")
     alignments = load_json(ALIGNMENTS_PATH)
     doc = build(alignments=alignments)
     with open(OUT_PATH, "w") as handle:

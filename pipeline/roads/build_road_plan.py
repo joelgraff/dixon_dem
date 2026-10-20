@@ -1773,6 +1773,9 @@ def main():
         print(f"  {source} buildings on carriageway {row['carriageway']['count']} "
               f"({row['carriageway']['area_m2']} m2), on walk/parkway {row['roadside']['count']} "
               f"({row['roadside']['area_m2']} m2)")
+    y = layout_report["building_yield"]
+    print(f"  pavement gave way to buildings: {len(y['service'])} on drives ({y['service_cut_m2']} m2 cut), "
+          f"{len(y['curb_trims'])} curb trims ({y['curb_trim_m2']} m2), {len(y['left_for_review'])} left for review")
     print("Meshing shared asphalt/curb/parkway/sidewalk/parking surfaces...")
     transport_layout.emit_layout(layout, hm, mb_by_mat, transport_layout.older_curb_region(plans))
 

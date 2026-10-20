@@ -142,12 +142,18 @@ def grade_profile(points, surface, sample=SAMPLE_M, chord=CHORD_M):
 
 
 def cross_slopes(points, half_width, surface, step=CROSS_STATION_M, inset=CROSS_EDGE_INSET_M):
-    """Slopes from the centreline toward each pavement edge (positive drains outward), every `step`."""
+    """Slopes from the centreline toward each pavement edge (positive drains outward), every `step`.
+    `half_width` is one width, or one per point (a design way's template `hw`, which narrows and
+    tapers along the way), interpolated to the stations."""
     s_v = stations(points)
-    offset = half_width - inset
-    if s_v[-1] < 2 * step or offset < 0.5:
+    if s_v[-1] < 2 * step:
         return np.empty(0)
     ds = np.arange(step, s_v[-1] - step + 1e-9, step)
+    offset = (np.interp(ds, s_v, half_width) if np.ndim(half_width) else np.full(len(ds), float(half_width))) - inset
+    keep = offset >= 0.5
+    if not keep.any():
+        return np.empty(0)
+    ds, offset = ds[keep], offset[keep]
     xs, zs, t = along(points, s_v, ds)
     nx, nz = -t[:, 1], t[:, 0]
     yc = surface.sample(xs, zs)
@@ -333,7 +339,9 @@ def measure(standards=None, surface=None, ground=None, roads=None, ends=None, de
                     "ground_grade": round(float((ya - yb) / CHORD_M), 3),
                     "nearest_bridge_end_m": None if near is None else round(near, 1),
                 })
-        crosses.append(cross_slopes(pts, w["tags"].get("width_m", 6.0) / 2.0, surface))
+        hws = [v.get("hw") for v in w["vertices"]]
+        half = hws if all(h is not None for h in hws) else w["tags"].get("width_m", 6.0) / 2.0
+        crosses.append(cross_slopes(pts, half, surface))
 
     grades = np.concatenate(grades) if grades else np.empty(0)
     changes = np.concatenate(changes) if changes else np.empty(0)

@@ -274,12 +274,18 @@ if os.path.isdir(_build_dir):
         except Exception:
             continue
         ox, oz = float(ci["origin_x"]), float(ci["origin_z"])
+        # a concave building is baked as several convex parts with one id: join them
+        by_id = {}
         for c in chunk.get("collisions", []):
             hull = c.get("hull")
             if not hull or len(hull) < 3:
                 continue
             poly = poly_from_ring([{"x": p[0] + ox, "z": p[1] + oz} for p in hull])
-            if not poly or not poly.intersects(PLAY_BOX):
+            if poly:
+                by_id.setdefault(c.get("id"), []).append(poly)
+        for polys in by_id.values():
+            poly = polys[0] if len(polys) == 1 else unary_union(polys)
+            if not poly.intersects(PLAY_BOX):
                 continue
             _hull_count += 1
             is_house = (

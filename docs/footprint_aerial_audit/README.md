@@ -50,3 +50,26 @@ delete it, or retrace it if it exists in other imagery.
 server (`composer_server.py --port 8001`, started 2026-10-18 08:04) predates the regenerated
 georefs (17:47), so it still serves the old, shifted placement until it is restarted. (The
 `/game-footprints` cache reloads on its own when the source files change.)
+
+# Buildings on the street: what is left (2026-10-19)
+
+`street_overlaps.{json,png}` are written by `pipeline/buildings/encroachment.py --review` (run it
+after `rebuild_transportation.sh`). Of the 45 baked buildings that stood on the carriageway,
+12 remain; `manual_review` in the JSON lists the 9 worth a look, each with what to check:
+
+| id | where | why it is listed |
+|---|---|---|
+| 800000171 (MS) | Madison Ave, 1170,-1332 | blob over a dirt lot (and the OSM building in it): no roof |
+| 444853744 (OSM) | Madison Ave, 1156,-1287 | bare dirt lot: demolished? |
+| 800000460 (MS) | W 9th St, 1376,-413 | lawn/trees, on a paper street |
+| 800000699 (MS) | Upham Pl, 919,-2034 | mostly lawn (tree cover?) |
+| 800001874 (MS) | Harrison Ave, 516,-462 | green metal roof (real); Harrison's alignment is ~1.5 m off the pavement |
+| 800002396 (MS) | Shady Lane, 467,-2335 | real house; Shady Lane's west leg runs ~3 m south of the pavement |
+| 800001014 (MS) | parking lot, 1500,-1316 | flagged bare; a drive was cut for it |
+| 1013602982 (OSM) | 1768,-626 | flagged lawn; a drive was cut for it |
+| 800001590 (MS) | W 9th St, 1973,-581 | flagged lawn (a driveway tail); the curb was trimmed round it |
+
+Deleting a footprint that is not there brings the drive or curb back on the next rebuild. The
+other 5 rows are `hull`: concave OSM/MS buildings whose convex collision hull (not the
+footprint) reaches a drive (444853753, 554476797, 444853723, 800001402, 554473435), and one
+0.6 m2 `eave`.

@@ -178,6 +178,38 @@ class TransportLayoutTests(unittest.TestCase):
         self.assertNotIn("3", {row["id"] for rows in report["largest"].values() for row in rows})
         self.assertEqual([row["id"] for row in report["largest"]["carriageway"]], ["2"])
 
+    def _yielded(self, plan, houses):
+        ids = [(str(i), "ms") for i in range(len(houses))]
+        return layout.build_layout([plan], {}, Polygon(), unary_union(houses), EMPTY_OVERRIDES,
+                                   buildings=(houses, ids))
+
+    def test_a_service_drive_stops_at_every_footprint(self):
+        drive = SimpleNamespace(full_centerline=[(0.0, 0.0), (60.0, 0.0)], half_w=2.0, has_curb=False,
+                                downtown=False, way={"id": 7})
+        garage = box(20, -5, 30, 5)
+        surfaces, report = self._yielded(drive, [garage])
+        self.assertLess(surfaces["asphalt"].intersection(garage).area, 1e-6)
+        self.assertTrue(surfaces["asphalt"].contains(Point(10, 0)) and surfaces["asphalt"].contains(Point(40, 0)))
+        (row,) = report["building_yield"]["service"]
+        self.assertEqual((row["id"], row["ways"], row["area_m2"]), ("0", ["7"], 40.0))
+        self.assertEqual(report["building_conflicts"]["by_source"], {})
+
+    def test_a_curb_runs_round_a_shallow_front_and_a_deep_bite_is_left(self):
+        front = box(30, 4.2, 40, 15)      # 0.9 m into a 10 m street (5.12 m to the back of curb)
+        corner = box(50, 3.0, 53, 9)      # a 6 m2 corner, 2.1 m in
+        deep = box(65, 1.0, 75, 15)       # 4.1 m in: the footprint or the street is wrong
+        surfaces, report = self._yielded(SimpleNamespace(full_centerline=[(0.0, 0.0), (90.0, 0.0)], half_w=5.0,
+                                                         has_curb=True, downtown=False), [front, corner, deep])
+        yielded = report["building_yield"]
+        self.assertEqual(sorted(r["id"] for r in yielded["curb_trims"]), ["0", "1"])
+        self.assertEqual([r["id"] for r in yielded["left_for_review"]], ["2"])
+        for house in (front, corner):
+            self.assertLess(surfaces["asphalt"].intersection(house).area, 1e-6)
+            self.assertLess(surfaces["curb"].intersection(house).area, 1e-6)
+        self.assertTrue(surfaces["curb"].contains(Point(35, 4.2 - layout.CURB_WIDTH / 2)))   # at the face
+        self.assertAlmostEqual(surfaces["asphalt"].intersection(deep).area, 10 * 4.0, places=3)
+        self.assertEqual([r["id"] for r in report["building_conflicts"]["largest"]["carriageway"]], ["2"])
+
     def test_every_building_footprint_is_a_valid_obstacle(self):
         polygons, ids = roads.building_obstacles()
         self.assertEqual(len(polygons), len(ids))
