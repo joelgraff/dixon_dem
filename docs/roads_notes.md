@@ -516,8 +516,9 @@ magenta, the OSM line red, the template's curb lines green, PIs yellow dots, PC 
 - Type **R** in the side panel (0 makes the PI an angle point).
 - **Add break** (click the line where another street crosses it; it snaps to that street): the centrelines of a
   street either side of a cross street need not line up. This puts two PIs 0.5 m apart there and flags the segment
-  between them as a *break* (orange): the corridor stops at the break and starts again on the far side, with no
-  curb line joining them. Nothing moves yet. Slide the tangent on one side (it stays parallel) to offset it; a break
+  between them as a *break* (orange): the corridor's curb lines on each side are carried along their own heading
+  to the crossing street's centreline and joined there, endpoint to endpoint, along that centreline (a plain
+  perpendicular end where no street crosses). Nothing moves yet. Slide the tangent on one side (it stays parallel) to offset it; a break
   PI dragged near the cross street's centreline snaps onto it, so both ends sit on the intersecting alignment. The
   line stays one continuous alignment (the break is a short link, flagged `"break"` in `alignments.json` and
   `"breaks": [PI index, ...]` in the pin), so profiles, templates and the road builder are unchanged. Break the two
