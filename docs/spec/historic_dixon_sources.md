@@ -86,3 +86,27 @@ Research notes for building a dated, historic version of the Dixon model. Captur
 - Pre-Sanborn coverage (before ~1885) will rely on atlas plates like the 1876 Warner & Beers and township plats — coarser, but enough for roads, rail, and major landmarks.
 - Photos pair with Sanborns: a Sanborn sheet gives you the footprint and material; a contemporaneous photo gives you facade detail, signage, and street furniture the map omits.
 - Rights vary: LOC and NYPL stereographs are public domain; Illinois Digital Archives items are personal/educational use only; Genealogy Trails is contributor-sourced.
+
+## Game concept: time-travel through Dixon history
+
+Captured 2026-10-20. Idea: a mechanic that transports the player through time and relives significant moments in Dixon history, in whatever rendering style is appropriate (Sierra 2.5D, top-down, side-scroller, parser).
+
+### Candidate scenes / moments
+
+- **John Dixon settling** — founding era, pre-Sanborn; rely on township plats and atlas plates.
+- **Truesdell Bridge collapse** — May 4, 1873. Dedicated Jan 1, 1869. A world mid-crisis: NPCs fleeing, debris in the river, bridge half-gone. Forces the canon layer to express transient states, not just dates.
+- **Ronald Reagan as lifeguard on the Rock River** — his Dixon years; Reagan Childhood Home photo exists (LOC, Carol M. Highsmith, 1920–1930).
+- **Walgreens founding** — Charles Walgreen's drug store in Dixon; the family is from Dixon.
+- **Druggist murdered downtown in the 1960s** — documented local event; needs a source before canon entry.
+- Others worth researching: opera house, old mills along the Rock River, streetcars, Rock River Military Academy, Nachusa House, Assembly Park, Fuller's Cave, Lowell Park / Lowell Springs.
+
+### Development approach
+
+- Start with five or six dated scenes, not the whole timeline. Truesdell collapse, Reagan's lifeguard years, and Walgreens founding as a spine — disaster, coming-of-age, civic growth, no overlap.
+- For each scene, write canon entries for that year only: which buildings stood, which roads existed, who was alive.
+- Prototype one scene in pure text first — no rendering. Just the parser answering questions about that moment. If the text version feels alive, the mechanic is proven before visuals.
+- The from-year / to-year canon fields are already half the engine for time-slicing.
+
+### Open spec question: crisis states
+
+A crisis state might deserve its own schema field alongside dates — e.g. active / resolved / aftermath — so a renderer knows whether to show the Truesdell Bridge intact or broken. This is distinct from a simple date filter because the world is mid-event, not just set in an era.
