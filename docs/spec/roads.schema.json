@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dixon Road Entry",
+  "type": "object",
+  "required": ["id", "polyline", "classification", "confidence"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable identifier, matches alignment data and OSM way ID where available"
+    },
+    "name": {
+      "type": "string",
+      "description": "County road number, street name, or route designation"
+    },
+    "polyline": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "array",
+        "items": { "type": "number" },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "description": "Centerline vertices in world coordinates [x, z]"
+    },
+    "classification": {
+      "type": "string",
+ vegetation_notes.md"
+    },
+    "width": {
+      "type": "number",
+      "description": "Lane width in meters; default 3.5 for local"
+    },
+    "surface": {
+      "type": "string",
+      "enum": ["asphalt", "concrete", "gravel", "brick", "unknown"]
+    },
+    "intersections": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of other roads this one meets"
+    },
+    "canon_ref": {
+      "type": "string",
+      "description": "Path into the canon layer for street-name or route history"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "0 = inferred from aerial only, 1 = field-verified alignment"
+    },
+    "source": {
+      "type": "string",
+      "description": "osm, aerial, alignment_editor, manual"
+    }
+  }
+}
