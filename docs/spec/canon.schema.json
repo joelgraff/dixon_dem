@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dixon Canon Entry",
+  "type": "object",
+  "required": ["id", "subject_type", "subject_id", "title"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable canon entry ID"
+    },
+    "subject_type": {
+      "type": "string",
+      "enum": ["building", "road", "landmark", "site", "person", "event"],
+      "description": "What this history attaches to"
+    },
+    "subject_id": {
+      "type": "string",egen_boyhood_home"
+  },
+    "title": {
+      "type": "string",
+      "description": "Short label, e.g. 'Reagan Boyhood Home' or 'Galena Avenue'"
+    },
+    "summary": {
+      "type": "string",
+      "description": "One to three sentences of local history or significance"
+    },
+    "origin": {
+      "type": "string",
+      "description": "Etymology or origin of a place name, if known"
+    },
+    "dates": {
+      "type": "object",
+      "properties": {
+        "built": { "type": "string" },
+        "renamed": { "type": "string" },
+        "demolished": { "type": "string" }
+      }
+    },
+    "references": {
+      "type": "array",
+      "description": "Paths into docs/references/ for photos and source notes",
+      "items": { "type": "string" }
+    },
+    "renderer_hints": {
+      "type": "object",
+      "description": "Optional per-renderer guidance: how a Sierra game, map, or parser should use this entry",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}
