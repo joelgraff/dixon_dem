@@ -110,3 +110,30 @@ Captured 2026-10-20. Idea: a mechanic that transports the player through time an
 ### Open spec question: crisis states
 
 A crisis state might deserve its own schema field alongside dates — e.g. active / resolved / aftermath — so a renderer knows whether to show the Truesdell Bridge intact or broken. This is distinct from a simple date filter because the world is mid-event, not just set in an era.
+
+## Notable persons and events (inception through today)
+
+Captured 2026-10-20.
+
+- **Joseph Ogee** — ran the Rock River ferry before John Dixon bought it in 1830.
+- **Great migration, 1835–1839** — federal land sold at $1.25 an acre; rapid settlement of the Dixon area.
+- **John Deere** — invented the steel plow in Grand Detour, six miles northeast of Dixon, in 1837.
+- **Alexander Charters** — built Hazelwood three miles north in 1837; hosted Lincoln, Douglas, William Cullen Bryant, and General Kearny. Charles Walgreen bought the estate in 1929.
+- **Lincoln speech** — July 1856, courthouse lawn; stayed at the Nachusa House.
+- **Third courthouse cornerstone** — 1900, drew twenty thousand people.
+- **Sousa's band** — played the Opera House in 1905.
+- **Clarence Darrow** — spoke at the Opera House twice; William Jennings Bryan once.
+- **George Ham Page** — built Swissville and ran the world's largest condensed milk factory.
+- **Louella Parsons** — first Hollywood gossip columnist; graduated Dixon High in 1901.
+- **Rondi Reed** — Tony winner from Dixon.
+- **Rita Crundwell** — pulled off the largest municipal embezzlement in US history from Dixon's city treasury.
+- **Jerry Hey** — five-time Grammy winner.
+- **Isaiah Roby** — NBA player.
+- **Reagan lifeguard years** — Lowell Park, starting 1927; credited with saving 77 lives.
+- **1957 quarry drowning** — three Guernsey sisters drowned in the cement plant quarry; national news.
+- **Sterling-Dixon Interurban** — electric trolleys, 1904–1925; main terminal at First and Madison.
+- **Black Hawk War, 1832** — Fort Dixon was central command; Lincoln, Zachary Taylor, and Jefferson Davis all served there early in their careers.
+- **Joseph Smith arrest** — June 1843, McKennie's tavern; locals including John Dixon intervened; habeas corpus; discharged in Nauvoo July 1.
+- **Bloody Gulch murder, 1885** — farmhand killed a Bible salesman; gave I-88 its road name.
+- **Billy Sunday revival** — five weeks in 1905, over 150,000 attendees.
+- **1946 kidnapping** — doctor's wife taken at gunpoint, led on a trek through the countryside; national news.
