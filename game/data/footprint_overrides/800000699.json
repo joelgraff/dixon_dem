@@ -1,0 +1,28 @@
+{
+ "format": "dixon-footprint-override",
+ "id": "800000699",
+ "footprint": [
+  [
+   913.64,
+   -2040.22
+  ],
+  [
+   920.81,
+   -2041.83
+  ],
+  [
+   923.87,
+   -2028.3
+  ],
+  [
+   916.7,
+   -2026.69
+  ]
+ ],
+ "porches": [],
+ "based_on": {
+  "source": "ms",
+  "hash": "4-29a506f2"
+ },
+ "note": "Rotated 4 degrees counter-clockwise about its centroid on review 2026-10-19: the Microsoft outline was turned a few degrees clockwise from the roof; the rotation is the best fit to the roof edges in the 2025 aerial (rotation only; a free fit wandered onto shadows)."
+}

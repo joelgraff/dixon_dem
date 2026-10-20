@@ -7,7 +7,11 @@ Microsoft's ML footprints (buildings_ms.json). A correction made in Composer's
 footprint editor is game/data/footprint_overrides/<id>.json
 (`format: 'dixon-footprint-override'`): its `footprint` replaces that
 building's, and its `based_on.hash` is outline_hash() of the outline it was
-drawn over, so a source outline that has changed since is noticed.
+drawn over, so a source outline that has changed since is noticed. An override
+with `remove: true` (and no outline) takes the building out instead: a false
+detection or a demolished building. It records `at`, the outline's centroid
+when it was removed, so it is not applied to another building that has since
+taken the id.
 
 Microsoft ids are 800000000 + the record's position in ms_footprints.py's
 output, so a re-fetch can move an id to another building. An override whose
@@ -103,7 +107,9 @@ def load_overrides(directory=OVERRIDES_DIR):
             data = _read(os.path.join(directory, name))
         except (OSError, ValueError):
             continue
-        if isinstance(data, dict) and data.get("format") == "dixon-footprint-override" and len(points(data.get("footprint"))) >= 3:
+        if not isinstance(data, dict) or data.get("format") != "dixon-footprint-override":
+            continue
+        if data.get("remove") is True or len(points(data.get("footprint"))) >= 3:
             out[str(data.get("id"))] = data
     return out
 
@@ -118,6 +124,13 @@ def apply_overrides(records, overrides, warn=print):
         override = overrides.get(record["id"])
         if not override:
             out.append(record)
+            continue
+        if override.get("remove") is True:
+            at = override.get("at")
+            if at and math.dist(at, centroid(record["footprint"])) > MAX_OVERRIDE_SHIFT:
+                warn(f"footprint removal {record['id']}: the building with that id is "
+                     f"{math.dist(at, centroid(record['footprint'])):.0f} m from the one removed, so it is kept")
+                out.append(record)
             continue
         ring = points(override["footprint"])
         shift = math.dist(centroid(ring), centroid(record["footprint"]))
@@ -139,7 +152,8 @@ def override_records(records, source, overrides, warn=print):
     Composer's corrections over them, in place, by the same rules as
     apply_overrides: an overridden record gets the override's outline (a
     closed ring), `footprint_override: True`, and its porches as
-    `override_porches`. Returns `records`."""
+    `override_porches`. A removed building is taken out of `records`. Returns `records`."""
+    removed = set()
     for record in records:
         bid = str(record.get("id"))
         override = overrides.get(bid)
@@ -148,13 +162,19 @@ def override_records(records, source, overrides, warn=print):
         source_record = {"id": bid, "source": source, "footprint": points(record.get("footprint"))}
         if len(source_record["footprint"]) < 3:
             continue
-        [applied] = apply_overrides([source_record], {bid: override}, warn)
+        applied = apply_overrides([source_record], {bid: override}, warn)
+        if not applied:
+            removed.add(id(record))
+            continue
+        [applied] = applied
         if not applied.get("override"):
             continue
         ring = applied["footprint"]
         record["footprint"] = [{"x": x, "z": z} for x, z in ring + ring[:1]]
         record["footprint_override"] = True
         record["override_porches"] = applied["porches"]
+    if removed:
+        records[:] = [r for r in records if id(r) not in removed]
     return records
 
 

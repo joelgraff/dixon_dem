@@ -129,6 +129,15 @@ aerial. It writes `game/data/alignments.json` and `game/roads/_build/alignment_r
 draws one window. No game consumer reads alignments yet. Tests: `test_alignment.py`. See
 `docs/roadway_control_plan.md`, phase 1.
 
+## OSM corrections
+
+Where OSM draws a street off its pavement by more than the alignment fit's tolerance, the fix goes
+into the data every consumer reads: `pipeline/osm_corrections.json` moves nodes (in every way that
+uses them) and replaces runs of vertices between two nodes with points traced on the 2025 aerial,
+each with its note. `build_vectors.py` applies it when it writes `roads.json`; running
+`pipeline/osm_corrections.py` applies it to the `roads.json` on disk (idempotent; existing heights
+kept). Then rebuild alignments, templates and transportation. Tests: `pipeline/test_osm_corrections.py`.
+
 ## Build bounds
 
 Roads and rails are built only over the 1 m play heightmap (`VALID_BOUNDS` in

@@ -1,0 +1,14 @@
+{
+ "format": "dixon-footprint-override",
+ "id": "444853744",
+ "remove": true,
+ "at": [
+  1155.58,
+  -1286.75
+ ],
+ "based_on": {
+  "source": "osm",
+  "hash": "4-02d5ca89"
+ },
+ "note": "Removed 2026-10-19 on review: no building inside the outline; asphalt blended with gravel in a parking lot (Madison Avenue at 1156,-1287). Demolished since OSM mapped it."
+}

@@ -1,0 +1,14 @@
+{
+ "format": "dixon-footprint-override",
+ "id": "800000460",
+ "remove": true,
+ "at": [
+  1376.01,
+  -412.87
+ ],
+ "based_on": {
+  "source": "ms",
+  "hash": "4-84076334"
+ },
+ "note": "Removed 2026-10-19 on review: probably no building; the 2025 aerial shows West 9th Street running through it (1376,-413)."
+}

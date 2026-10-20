@@ -412,6 +412,12 @@ walls. This is a facade-composition bug, not a winding, normal, lighting or mate
 
 ### Footprints corrected in Composer (`footprints.py`)
 
+A footprint override with `"remove": true` (no outline) takes a building out: a false detection
+or a demolished building found on review (docs/footprint_aerial_audit/README.md). It records `at`,
+the removed outline's centroid, and is ignored with a warning if the building that now has its id
+lies more than 10 m away. `footprints.apply_overrides` and `override_records` honour it, so the
+building plan, the road layout, the templates and the audits all drop it.
+
 Composer's footprint editor saves a corrected outline as `game/data/footprint_overrides/<id>.json` (`format: dixon-footprint-override`, through `POST /game-footprint/<id>` on `composer_server.py`, or a downloaded file put there by hand). `build_building_plan.py` applies them right after loading the OSM, curated, and Microsoft outlines (`footprints.override_records`): the record keeps its id and tags and gets the corrected outline, so the exclusion index, template, ground heights, and mesh all follow it. An override whose `based_on.hash` no longer matches the source outline (`outline_hash`, the same fingerprint as Composer's `outlineHash`) is used with a warning; one lying more than 10 m from the building with its id is skipped with a warning (a Microsoft id can move on a re-fetch).
 
 Porches made with Composer's Turn into a porch come in the same file as `porches: [{kind, legs: [{a, b, depth}]}]`. `footprints.apply_override_porches` sets the template's `porch` to the first one's kind (unless `building_overrides.json` names a porch) and passes every leg as `porch_legs`; `archetypes._place_porch` builds each along its edge, its whole length, at its depth, out from the building (a leg is counter-clockwise; one that would face in is turned round). Only the house builders place porches. In the building editor, X exports the corrected outline (with `override`, `based_on`, and the traced `source_footprint`), and O sets the override aside as `<id>.json.off` and rebuilds the chunk. Tests: `test_footprints.py`, `test_porch_legs.py`.

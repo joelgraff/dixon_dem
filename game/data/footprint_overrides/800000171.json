@@ -1,0 +1,14 @@
+{
+ "format": "dixon-footprint-override",
+ "id": "800000171",
+ "remove": true,
+ "at": [
+  1169.95,
+  -1331.87
+ ],
+ "based_on": {
+  "source": "ms",
+  "hash": "22-bf7aca1d"
+ },
+ "note": "Removed 2026-10-19 on review: no building inside the outline in the 2025 aerial (a dirt lot on Madison Avenue at 1170,-1332). A real building beside it has no outline yet."
+}

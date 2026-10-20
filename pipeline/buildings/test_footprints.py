@@ -272,6 +272,29 @@ def test_server_without_imagery_says_so():
         server.server_close()
 
 
+def test_a_removal_takes_the_building_out():
+    square = [[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]]
+    records = [{"id": "1", "source": "ms", "footprint": square},
+               {"id": "2", "source": "ms", "footprint": [[x + 50, z] for x, z in square]}]
+    removal = {"format": "dixon-footprint-override", "id": "1", "remove": True, "at": [5.0, 5.0]}
+    assert [r["id"] for r in footprints.apply_overrides(records, {"1": removal})] == ["2"]
+    # the id has moved to a building far from the one removed: it is kept, with a warning
+    warned = []
+    far = {**removal, "at": [500.0, 500.0]}
+    assert [r["id"] for r in footprints.apply_overrides(records, {"1": far}, warned.append)] == ["1", "2"]
+    assert warned
+    # the building plan's own records: removed in place
+    plan = [{"id": 1, "footprint": [{"x": x, "z": z} for x, z in square]},
+            {"id": 2, "footprint": [{"x": x + 50, "z": z} for x, z in square]}]
+    footprints.override_records(plan, "ms", {"1": removal})
+    assert [r["id"] for r in plan] == [2]
+    # a removal file loads without an outline
+    with tempfile.TemporaryDirectory() as d:
+        with open(os.path.join(d, "1.json"), "w") as f:
+            json.dump(removal, f)
+        assert footprints.load_overrides(d)["1"]["remove"] is True
+
+
 if __name__ == "__main__":
     test_outline_hash_matches_composers()
     test_sources_with_curated_traces_in_place()
@@ -285,4 +308,5 @@ if __name__ == "__main__":
     test_server_without_imagery_says_so()
     test_server_saves_a_footprint_override()
     test_the_building_plan_takes_overrides_with_their_porches()
+    test_a_removal_takes_the_building_out()
     print("footprints ok")

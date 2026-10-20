@@ -1,30 +1,17 @@
 {
  "note": "Footprints whose inside is mostly open ground (lawn, or bare dirt, gravel or lot) in the 2025 aerial: review, do not delete blindly (a tree crown or a green roof scores lawn, a gravel or tan flat roof scores bare). Made by pipeline/buildings/roof_audit.py.",
  "ground_flag": 0.6,
- "outlines": 4899,
+ "outlines": 4896,
  "outside_aerial": 79,
  "flagged_by_source": {
-  "osm": 22,
-  "ms": 117
+  "ms": 115,
+  "osm": 20
  },
  "flagged_by_why": {
-  "bare": 28,
-  "lawn": 111
+  "bare": 27,
+  "lawn": 108
  },
  "flagged": [
-  {
-   "id": "444853744",
-   "source": "osm",
-   "lawn": 0.03,
-   "bare": 0.97,
-   "ground": 1.0,
-   "why": "bare",
-   "area_m2": 548.8,
-   "at": [
-    1155.6,
-    -1286.8
-   ]
-  },
   {
    "id": "800002406",
    "source": "ms",
@@ -296,19 +283,6 @@
    "at": [
     1421.0,
     -464.1
-   ]
-  },
-  {
-   "id": "444853749",
-   "source": "osm",
-   "lawn": 0.94,
-   "bare": 0.0,
-   "ground": 0.94,
-   "why": "lawn",
-   "area_m2": 841.9,
-   "at": [
-    1174.1,
-    -1304.5
    ]
   },
   {
@@ -1157,19 +1131,6 @@
    ]
   },
   {
-   "id": "800000699",
-   "source": "ms",
-   "lawn": 0.71,
-   "bare": 0.0,
-   "ground": 0.71,
-   "why": "lawn",
-   "area_m2": 101.9,
-   "at": [
-    918.8,
-    -2034.3
-   ]
-  },
-  {
    "id": "800001087",
    "source": "ms",
    "lawn": 0.4,
@@ -1235,6 +1196,19 @@
    ]
   },
   {
+   "id": "800000699",
+   "source": "ms",
+   "lawn": 0.7,
+   "bare": 0.0,
+   "ground": 0.7,
+   "why": "lawn",
+   "area_m2": 101.9,
+   "at": [
+    918.8,
+    -2034.3
+   ]
+  },
+  {
    "id": "800003796",
    "source": "ms",
    "lawn": 0.14,
@@ -1258,19 +1232,6 @@
    "at": [
     1273.3,
     -1092.5
-   ]
-  },
-  {
-   "id": "800000460",
-   "source": "ms",
-   "lawn": 0.7,
-   "bare": 0.0,
-   "ground": 0.7,
-   "why": "lawn",
-   "area_m2": 54.4,
-   "at": [
-    1376.0,
-    -412.9
    ]
   },
   {
@@ -1531,19 +1492,6 @@
    "at": [
     2223.0,
     -2417.9
-   ]
-  },
-  {
-   "id": "800000171",
-   "source": "ms",
-   "lawn": 0.47,
-   "bare": 0.18,
-   "ground": 0.65,
-   "why": "lawn",
-   "area_m2": 5408.1,
-   "at": [
-    1170.0,
-    -1331.9
    ]
   },
   {

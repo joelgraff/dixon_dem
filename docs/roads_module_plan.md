@@ -263,11 +263,15 @@ switch.
 1. **Terrain under pavement.** Keep a clearance constant (simple, as today), or cut the terrain
    mesh out under the road layer? A cut-out would remove the overlap entirely, but changes the
    terrain workstream's chunk builder.
+   ANSWER:  Ideally, terrain under pavement should be removed, but the decision to do so needs to be balanced against complexity of doing so vs complications of maintaining a clearance constant.
 2. **Driveways.** Today there are none except where OSM maps a service way. Should driveway
    aprons from the aerial, which shows them as concrete cuts across the parkway, be a module in
    4.2, or later?
+   ANSWER: Postpone driveways for now.  Preliminary work that faciliates later implementation can be done, but driveways ar enot immediate concerns.
 3. **Older curbs.** No route uses the 4 in `older` curb yet. Is there a way to tell them, by
    neighbourhood or street age, or do they stay a per-route override?
+   ANSWER: Curb heights vary.  On state routes (IL 26) or in areas where pavement has been reconstructed (Dixon Downtown / 1st Street) 6 inch curb will be present.  Elsewhere it's a mix and it's likely 4" curb dominates.
 4. **Where to work.** The working tree has been shared by several sessions rebuilding the same
    generated files. Build phase 4 on its own branch in its own worktree, and run one
    transportation rebuild at a time.
+  ANSWER: Will try to avoid more than one session at a time.  Continue in existing tree once other sessions are done.

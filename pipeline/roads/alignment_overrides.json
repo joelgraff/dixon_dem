@@ -25,6 +25,15 @@
   ],
   "templates": [
     {
+      "route": "R21838522",
+      "sta": [
+        110.0,
+        167.9
+      ],
+      "curb_to_curb_ft": 20,
+      "note": "Upham Place past house 800000699 (919,-2034): measured on the 2025 aerial by eye, 5.6-6.0 m of pavement (the survey found no edges here, so the 9.75 m class median was used and put the curb inside the house). Review 2026-10-19, #4."
+    },
+    {
       "route": "R21837872",
       "sta": [
         56.9,
@@ -48,21 +57,21 @@
       "route": "R21838522",
       "sta": [
         167.9,
-        233.1
+        233.0
       ],
       "curb_to_curb_ft": 18,
       "source": "building_faces",
-      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 176-220 (nearest face 1.7 m from the centreline); narrowed to 5.49 m (18 ft, the travel lanes at minimum width), held 11 m past the faces for the taper. templates.py --faces"
+      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 176-220 (nearest face 1.4 m from the centreline); narrowed to 5.49 m (18 ft, the travel lanes at minimum width), held 11 m past the faces for the taper. templates.py --faces"
     },
     {
       "route": "R21838771",
       "sta": [
-        31.9,
-        67.1
+        33.3,
+        62.7
       ],
-      "curb_to_curb_ft": 18,
+      "curb_to_curb_ft": 21,
       "source": "building_faces",
-      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 44-54 (nearest face 2.0 m from the centreline); narrowed to 5.49 m (18 ft, the travel lanes at minimum width), held 11 m past the faces for the taper. templates.py --faces"
+      "note": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 44-52 (nearest face 3.4 m from the centreline); narrowed to 6.40 m (21 ft), held 9 m past the faces for the taper. templates.py --faces"
     },
     {
       "route": "R21840201",

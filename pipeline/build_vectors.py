@@ -408,8 +408,13 @@ def build_roads_rails(raw_arr, raw_tf, road_arr, road_tf):
             y = sample_y(road_arr, road_tf, e, n)
             junction_nodes.append({"node_id": nid, "x": x, "y": round(float(y), 2), "z": z, "way_ids": sorted(ways)})
 
+    # hand corrections checked against the aerial (pipeline/osm_corrections.json)
+    import osm_corrections
+    roads_out = {"ways": road_ways, "junction_nodes": junction_nodes}
+    for line in osm_corrections.apply(roads_out):
+        print(f"  osm correction: {line}")
     with open(os.path.join(GAME_DATA, "roads.json"), "w") as f:
-        json.dump({"ways": road_ways, "junction_nodes": junction_nodes}, f)
+        json.dump(roads_out, f)
     with open(os.path.join(GAME_DATA, "rails.json"), "w") as f:
         json.dump({"ways": rail_ways}, f)
     with open(os.path.join(GAME_DATA, "bridges.json"), "w") as f:

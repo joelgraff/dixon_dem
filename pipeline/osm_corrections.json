@@ -1,0 +1,48 @@
+{
+ "format": "dixon-osm-corrections",
+ "version": 1,
+ "_about": "Hand corrections to OSM road geometry, each checked against the 2025 aerial; see pipeline/osm_corrections.py.",
+ "nodes": {
+  "235322066": {
+   "x": 495.64,
+   "z": -499.55,
+   "note": "Harrison Avenue's north end on West 6th Street, moved 4.3 m west along West 6th to where the gravel road's centre (traced on the 2025 aerial, straight to 0.74 m) meets it. OSM drew Harrison 3.5-4.5 m east of the gravel, along the boat yard and the green-roofed building (review 2026-10-19, #6)."
+  },
+  "235322070": {
+   "x": 515.32,
+   "z": -389.5,
+   "note": "Harrison Avenue's south end on West 7th Street, moved 3.3 m west along West 7th to the traced gravel centreline (review 2026-10-19, #6)."
+  }
+ },
+ "ways": {
+  "21838771": {
+   "between": [
+    235354154,
+    1304911559
+   ],
+   "points": [
+    [
+     489.5,
+     -2334.0
+    ],
+    [
+     488.0,
+     -2338.0
+    ],
+    [
+     484.5,
+     -2342.0
+    ],
+    [
+     479.0,
+     -2346.0
+    ],
+    [
+     472.0,
+     -2348.8
+    ]
+   ],
+   "note": "Shady Lane's bend from the junction at (489,-2332) west to (463,-2350): OSM cut straight across the inside of the curve, through the yards and over house 800002396. The points follow the paved curve's centre traced on the 2025 aerial (review 2026-10-19, #5)."
+  }
+ }
+}

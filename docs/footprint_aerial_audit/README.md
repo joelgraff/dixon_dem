@@ -51,25 +51,23 @@ server (`composer_server.py --port 8001`, started 2026-10-18 08:04) predates the
 georefs (17:47), so it still serves the old, shifted placement until it is restarted. (The
 `/game-footprints` cache reloads on its own when the source files change.)
 
-# Buildings on the street: what is left (2026-10-19)
+# Buildings on the street: reviewed and resolved (2026-10-19)
 
 `street_overlaps.{json,png}` are written by `pipeline/buildings/encroachment.py --review` (run it
-after `rebuild_transportation.sh`). Of the 45 baked buildings that stood on the carriageway,
-12 remain; `manual_review` in the JSON lists the 9 worth a look, each with what to check:
+after `rebuild_transportation.sh`). Of the 45 baked buildings that stood on the carriageway, the
+automatic fixes left 7, and a manual review of those (numbered as in the image then) resolved
+them; one 1 m2 eave remains.
 
-| id | where | why it is listed |
-|---|---|---|
-| 800000171 (MS) | Madison Ave, 1170,-1332 | blob over a dirt lot (and the OSM building in it): no roof |
-| 444853744 (OSM) | Madison Ave, 1156,-1287 | bare dirt lot: demolished? |
-| 800000460 (MS) | W 9th St, 1376,-413 | lawn/trees, on a paper street |
-| 800000699 (MS) | Upham Pl, 919,-2034 | mostly lawn (tree cover?) |
-| 800001874 (MS) | Harrison Ave, 516,-462 | green metal roof (real); Harrison's alignment is ~1.5 m off the pavement |
-| 800002396 (MS) | Shady Lane, 467,-2335 | real house; Shady Lane's west leg runs ~3 m south of the pavement |
-| 800001014 (MS) | parking lot, 1500,-1316 | flagged bare; a drive was cut for it |
-| 1013602982 (OSM) | 1768,-626 | flagged lawn; a drive was cut for it |
-| 800001590 (MS) | W 9th St, 1973,-581 | flagged lawn (a driveway tail); the curb was trimmed round it |
+| # | id | finding | fix |
+|---|---|---|---|
+| 1 | 800000171 (MS) | no building in the outline (a dirt lot on Madison Ave); the building beside it is OSM 444853749 | removed (`footprint_overrides/800000171.json`) |
+| 2 | 444853744 (OSM) | no building: asphalt and gravel in a parking lot | removed |
+| 3 | 800000460 (MS) | probably no building; West 9th Street runs through it | removed |
+| 4 | 800000699 (MS) | a real house, its outline turned a few degrees clockwise; Upham Place too wide there | outline rotated 4 deg counter-clockwise (fitted to the roof edges); Upham Place 20 ft at sta 110-168 (`alignment_overrides.json`) |
+| 5 | 800002396 (MS) | outline right; Shady Lane missed its curve (OSM cut across the inside of the bend) | the bend traced on the aerial (`pipeline/osm_corrections.json`) |
+| 6 | 800001874 (MS) | outline right; Harrison Ave 3.5-4.5 m east of its gravel road | both junction nodes moved west to the traced gravel centreline (`osm_corrections.json`) |
+| 7 | 1010774151 (OSM) | the white roof looked wider than the outline | no change: OSM maps that block as two buildings (1010774151 and 1010774150), which together cover the roof |
 
-Deleting a footprint that is not there brings the drive or curb back on the next rebuild. The
-other 5 rows are `hull`: concave OSM/MS buildings whose convex collision hull (not the
-footprint) reaches a drive (444853753, 554476797, 444853723, 800001402, 554473435), and one
-0.6 m2 `eave`.
+A removal is a footprint override with `"remove": true` and `at` (the outline's centroid), so it
+is not applied to another building that later takes the id. Deleting the override file brings the
+building back on the next rebuild.

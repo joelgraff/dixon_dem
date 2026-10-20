@@ -1,84 +1,10 @@
 {
  "note": "Baked buildings standing on the carriageway (asphalt + curb) of the transportation layout, largest first. street: the route nearest the overlap and its template there (width_source class_median/osm_default is an estimate, not a measurement). roofless: the roofless_review.json flag (lawn or bare ground inside the outline). Made by pipeline/buildings/encroachment.py --review.",
- "count": 7,
+ "count": 1,
  "by_cause": {
-  "footprint": 5,
-  "street": 1,
   "eave": 1
  },
  "manual_review": [
-  {
-   "id": "800000171",
-   "source": "ms",
-   "at": [
-    1170.0,
-    -1331.9
-   ],
-   "cause": "footprint",
-   "street": "Madison Avenue",
-   "on_carriageway_m2": 154.7,
-   "look_at": "the outline is mostly lawn in the 2025 aerial: a demolished building or a false detection? Delete it (or retrace it) if no building stands there."
-  },
-  {
-   "id": "444853744",
-   "source": "osm",
-   "at": [
-    1155.6,
-    -1286.8
-   ],
-   "cause": "footprint",
-   "street": "Madison Avenue",
-   "on_carriageway_m2": 51.4,
-   "look_at": "the outline is mostly bare in the 2025 aerial: a demolished building or a false detection? Delete it (or retrace it) if no building stands there."
-  },
-  {
-   "id": "800000460",
-   "source": "ms",
-   "at": [
-    1376.0,
-    -412.9
-   ],
-   "cause": "footprint",
-   "street": "West 9th Street",
-   "on_carriageway_m2": 46.5,
-   "look_at": "the outline is mostly lawn in the 2025 aerial: a demolished building or a false detection? Delete it (or retrace it) if no building stands there."
-  },
-  {
-   "id": "800000699",
-   "source": "ms",
-   "at": [
-    918.8,
-    -2034.3
-   ],
-   "cause": "footprint",
-   "street": "Upham Place",
-   "on_carriageway_m2": 28.6,
-   "look_at": "the outline is mostly lawn in the 2025 aerial: a demolished building or a false detection? Delete it (or retrace it) if no building stands there."
-  },
-  {
-   "id": "800002396",
-   "source": "ms",
-   "at": [
-    467.3,
-    -2334.6
-   ],
-   "cause": "street",
-   "street": "Shady Lane",
-   "on_carriageway_m2": 14.0,
-   "look_at": "a real building the street runs into: the alignment (or its width) is off the pavement here; refit the route or set its width."
-  },
-  {
-   "id": "800001874",
-   "source": "ms",
-   "at": [
-    516.1,
-    -461.7
-   ],
-   "cause": "footprint",
-   "street": "Harrison Avenue",
-   "on_carriageway_m2": 12.6,
-   "look_at": "the outline is mostly lawn in the 2025 aerial: a demolished building or a false detection? Delete it (or retrace it) if no building stands there."
-  },
   {
    "id": "800001014",
    "source": "ms",
@@ -117,197 +43,22 @@
    "on_carriageway_m2": 0.0,
    "yielded_m2": 10.4,
    "look_at": "the pavement was cut for it (the curb runs round it), but the outline is mostly lawn in the 2025 aerial. If no building stands there, delete it and the pavement comes back."
-  }
- ],
- "buildings": [
-  {
-   "id": "800000171",
-   "source": "ms",
-   "on_carriageway_m2": 154.7,
-   "footprint_on_carriageway_m2": 154.7,
-   "footprint_m2": 5408.1,
-   "at": [
-    1170.0,
-    -1331.9
-   ],
-   "overlap_at": [
-    1142.7,
-    -1284.4
-   ],
-   "roofless": {
-    "lawn": 0.47,
-    "bare": 0.18,
-    "why": "lawn"
-   },
-   "street": {
-    "route": "R21838921",
-    "name": "Madison Avenue",
-    "class": "local",
-    "sta": 1080.4,
-    "section": "residential",
-    "width_source": "class_median",
-    "curb_to_curb_m": 9.754,
-    "override": null,
-    "distance_to_centreline_m": 2.7
-   },
-   "cause": "footprint"
-  },
-  {
-   "id": "444853744",
-   "source": "osm",
-   "on_carriageway_m2": 51.4,
-   "footprint_on_carriageway_m2": 51.4,
-   "footprint_m2": 548.8,
-   "at": [
-    1155.6,
-    -1286.8
-   ],
-   "overlap_at": [
-    1144.0,
-    -1283.8
-   ],
-   "roofless": {
-    "lawn": 0.03,
-    "bare": 0.97,
-    "why": "bare"
-   },
-   "street": {
-    "route": "R21838921",
-    "name": "Madison Avenue",
-    "class": "local",
-    "sta": 1079.4,
-    "section": "residential",
-    "width_source": "class_median",
-    "curb_to_curb_m": 9.754,
-    "override": null,
-    "distance_to_centreline_m": 3.8
-   },
-   "cause": "footprint"
-  },
-  {
-   "id": "800000460",
-   "source": "ms",
-   "on_carriageway_m2": 46.5,
-   "footprint_on_carriageway_m2": 46.4,
-   "footprint_m2": 54.6,
-   "at": [
-    1376.0,
-    -412.9
-   ],
-   "overlap_at": [
-    1375.9,
-    -413.6
-   ],
-   "roofless": {
-    "lawn": 0.7,
-    "bare": 0.0,
-    "why": "lawn"
-   },
-   "street": {
-    "route": "R21833257",
-    "name": "West 9th Street",
-    "class": "local",
-    "sta": 89.8,
-    "section": "residential",
-    "width_source": "aerial",
-    "curb_to_curb_m": 8.839,
-    "override": null,
-    "distance_to_centreline_m": 1.3
-   },
-   "cause": "footprint"
   },
   {
    "id": "800000699",
    "source": "ms",
-   "on_carriageway_m2": 28.6,
-   "footprint_on_carriageway_m2": 28.6,
-   "footprint_m2": 102.0,
    "at": [
     918.8,
     -2034.3
    ],
-   "overlap_at": [
-    916.7,
-    -2030.9
-   ],
-   "roofless": {
-    "lawn": 0.71,
-    "bare": 0.0,
-    "why": "lawn"
-   },
-   "street": {
-    "route": "R21838522",
-    "name": "Upham Place",
-    "class": "local",
-    "sta": 127.2,
-    "section": "residential",
-    "width_source": "class_median",
-    "curb_to_curb_m": 9.754,
-    "override": null,
-    "distance_to_centreline_m": 3.9
-   },
-   "cause": "footprint"
-  },
-  {
-   "id": "800002396",
-   "source": "ms",
-   "on_carriageway_m2": 14.0,
-   "footprint_on_carriageway_m2": 14.0,
-   "footprint_m2": 176.4,
-   "at": [
-    467.3,
-    -2334.6
-   ],
-   "overlap_at": [
-    470.5,
-    -2342.8
-   ],
-   "roofless": null,
-   "street": {
-    "route": "R21838771",
-    "name": "Shady Lane",
-    "class": "local",
-    "sta": 51.6,
-    "section": "residential",
-    "width_source": "override",
-    "curb_to_curb_m": 5.486,
-    "override": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 44-54 (nearest face 2.0 m from the centreline); narrowed to 5.49 m (18 ft, the travel lanes at minimum width), held 11 m past the faces for the taper. templates.py --faces",
-    "distance_to_centreline_m": 2.0
-   },
-   "cause": "street"
-  },
-  {
-   "id": "800001874",
-   "source": "ms",
-   "on_carriageway_m2": 12.6,
-   "footprint_on_carriageway_m2": 12.6,
-   "footprint_m2": 329.8,
-   "at": [
-    516.1,
-    -461.7
-   ],
-   "overlap_at": [
-    508.8,
-    -464.3
-   ],
-   "roofless": {
-    "lawn": 0.91,
-    "bare": 0.01,
-    "why": "lawn"
-   },
-   "street": {
-    "route": "R21833240",
-    "name": "Harrison Avenue",
-    "class": "local",
-    "sta": 74.8,
-    "section": "residential",
-    "width_source": "aerial",
-    "curb_to_curb_m": 6.096,
-    "override": null,
-    "distance_to_centreline_m": 2.8
-   },
-   "cause": "footprint"
-  },
+   "cause": "yielded",
+   "street": null,
+   "on_carriageway_m2": 0.0,
+   "yielded_m2": 3.3,
+   "look_at": "the pavement was cut for it (the curb runs round it), but the outline is mostly lawn in the 2025 aerial. If no building stands there, delete it and the pavement comes back."
+  }
+ ],
+ "buildings": [
   {
    "id": "1010774151",
    "source": "osm",
@@ -319,20 +70,20 @@
     -1449.6
    ],
    "overlap_at": [
-    1435.3,
-    -1455.6
+    1435.1,
+    -1455.8
    ],
    "roofless": null,
    "street": {
     "route": "R21840201",
     "name": "West River Street",
     "class": "local",
-    "sta": 106.3,
+    "sta": 106.1,
     "section": "residential",
     "width_source": "override",
     "curb_to_curb_m": 7.01,
     "override": "Building faces: the 9.75 m class_median width put the curb into the buildings at sta 100-106 (nearest face 3.7 m from the centreline); narrowed to 7.01 m (23 ft), held 7 m past the faces for the taper. templates.py --faces",
-    "distance_to_centreline_m": 4.1
+    "distance_to_centreline_m": 3.9
    },
    "cause": "eave"
   }
