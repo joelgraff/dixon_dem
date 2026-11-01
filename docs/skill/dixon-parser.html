@@ -23,7 +23,7 @@ button, select { padding: 0.5rem 1rem; margin-left: 0.5rem; }
   </select>
 </div>
 <div id="output"></div>
-<input id="cmd" placeholder="type a command (look around, examine ferry, talk to ogee, go north, haul, buy land...)" autofocus>
+<input id="cmd" maxlength="40" placeholder="type a command (look around, examine ferry, talk to ogee, go north, haul, buy land...)" autofocus>
 <button onclick="handle()">Enter</button>
 <script>
 const output = document.getElementById('output');
@@ -53,7 +53,7 @@ const scenes = {
     npcs: {
       ogee: { name: "Joseph Ogee", desc: "A man in a buckskin shirt splitting firewood near the cabins. He runs the ferry and has been here longer than the town.", aliases: ["ogee", "joseph"] }
     },
-    exits: { north: "the path up to Ogee's cabins and the settlement", south: "the gravel shelf and forest", east: "the river bend and limestone bluffs", west: "the far bank across the river" },
+    exits: { north: "the path up to Ogee's cabins and the settlement", south: "the gravel shelf and forest", east: "the river bend and limestone bluffs", west: "the far bank across the river", fog: "the fog leading back to the present-day museum" },
     goals: "Arrive broke. Learn the ferry or timber options. Meet Ogee and Dixon."
   },
   farbank: {
@@ -113,16 +113,58 @@ function print(text) {
 
 function getScene() { return scenes[currentScene]; }
 
+function editDistance(a, b) {
+  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i++) {
+    let diagonal = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const above = row[j];
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, diagonal + (a[i - 1] === b[j - 1] ? 0 : 1));
+      diagonal = above;
+    }
+  }
+  return row[b.length];
+}
+
 function findObject(name) {
-  name = name.toLowerCase();
+  name = name.toLowerCase().trim().replace(/^(the|a|an)\s+/, "");
+  const matches = [];
   const s = getScene();
   for (const [key, obj] of Object.entries(s.objects)) {
-    if (key === name || (obj.aliases && obj.aliases.includes(name))) return { type: "object", key };
+    const labels = [key, ...(obj.aliases || [])];
+    matches.push({ type: "object", key, labels });
   }
   for (const [key, npc] of Object.entries(s.npcs || {})) {
-    if (key === name || (npc.aliases && npc.aliases.includes(name)) || npc.name.toLowerCase().includes(name)) return { type: "npc", key };
+    const labels = [key, npc.name.toLowerCase(), ...(npc.aliases || [])];
+    matches.push({ type: "npc", key, labels });
+  }
+  const exact = matches.filter(match => match.labels.includes(name));
+  if (exact.length === 1) return exact[0];
+  if (exact.length > 1) return { type: "ambiguous", candidates: exact.slice(0, 2) };
+
+  const scored = matches.map(match => ({
+    ...match,
+    distance: Math.min(...match.labels.map(label => editDistance(name, label)))
+  })).sort((a, b) => a.distance - b.distance);
+  const threshold = name.length >= 4 ? 1 : 0;
+  if (scored.length && scored[0].distance <= threshold) {
+    const best = scored.filter(match => match.distance === scored[0].distance);
+    if (best.length === 1) return best[0];
+    return { type: "ambiguous", candidates: best.slice(0, 2) };
+  }
+  if (name.length >= 4 && scored.length && scored[0].distance <= 2) {
+    return { type: "suggestions", candidates: scored.slice(0, 2) };
   }
   return null;
+}
+
+function describeMatchResult(found) {
+  if (found.type === "ambiguous") {
+    print(`Which do you mean: ${found.candidates.map(candidate => candidate.key).join(" or ")}?`);
+  } else {
+    print(`I don't see that exact name. Did you mean ${found.candidates.map(candidate => candidate.key).join(" or ")}?`);
+  }
 }
 
 function switchScene() {
@@ -132,9 +174,10 @@ function switchScene() {
 }
 
 function handle() {
-  const input = cmd.value.trim().toLowerCase();
+  let input = cmd.value.trim().slice(0, 40).toLowerCase();
   cmd.value = "";
   if (!input) return;
+  input = input.replace(/^(get|grab|pick up)\s+/, "take ").replace(/^(check|inspect|study)\s+/, "examine ");
   print("> " + input);
 
   const s = getScene();
@@ -161,16 +204,22 @@ function handle() {
       const exitList = Object.keys(s.exits).map(d => `<span class=\"interactive\">${d}</span>`).join(", ");
       print("Exits: " + exitList + ".");
     }
+  } else if (input.startsWith("look ") && !input.startsWith("look at ")) {
+    const direction = input.slice(5);
+    if (s.exits[direction]) print(`You look ${direction} toward ${s.exits[direction]}.`);
+    else print("You don't see anything notable in that direction.");
   } else if (input.startsWith("examine ") || input.startsWith("look at ")) {
     const target = input.replace(/^(examine |look at )/, "");
     const found = findObject(target);
-    if (found && found.type === "object") print(s.objects[found.key].desc);
+    if (found && found.type !== "object" && found.type !== "npc") describeMatchResult(found);
+    else if (found && found.type === "object") print(s.objects[found.key].desc);
     else if (found && found.type === "npc") print(s.npcs[found.key].desc);
     else print("You don't see that here.");
   } else if (input.startsWith("talk to ")) {
     const target = input.slice(8);
     const found = findObject(target);
-    if (found && found.type === "npc") {
+    if (found && found.type !== "object" && found.type !== "npc") describeMatchResult(found);
+    else if (found && found.type === "npc") {
       if (found.key === "ogee") print('Ogee sets down the axe. "Name\'s Ogee. Joseph Ogee. This is my place. You looking to settle, or just passing through?"');
       else if (found.key === "dixon") print('Dixon steps forward as you tie off. "John Dixon." His handshake is firm. "Ogee send you?"');
       else if (found.key === "clerk") print('The clerk looks up from the ledger. "Forty acres near the river go fast. Dollar twenty-five an acre from the government. Ridge line west is thicker timber if you take it as-is."');
@@ -201,6 +250,12 @@ function handle() {
       output.textContent = "";
       print("You step outside and follow the path to the river. Dense fog rolls in. Your phone dims. A grizzled voice cuts through: “You lookin’ for work?”");
       print("You are at the 1830 ferry landing. Type 'look around'.");
+    } else if (currentScene === "ferry" && (dir === "fog" || dir === "back" || dir === "return")) {
+      currentScene = "museum";
+      sceneSelect.value = "museum";
+      output.textContent = "";
+      print("The fog thickens again. You step through and find yourself back on the present-day path. The museum is a short walk away.");
+      print("You are at the museum. Type 'look around' to see what changed.");
     } else if (s.exits[dir]) {
       if (currentScene === "ferry" && dir === "west") {
         currentScene = "farbank";
@@ -226,12 +281,6 @@ function handle() {
         output.textContent = "";
         print("You head back down the path to the dock.");
         print(`You are at ${scenes.ferry.location}.`);
-      } else if (currentScene === "ferry" && (dir === "fog" || dir === "back" || dir === "return")) {
-        currentScene = "museum";
-        sceneSelect.value = "museum";
-        output.textContent = "";
-        print("The fog thickens again. You step through and find yourself back on the present-day path. The museum is a short walk away.");
-        print("You are at the museum. Type 'look around' to see what changed.");
       } else {
         print(`You go ${dir} toward ${s.exits[dir]}. (Further scene transitions not yet implemented.)`);
       }
@@ -264,7 +313,9 @@ function handle() {
     } else if (!hasAxe) print("You need an axe for timber work. Check the cabins.");
     else print("No timber work here.");
   } else if (input.includes("buy land") || input.includes("buy plot") || input.includes("purchase land")) {
-    if (money >= 42 && !hasLand) {
+    if (currentScene !== "farbank") {
+      print("The land office is across the river, at Dixon's trading post.");
+    } else if (money >= 42 && !hasLand) {
       money -= 42;
       hasLand = true;
       print("You count out forty-two dollars. The clerk stamps the paper. The ridge-line timber plot is yours. Get it surveyed before you build.");
@@ -291,6 +342,7 @@ function handle() {
 
 print("Dixon Parser — Present-day museum. Type 'look around' to begin. Leave toward the river to enter the fog.");
 print("Earn money in 1830 by hauling kegs ($20) or cutting timber with an axe ($15). Changes appear in the museum on return.");
+cmd.maxLength = 40;
 cmd.addEventListener("keydown", e => { if (e.key === "Enter") handle(); });
 </script>
 </body>

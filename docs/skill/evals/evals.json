@@ -12,9 +12,14 @@
       "assertions": ["Resolves spyglass alias to telescope", "Returns object description"]
     },
     {
-      "name": "clarify_ambiguity",
+      "name": "examine_lantern_alias",
       "input": "look at the light",
-      "assertions": ["Asks for clarification rather than guessing", "Offers candidates such as lantern"]
+      "assertions": ["Resolves the unique light alias to the lantern", "Returns the lantern description"]
+    },
+    {
+      "name": "resolve_small_typo",
+      "input": "examine lanter",
+      "assertions": ["Resolves the unique one-character typo to the lantern", "Returns the lantern description"]
     },
     {
       "name": "design_new_card",

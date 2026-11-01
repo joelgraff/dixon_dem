@@ -23,7 +23,7 @@ Start or continue a scene. Respond to commands in the established style: short, 
 - goals (spoken status recap)
 - inventory
 
-**Current prototype scene:** Lighthouse Keeper's Cottage, 1840 Maine coast (non-Dixon, for pipeline testing). See `references/lighthouse-scene.md`.
+**Playable web demo:** Starts in the present-day museum and follows the 1830 ferry thread; `../index.html` is the GitHub Pages entry point. The lighthouse cottage remains a selectable parser test scene, documented in `references/lighthouse-scene.md`.
 
 **Dixon spine scenes** (to be expanded): 1830 Ogee ferry / Dixon arrival, 1843 Joseph Smith arrest, 1873 Truesdell collapse, etc. Load relevant historical notes from references when a scene is active.
 
@@ -45,5 +45,7 @@ When editing, propose the updated card in full and confirm before treating it as
 - `references/parser-rules.md` — full matching layers and failure categories
 - `references/design-principles.md` — forks, dossiers, bloodlines, load-bearing events
 - `references/dixon-spine.md` — proposed historical scene list
+- `museum-gauge.md` — present-day start, return, and visible historical changes
+- `story-spine.md` — intended scene sequence and player role
 
 Load the relevant reference when entering a mode or starting a specific scene.
