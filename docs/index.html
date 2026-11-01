@@ -2,119 +2,334 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dixon Parser</title>
 <style>
-body { font-family: monospace; background: #1a1a1a; color: #e0e0e0; margin: 2rem; }
-#output { white-space: pre-wrap; min-height: 20rem; border: 1px solid #444; padding: 1rem; margin-bottom: 1rem; }
+body { font-family: Georgia, "Times New Roman", serif; background: #16181a; color: #d8d4c8; margin: 0; }
+main { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+h1 { font-weight: normal; letter-spacing: 0.15em; font-size: 1.1rem; color: #8a867a; text-transform: uppercase; }
+#output { height: 62vh; overflow-y: auto; padding: 0.5rem 1rem; border-top: 1px solid #333; border-bottom: 1px solid #333; line-height: 1.55; font-size: 1.05rem; }
+#output p { margin: 0 0 0.9rem; }
+#output p.echo { color: #8a867a; font-family: monospace; margin-bottom: 0.4rem; }
+#output p.heading { color: #8a867a; font-variant: small-caps; letter-spacing: 0.1em; margin-top: 1.6rem; }
 .interactive { color: #7ec8e3; }
-input { width: 70%; background: #222; color: #e0e0e0; border: 1px solid #444; padding: 0.5rem; }
-button, select { padding: 0.5rem 1rem; margin-left: 0.5rem; }
+#bar { display: flex; gap: 0.5rem; margin-top: 1rem; }
+#cmd { flex: 1; background: #202325; color: #e8e4d8; border: 1px solid #444; padding: 0.6rem; font-family: monospace; font-size: 1rem; }
+button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0.6rem 1rem; font-family: monospace; cursor: pointer; }
 </style>
 </head>
 <body>
-<h1>Dixon Parser</h1>
-<div>
-  Scene: <select id="sceneSelect" onchange="switchScene()">
-  <option value="museum">Present-day Museum (gauge)</option>
-    <option value="ferry">1830 Ogee Ferry (east bank)</option>
-    <option value="farbank">1830 Far Bank (Dixon)</option>
-    <option value="cabins">1830 Ogee's Cabins</option>
-    <option value="lighthouse">1840 Lighthouse Cottage</option>
-  </select>
+<main>
+<h1>Dixon</h1>
+<div id="output" aria-live="polite"></div>
+<div id="bar">
+  <input id="cmd" maxlength="40" autocomplete="off" spellcheck="false" placeholder="what do you do?" autofocus>
+  <button id="enter">Enter</button>
 </div>
-<div id="output"></div>
-<input id="cmd" maxlength="40" placeholder="type a command (look around, examine ferry, talk to ogee, go north, haul, buy land...)" autofocus>
-<button onclick="handle()">Enter</button>
+</main>
 <script>
 const output = document.getElementById('output');
 const cmd = document.getElementById('cmd');
-const sceneSelect = document.getElementById('sceneSelect');
 
-const scenes = {
-  museum: {
-    location: "the Lee County Historical Society museum, present day",
-    sensory: ["fluorescent lights hum over glass cases and framed photos", "the air smells of old paper and floor wax", "one pedestal stands empty with a faded outline", "a window shows a glimpse of the river"],
-    objects: {
-      exhibit: { desc: "The founding exhibit panel. It currently reads in generic terms about John Dixon and the early ferry.", aliases: ["panel", "founding", "display"] },
-      pedestal: { desc: "An empty pedestal. A small card says 'Exhibit temporarily removed for conservation.'", aliases: ["empty", "stand"] }
-    },
-    npcs: {},
-    exits: { outside: "the street and the path toward the riverbank" },
-    goals: "Note the generic exhibit and empty pedestal. Leave toward the river."
-  },
-  ferry: {
-    location: "the ferry landing on the east bank of the Rock River, 1830",
-    sensory: ["the water moves slow and brown beneath a wooden dock. The flatboat looks ready to cross", "a man in a buckskin shirt is nearby if you want to talk", "a dirt path climbs north toward cabins where you might find tools"],
-    objects: {
-      ferry: { desc: "Joseph Ogee's flatboat, rope and pole, sound and ready. He runs it across the Rock River.", aliases: ["boat", "flatboat"] },
-      dock: { desc: "A rough wooden dock of planks and posts, half-submerged at the edges.", aliases: ["landing", "wharf"] },
-      canoe: { desc: "An old dugout canoe, cracked along the seam and half-buried in gravel south of the dock. No paddle.", aliases: ["dugout"] }
-    },
-    npcs: {
-      ogee: { name: "Joseph Ogee", desc: "A man in a buckskin shirt splitting firewood near the cabins. He runs the ferry and has been here longer than the town.", aliases: ["ogee", "joseph"] }
-    },
-    exits: { north: "the path up to Ogee's cabins and the settlement", south: "the gravel shelf and forest", east: "the river bend and limestone bluffs", west: "the far bank across the river", fog: "the fog leading back to the present-day museum" },
-    goals: "Arrive broke. Learn the ferry or timber options. Meet Ogee and Dixon."
-  },
-  farbank: {
-    location: "the far bank of the Rock River, near Dixon's trading post, 1830",
-    sensory: ["the flatboat rocks against the opposite dock. A tall man in a dark coat watches from the path", "barrels and pelts are visible through the open door of a rough post building. Someone inside handles land papers", "a nervous young man with a rifle sits near the door"],
-    objects: {
-      post: { desc: "Dixon's trading post — a single-room building of logs and plank, shelves of goods and a ledger on the counter.", aliases: ["trading post", "store", "post"] },
-      dock: { desc: "The west-bank dock, smaller than Ogee's, with a hitching post nearby.", aliases: ["landing"] }
-    },
-    npcs: {
-      dixon: { name: "John Dixon", desc: "A tall man in a dark coat. Quiet trader who does fair business with the Sauk and Fox. He set up here a few years back.", aliases: ["dixon", "john"] },
-      clerk: { name: "the land office clerk", desc: "A thin man behind a counter inside a side room of the post, a large map on the wall and a ledger open. He handles government land sales at a dollar twenty-five an acre.", aliases: ["clerk", "land clerk", "office"] },
-      settler: { name: "a young settler", desc: "A nervous young man in patched homespun, leaning near the door with an old percussion rifle across his knees. He glances at the river often.", aliases: ["settler", "boy", "young man", "eli"] }
-    },
-    exits: { east: "back across the river to Ogee's ferry landing", north: "the path toward the settlement and land office" },
-    goals: "Meet John Dixon. Deliver goods or learn about the land."
-  },
-  cabins: {
-    location: "Ogee's cabins in the clearing north of the ferry, 1830",
-    sensory: ["smoke rises from the middle cabin. An axe leans against a chopping block — useful for timber work", "the path back to the river is visible to the south"],
-    objects: {
-      cabin: { desc: "The middle cabin. A loft with a straw mattress and a chest. Blankets inside.", aliases: ["middle cabin", "loft"] },
-      axe: { desc: "A worn axe leaning against the wall. Good for splitting or timber work.", aliases: ["hatchet"] }
-    },
-    npcs: {
-      ogee: { name: "Joseph Ogee", desc: "Ogee is here when he's not at the dock. He can point you toward timber work.", aliases: ["ogee", "joseph"] }
-    },
-    exits: { south: "back down the path to the ferry landing" },
-    goals: "Rest, take the axe, or ask about timber work."
-  },
-  lighthouse: {
-    location: "lighthouse keeper's cottage, rocky Maine coast, 1840",
-    sensory: ["salt-crusted window glass", "the lantern's wick hissing in its housing", "a smell of lamp oil and wet wool"],
-    objects: {
-      lantern: { desc: "A storm lantern sits on its shelf, wick hissing.", aliases: ["lamp", "flame", "light"] },
-      logbook: { desc: "The keeper's logbook lies open on the desk. The last entry ends mid-sentence: \"the light went out at midnight and I heard—\"", aliases: ["journal", "diary", "book"] },
-      telescope: { desc: "A brass telescope stands by the door.", aliases: ["spyglass", "glass"] }
-    },
-    npcs: {},
-    exits: { west: "the rocky path down to the dock", north: "the spiral stair up to the lantern room" },
-    goals: "Explore the cottage. Examine the logbook."
-  }
+const state = {
+  scene: "museum",
+  money: 0,
+  hasLand: false,
+  hasFerry: false,
+  hasAxe: false,
+  visited1830: false,
+  returned: false,
+  turnsHere: 0,
+  volunteerSpoke: false
 };
 
-let currentScene = "museum";
-let inventory = [];
-let money = 0;
-let hasLand = false;
-let hasFerry = false;
-let hasAxe = false;
-let visited1830 = false;
+const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const fmt = t => esc(t).replace(/\[([^\]]+)\]/g, '<span class="interactive">$1</span>').replace(/\n/g, "<br>");
 
-function print(text) {
-  output.innerHTML += text.replace(/\n/g, "<br>") + "<br><br>";
+function print(text, cls) {
+  output.innerHTML += `<p${cls ? ` class="${cls}"` : ""}>${fmt(text)}</p>`;
   output.scrollTop = output.scrollHeight;
 }
 
-function getScene() { return scenes[currentScene]; }
+function phoneText() {
+  const fog = state.scene === "riverbank" ? state.turnsHere : 0;
+  if (state.scene === "ferry" || state.scene === "farbank" || state.scene === "cabins") {
+    return "The screen is black. When you hold the button it lights for a moment — no bars, no clock, only a thin line where the battery should be — then it goes dark again.";
+  }
+  if (fog >= 4) return "The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.";
+  if (fog >= 2) return "The signal is down to one bar and flickering. The mist has beaded on the glass.";
+  return "Battery at 61 percent, full signal. Nothing new.";
+}
+
+const scenes = {
+  museum: {
+    name: "Lee County Historical Society",
+    look: () => {
+      let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit.\n\n";
+      text += state.returned
+        ? "A [volunteer] in a cardigan has taken the [desk] by the entrance, a [guestbook] open in front of her. "
+        : "A [desk] near the entrance holds a [guestbook] and a cold cup of coffee, but nobody sits behind it. ";
+      text += "Late light comes through the [window] the color of weak tea, and the glass door to the street has been propped open.";
+      return text;
+    },
+    listen: "The lights hum. Somewhere in the back a clock ticks a little behind the others.",
+    objects: {
+      exhibit: {
+        aliases: ["panel", "founding", "display", "wall"],
+        desc: () => {
+          if (!state.visited1830) return "A wall panel and a small case, titled THE FOUNDING OF DIXON. “John Dixon established a ferry and trading post on the Rock River in the early 1830s. The settlement that grew around it took his name.” The paragraph ends a line short, as though a sentence was left out.";
+          if (state.hasLand && state.hasFerry) return "The panel has changed. A land-patent card is pinned beside it, and a new line notes that the ferry passed to a newcomer in 1830. The case now holds a small object where there was only felt before.";
+          if (state.hasLand) return "The panel is the same, but a new land-patent card has been pinned beside it. It describes a sixty-acre ridge timber plot, claimant unknown.";
+          if (state.hasFerry) return "The panel is the same, but a new line has been added: the ferry changed hands in 1830, to a newcomer whose name was not recorded.";
+          return "The panel reads exactly as it did. If anything changed, it isn't here.";
+        }
+      },
+      cases: {
+        aliases: ["case", "glass", "glass cases", "display case"],
+        desc: "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. One case at the end is empty and has been dusted."
+      },
+      photos: {
+        aliases: ["photo", "photographs", "pictures", "frames", "wall of photos"],
+        desc: () => {
+          let text = "Mostly the twentieth century: a parade on Galena Avenue, the theatre marquee lit at night, a flooded riverbank with men in rowboats. Two frames at the end of the row hold only sun-bleached mats.";
+          if (state.returned && state.hasFerry) text += " One of those frames is no longer empty. A faded print shows a flatboat and a figure at its pole. The label says: Ferry operator, 1830s, name unknown.";
+          else if (state.returned && state.hasLand) text += " One of those frames is no longer empty. A survey plat of a ridge lot, labeled Unknown claimant.";
+          return text;
+        }
+      },
+      pedestal: {
+        aliases: ["empty", "stand", "plinth"],
+        desc: () => {
+          if (state.returned && state.hasLand && state.hasFerry) return "On the velvet where there was only a faded ring, a corroded iron pole-shoe from a river flatboat. The card says: Donor unknown.";
+          return "A waist-high pedestal with a ring pressed into its velvet, as if something heavy and round sat here for decades. The card says: Exhibit temporarily removed for conservation.";
+        }
+      },
+      desk: {
+        aliases: ["volunteer desk", "table", "chair"],
+        desc: () => state.returned
+          ? "A tidy desk now. A lanyard, a roll of mints, and a hand-lettered sign: ASK ABOUT THE LATEST LABELS."
+          : "An empty chair and a cold cup of coffee with a lipstick ring on the lid. The volunteer is evidently somewhere else."
+      },
+      guestbook: {
+        aliases: ["book", "register", "guest book", "log"],
+        desc: () => state.visited1830
+          ? "The newest entries are in a hurried hand. Someone has written “the river is not where it was,” then crossed it out. Other visitors are from Rockford, Peoria, and Ohio."
+          : "Visitors from Rockford, Peoria, and Ohio. The last line, in pencil, has only a date and the words “fog again today.”"
+      },
+      window: {
+        aliases: ["view", "pane"],
+        desc: "Past the lot and a row of rooftops, the river is a pewter strip. A low mist lies on it, though the afternoon is warm and nothing else out there is hazy."
+      }
+    },
+    npcs: {
+      volunteer: {
+        name: "the volunteer",
+        aliases: ["docent", "woman", "lady"],
+        visible: () => state.returned,
+        desc: "A woman in a cardigan, sixty or so, with reading glasses pushed up into her hair. She is looking at the exhibit panel with her head tilted, the way you look at a picture hung slightly crooked.",
+        talk: () => {
+          state.volunteerSpoke = true;
+          return "“Oh, hello. You were in earlier, weren't you?” She frowns at the wall. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She laughs, not quite convincingly. “Well. Take your time.”";
+        }
+      }
+    },
+    exits: [
+      { names: ["outside", "out", "door", "street", "leave"], to: "street", text: "You step through the propped door. The humming stops as though a hand had been lifted off it." }
+    ]
+  },
+
+  street: {
+    name: "The street outside",
+    look: () => "The sidewalk is warm and nearly empty. A pickup idles at the corner, and further along a tire shop's sign flickers on. The [museum] door stands behind you. Downhill, between the buildings, a strip of the river shows silver, and there is a [path] there where the pavement turns to riverside walk.",
+    listen: "A truck downshifts somewhere. Under it, very faintly, the sound of moving water.",
+    objects: {
+      sign: {
+        aliases: ["tire shop", "shop"],
+        desc: "A tire shop sign, half its letters lit. It has been flickering that way a long time."
+      },
+      pickup: {
+        aliases: ["truck"],
+        desc: "A dusty pickup with an Illinois plate and a bumper sticker for a high school booster club. Nobody is in it."
+      }
+    },
+    npcs: {},
+    exits: [
+      { names: ["museum", "door", "back", "inside", "in"], to: "museum", text: "You step back into the cool, bright room." },
+      { names: ["path", "river", "downhill", "riverfront", "walk"], to: "riverpath", text: "You follow the pavement down to where it gives out into the riverside walk." }
+    ]
+  },
+
+  riverpath: {
+    name: "Riverside walk",
+    look: () => "A paved walk follows the bank above the water, with a [railing] on the river side and a [bench] facing it. Between them a green historical [marker] stands on a post. The [river] is wide and brown and slow below you, and a long raft of mist lies on the water. A [stairway] of worn concrete steps leads down to the bank. Back up the hill is the [street].",
+    listen: "Water against stone. A halyard clinking, though there are no boats.",
+    objects: {
+      marker: {
+        aliases: ["sign", "plaque", "historical marker", "post"],
+        desc: "OGEE'S FERRY. “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. The settlement that grew on this bank took its name from John Dixon, who arrived in 1830.” Beneath it, in smaller type, a line has been sanded off."
+      },
+      bench: {
+        aliases: ["seat"],
+        desc: "A slatted bench with a brass plate for someone who loved this view. The slats are damp, though it hasn't rained."
+      },
+      railing: {
+        aliases: ["rail", "fence"],
+        desc: "Painted iron, cold and a little wet. Past it the bank drops away to riprap and the water."
+      },
+      river: {
+        aliases: ["water", "rock river", "mist"],
+        desc: "Broad, brown, and slow. The mist lies in a single bank on the water as if it were being kept there. The far shore has no buildings that you can see."
+      },
+      stairway: {
+        aliases: ["stairs", "steps", "stair"],
+        desc: "Concrete steps, worn in the middle, going down to a gravel shelf by the water."
+      }
+    },
+    npcs: {},
+    exits: [
+      { names: ["street", "back", "up", "uphill"], to: "street", text: "You climb back up to the street." },
+      { names: ["stairway", "stairs", "steps", "stair", "bank", "down", "water", "river"], to: "riverbank", text: "You go down the worn steps, one hand on the cold rail.", reset: true }
+    ]
+  },
+
+  riverbank: {
+    name: "The water's edge",
+    look: () => {
+      const stage = state.turnsHere;
+      if (stage >= 6) return "The mist has swallowed everything. There is no stairway behind you that you can see, no city sound at all; only the lap of water and a dull, rhythmic knock out in the white. Something like a [voice] carries across the river. The [water] is just in front of you, and the way [back] is lost in the grey.";
+      if (stage >= 4) return "The mist is up around your knees and rising. The traffic noise from the street has gone. Out on the river, a long way off, wood knocks against wood, steady as a slow pulse.";
+      if (stage >= 2) return "The mist has thickened. The far bank is gone, and the walk above you is only a pale line. The gravel is dark with wet.";
+      return "A gravel shelf at the foot of the steps, strewn with driftwood and a sodden cigarette pack. The [water] is a few feet away, moving slowly. Mist hangs low over it, and the [stairway] you came down is behind you.";
+    },
+    listen: "Water. Nothing else, and then, for a moment, something else.",
+    onTick: () => {
+      const t = state.turnsHere;
+      if (t === 2) print("The mist off the water is thicker now. The far bank has gone altogether.");
+      if (t === 4) print("The sound of the street has dropped away. Your phone flickers in your pocket.");
+      if (t === 6) print("Out in the white, wood knocks against wood. A hoarse voice calls across the water: “You lookin' for work?”");
+    },
+    objects: {
+      water: {
+        aliases: ["river", "mist", "fog", "shelf", "gravel"],
+        desc: () => state.turnsHere >= 4
+          ? "The river looks the same and wrong at once. The current runs a little faster than it should, and the far side is just a pale wall."
+          : "Brown water slides past. The gravel at your feet is combed into little ridges, as though something has recently been dragged across it."
+      },
+      driftwood: {
+        aliases: ["wood", "cigarette pack", "pack"],
+        desc: "Silver driftwood, a plastic bottle, a pack of cigarettes soaked through. Nothing you'd want."
+      },
+      stairway: {
+        aliases: ["stairs", "steps", "stair", "back"],
+        desc: () => state.turnsHere >= 6 ? "You can't see the steps any more, only grey." : "The concrete steps you came down, going back up to the walk."
+      },
+      voice: {
+        aliases: ["knocking", "sound", "calling"],
+        visible: () => state.turnsHere >= 6,
+        desc: "A man's voice, tired and practical. It sounds as if he's asked the question a hundred times."
+      }
+    },
+    npcs: {},
+    exits: [
+      { names: ["stairway", "stairs", "steps", "stair", "back", "up", "walk"], to: "riverpath", text: "You climb the steps. The traffic sound comes back in pieces." },
+      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.turnsHere >= 6, blocked: "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it.", text: "You step forward onto the gravel, and the gravel becomes planking. The knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
+    ]
+  },
+
+  ferry: {
+    name: "Ogee's ferry landing, 1830",
+    look: () => {
+      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, rope and pole stowed along its side, and a heavy [dock] post holds a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel to the south, a cracked [canoe] lies on its side. A worn [path] climbs north toward woodsmoke; the river opens [west] to a far bank where a few buildings stand. ";
+      text += "Along the shore to the east the [fog] still clings thick to the water.";
+      return text;
+    },
+    listen: "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
+    objects: {
+      ferry: { aliases: ["boat", "flatboat"], desc: "Joseph Ogee's flatboat, rope and pole, sound and ready. It carries wagons as well as people across the Rock River." },
+      dock: { aliases: ["landing", "wharf", "post"], desc: "Rough planks and posts, half-submerged at the edges. The water has left a green line a hand above your boots." },
+      canoe: { aliases: ["dugout"], desc: "An old dugout canoe, cracked along the seam and half-buried in gravel south of the dock. No paddle." },
+      fog: { aliases: ["mist"], desc: "A low wall of mist, hanging along the east shore as though it had been left there. It is the only direction that looks like home, and the only one that sounds like traffic." }
+    },
+    npcs: {
+      ogee: {
+        name: "Joseph Ogee",
+        aliases: ["joseph", "ferryman", "man"],
+        desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town."
+      }
+    },
+    exits: [
+      { names: ["north", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
+      { names: ["west", "far bank", "across", "river"], to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
+      { names: ["south"], blocked: "The gravel shelf gives way to dense forest. There's no path that way, and no reason to push into it yet." },
+      { names: ["east"], blocked: "The bank bends away beneath limestone bluffs. Too steep to follow from here." },
+      { names: ["fog", "mist", "back", "return"], to: "riverbank", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to gravel.", onArrive: () => { state.returned = true; } }
+    ]
+  },
+
+  farbank: {
+    name: "The far bank, 1830",
+    look: () => "The ferry rocks against a smaller dock on the west bank. A rough log [post] stands above the landing, its door open on barrels and pelts. A tall man in a dark coat, [Dixon], stands on the path watching the river. Inside, a thin man behind a counter, the [clerk], has a large map on the wall and a ledger open. A young man with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [east] across the water, Ogee's landing.",
+    listen: "Rope creaking, a murmur of voices from inside the post, and farther up the bank the clatter of someone stacking wood.",
+    objects: {
+      post: { aliases: ["trading post", "store"], desc: "Dixon's trading post: a single room of logs and plank, shelves of goods, a ledger on the counter." },
+      dock: { aliases: ["landing"], desc: "The west-bank dock, smaller than Ogee's, with a hitching post nearby." }
+    },
+    npcs: {
+      dixon: { name: "John Dixon", aliases: ["john"], desc: "A tall man in a dark coat. A quiet trader who does fair business with the Sauk and Fox. He set up here a few years back." },
+      clerk: { name: "the land office clerk", aliases: ["land clerk", "office"], desc: "A thin man at a counter in a side room of the post, a large map on the wall behind him and a ledger open. He handles government land sales at a dollar twenty-five an acre." },
+      settler: { name: "a young settler", aliases: ["eli", "boy", "young man"], desc: "A nervous young man in patched homespun with an old percussion rifle across his knees. He glances at the river often." }
+    },
+    exits: [
+      { names: ["east", "back", "across", "ferry", "river"], to: "ferry", text: "You cross back. Ogee is on the dock, coiling rope." },
+      { names: ["north", "path", "settlement"], blocked: "The path north leads toward the settlement, but it's a long walk and the afternoon is going. Not today." }
+    ]
+  },
+
+  cabins: {
+    name: "Ogee's cabins, 1830",
+    look: () => {
+      let text = "Three log cabins stand in a clearing, smoke rising from the middle one. A worn [cabin] door hangs half open. ";
+      if (!state.hasAxe) text += "An [axe] leans against a chopping block beside a stack of split oak. ";
+      else text += "A chopping block stands beside a stack of split oak. ";
+      text += "The path back [south] to the river is plain from here.";
+      return text;
+    },
+    listen: "A woodpecker. Water through the trees. Wind in the cabin chinking.",
+    objects: {
+      cabin: { aliases: ["middle cabin", "loft", "door"], desc: "The middle cabin. A loft with a straw mattress and a chest at its foot. Blankets inside." },
+      axe: {
+        aliases: ["hatchet"],
+        visible: () => !state.hasAxe,
+        desc: "A worn axe leaning against the block. Good for splitting or timber work.",
+        take: () => { state.hasAxe = true; return "You take the axe. It's heavier than it looks."; }
+      }
+    },
+    npcs: {
+      ogee: { name: "Joseph Ogee", aliases: ["joseph", "man"], visible: () => false, desc: "" }
+    },
+    exits: [
+      { names: ["south", "back", "river", "ferry", "landing"], to: "ferry", text: "You head back down the path to the dock." }
+    ]
+  }
+};
+
+const npcTalk = {
+  ogee: "Ogee wipes his hands on his shirt. “Name's Ogee. Joseph Ogee. This is my place. You looking to settle, or just passing through?”",
+  dixon: "Dixon steps forward, hand out. “John Dixon.” His handshake is firm. “Ogee send you?”",
+  clerk: "The clerk looks up from the ledger. “Forty acres near the river go fast. Dollar twenty-five an acre from the government. Ridge line west is thicker timber if you take it as-is.”",
+  settler: "The young man shifts the rifle. “Dixon told me to watch for boats. Didn't say nothing about people. Name's Eli.”"
+};
+
+const VERBS = "look, examine, go, take, talk, ask, use, open, wait, listen";
+
+function scene() { return scenes[state.scene]; }
+
+function visible(entry) { return !entry.visible || entry.visible(); }
+
+function describe(entry) { return typeof entry.desc === "function" ? entry.desc() : entry.desc; }
 
 function editDistance(a, b) {
-  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  const row = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
     let diagonal = row[0];
     row[0] = i;
@@ -127,223 +342,220 @@ function editDistance(a, b) {
   return row[b.length];
 }
 
-function findObject(name) {
-  name = name.toLowerCase().trim().replace(/^(the|a|an)\s+/, "");
-  const matches = [];
-  const s = getScene();
+function candidates() {
+  const s = scene();
+  const list = [];
   for (const [key, obj] of Object.entries(s.objects)) {
-    const labels = [key, ...(obj.aliases || [])];
-    matches.push({ type: "object", key, labels });
+    if (visible(obj)) list.push({ type: "object", key, entry: obj, labels: [key, ...(obj.aliases || [])] });
   }
   for (const [key, npc] of Object.entries(s.npcs || {})) {
-    const labels = [key, npc.name.toLowerCase(), ...(npc.aliases || [])];
-    matches.push({ type: "npc", key, labels });
+    if (visible(npc)) list.push({ type: "npc", key, entry: npc, labels: [key, npc.name.toLowerCase(), ...(npc.aliases || [])] });
   }
-  const exact = matches.filter(match => match.labels.includes(name));
+  list.push({ type: "item", key: "phone", entry: { desc: phoneText }, labels: ["phone", "cell", "cellphone", "mobile"] });
+  if (state.hasAxe) list.push({ type: "item", key: "axe", entry: { desc: "A worn axe, heavier than it looks." }, labels: ["axe", "hatchet"] });
+  return list;
+}
+
+function findTarget(name) {
+  name = name.toLowerCase().trim().replace(/^(the|a|an|at|to|in)\s+/, "");
+  const matches = candidates();
+  const exact = matches.filter(m => m.labels.includes(name));
   if (exact.length === 1) return exact[0];
   if (exact.length > 1) return { type: "ambiguous", candidates: exact.slice(0, 2) };
-
-  const scored = matches.map(match => ({
-    ...match,
-    distance: Math.min(...match.labels.map(label => editDistance(name, label)))
-  })).sort((a, b) => a.distance - b.distance);
-  const threshold = name.length >= 4 ? 1 : 0;
-  if (scored.length && scored[0].distance <= threshold) {
-    const best = scored.filter(match => match.distance === scored[0].distance);
-    if (best.length === 1) return best[0];
-    return { type: "ambiguous", candidates: best.slice(0, 2) };
+  const scored = matches.map(m => ({ ...m, distance: Math.min(...m.labels.map(label => editDistance(name, label))) })).sort((a, b) => a.distance - b.distance);
+  if (name.length >= 4 && scored.length && scored[0].distance <= 1) {
+    const best = scored.filter(m => m.distance === scored[0].distance);
+    return best.length === 1 ? best[0] : { type: "ambiguous", candidates: best.slice(0, 2) };
   }
-  if (name.length >= 4 && scored.length && scored[0].distance <= 2) {
-    return { type: "suggestions", candidates: scored.slice(0, 2) };
-  }
+  if (name.length >= 4 && scored.length && scored[0].distance <= 2) return { type: "suggestions", candidates: scored.slice(0, 2) };
   return null;
 }
 
-function describeMatchResult(found) {
-  if (found.type === "ambiguous") {
-    print(`Which do you mean: ${found.candidates.map(candidate => candidate.key).join(" or ")}?`);
-  } else {
-    print(`I don't see that exact name. Did you mean ${found.candidates.map(candidate => candidate.key).join(" or ")}?`);
-  }
+function clarify(found) {
+  const names = found.candidates.map(c => c.key).join(" or ");
+  print(found.type === "ambiguous" ? `Which do you mean: ${names}?` : `I don't see that exactly. Did you mean ${names}?`);
 }
 
-function switchScene() {
-  currentScene = sceneSelect.value;
-  output.textContent = "";
-  print(`Switched to ${getScene().location}. Type 'look around' to begin.`);
+function findExit(name) {
+  name = name.toLowerCase().trim().replace(/^(the|to|toward|towards|into|through)\s+/, "");
+  return scene().exits.find(e => e.names.includes(name));
+}
+
+function look() {
+  print(scene().look());
+}
+
+function arrive(id, text, onArrive) {
+  state.scene = id;
+  state.turnsHere = 0;
+  if (onArrive) onArrive();
+  if (text) print(text);
+  print(scene().name, "heading");
+  look();
+}
+
+function move(exit) {
+  if (exit.when && !exit.when()) { print(exit.blocked || "You can't go that way."); return true; }
+  if (!exit.to) { print(exit.blocked || "You can't go that way."); return true; }
+  arrive(exit.to, exit.text, exit.onArrive);
+  return true;
+}
+
+function examine(name) {
+  const found = findTarget(name);
+  if (!found) return print("You don't see that here.");
+  if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
+  print(describe(found.entry));
+}
+
+function talk(name) {
+  const found = findTarget(name);
+  if (!found || found.type === "suggestions" || found.type === "ambiguous") {
+    if (found) return clarify(found);
+    return print("There is no one by that name here.");
+  }
+  if (found.type !== "npc") return print("It doesn't answer.");
+  const npc = found.entry;
+  if (npc.talk) return print(npc.talk());
+  print(npcTalk[found.key] || `${npc.name} looks at you but says nothing yet.`);
+}
+
+function ask(rest) {
+  const s = state.scene;
+  const topic = rest.replace(/^(.+?) about /, "").replace(/^about /, "");
+  const has = (...words) => words.some(w => topic.includes(w));
+  if (s === "ferry" || s === "cabins") {
+    if (has("price", "ferry", "buy", "boat")) return print('Ogee says, “Three hundred dollars. Boat\'s sound. Rope\'s new last spring. Work it off if you want — whiskey kegs to the settlement, twenty dollars a trip.”');
+    if (has("work", "haul", "keg", "freight", "job")) return print('Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river\'s calm. Wagon and mules in the barn.”');
+    if (has("timber", "axe", "wood")) return print('Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”');
+    if (has("dixon")) return print('Ogee says, “John Dixon. Trader. Set up across the river a few years back. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”');
+    if (has("land", "plot", "acre")) return print('Ogee says, “Land office is across the river, at Dixon\'s post. You\'ll want money.”');
+  }
+  if (s === "farbank") {
+    if (has("land", "plot", "timber", "acre")) return print('The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, sixty acres for forty dollars if you take it as-is. Land office fee is two more.”');
+    if (has("sauk", "treaty", "militia", "black hawk", "eli", "fort")) return print('Dixon is quiet a moment. “Eighteen thirty-two. Black Hawk tried to come back east. Militia built Fort Dixon right here. Lincoln was a captain. Taylor had the regulars. Davis was a lieutenant. Never saw a battle. Just the aftermath.” Eli adds that his pa died at Stillman\'s Run.');
+  }
+  if (s === "museum" && state.returned) return print("“I just do the desk on Sundays,” the volunteer says. “You'd have to ask the board.”");
+  print("There's nobody here who seems to have much to say about that.");
+}
+
+function run(input) {
+  let m;
+  if (/^(look|l)( around)?$/.test(input)) return look();
+  if ((m = input.match(/^(?:pick up|take|get|grab)\s+(.+)$/))) {
+    const found = findTarget(m[1]);
+    if (!found) return print("You don't see that here.");
+    if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
+    if (found.entry.take) return print(found.entry.take());
+    if (found.type === "item") return print("It's already with you.");
+    return print("That isn't yours to take.");
+  }
+  if ((m = input.match(/^(?:look at|examine|x|inspect|check|study|read|look in|look under)\s+(.+)$/))) return examine(m[1]);
+  if ((m = input.match(/^look\s+(.+)$/))) {
+    const exit = findExit(m[1]);
+    if (exit) return print(exit.peek || `You look ${m[1]}, but see nothing you hadn't already seen.`);
+    return examine(m[1]);
+  }
+  if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|greet)\s+(.+)$/))) return talk(m[1]);
+  if ((m = input.match(/^ask\s+(.+)$/))) return ask(m[1]);
+  if ((m = input.match(/^(?:go|walk|head|enter|move)(?: to| toward| towards| into| through)?\s+(?:the\s+)?(.+)$/))) {
+    const exit = findExit(m[1]);
+    return exit ? move(exit) : print("You can't go that way.");
+  }
+  const bare = findExit(input);
+  if (bare) return move(bare);
+  if ((m = input.match(/^open\s+(.+)$/))) {
+    const found = findTarget(m[1]);
+    if (!found) return print("You don't see that here.");
+    if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
+    return print(found.entry.open ? found.entry.open() : "It doesn't open, or there's nothing in it that you'd find.");
+  }
+  if ((m = input.match(/^use\s+(.+)$/))) {
+    const found = findTarget(m[1]);
+    if (found && found.key === "phone") return print(phoneText());
+    return print("You're not sure how to use that here.");
+  }
+  if (/^(wait|z|rest)$/.test(input)) return print("You wait. Time passes, slowly.");
+  if (/^listen$/.test(input)) return print(scene().listen || "You listen. Nothing stands out.");
+  if (/^(i|inv|inventory)$/.test(input)) {
+    const carried = ["your phone"];
+    if (state.hasAxe) carried.push("an axe");
+    print(`You are carrying ${carried.join(" and ")}.` + (state.visited1830 ? ` There is $${state.money} in your pocket.` : ""));
+    return;
+  }
+  if (/^(think|goals|recall)$/.test(input)) {
+    if (!state.visited1830) return print("You think about the empty pedestal, and the line of the panel that ends too soon.");
+    const bits = [`You have $${state.money}.`];
+    if (state.hasLand) bits.push("The ridge plot is yours.");
+    if (state.hasFerry) bits.push("The ferry is yours.");
+    if (state.hasLand && state.hasFerry) bits.push("It feels, for a moment, like the first chapter is finished.");
+    return print(bits.join(" "));
+  }
+  if (/^(haul|load kegs?|deliver)$/.test(input) || /^(haul|load keg|deliver)/.test(input)) {
+    if (state.scene === "ferry" || state.scene === "farbank") {
+      state.money += 20;
+      print("You load the kegs and pole across. Dixon counts them and marks the ledger. Twenty dollars for the trip.");
+      print(`You now have $${state.money}.`);
+    } else print("There's nothing here to haul.");
+    return;
+  }
+  if (/^(chop|cut wood|timber|cut timber)/.test(input)) {
+    if (state.hasAxe && (state.scene === "cabins" || state.scene === "ferry")) {
+      state.money += 15;
+      print("You spend the day cutting white oak. The sawmill downriver will take it. Fifteen dollars for the load.");
+      print(`You now have $${state.money}.`);
+    } else if (!state.hasAxe) print("You haven't got anything to cut it with.");
+    else print("There's no timber to cut here.");
+    return;
+  }
+  if (/^(buy|purchase) (land|plot)/.test(input)) {
+    if (state.scene !== "farbank") return print("The land office is across the river, at Dixon's trading post.");
+    if (state.hasLand) return print("You already own the ridge plot.");
+    if (state.money < 42) return print("You don't have enough money. The ridge plot is forty dollars plus a two-dollar fee.");
+    state.money -= 42;
+    state.hasLand = true;
+    print("You count out forty-two dollars. The clerk stamps the paper. The ridge-line timber plot is yours. Get it surveyed before you build.");
+    print(`You now have $${state.money}.`);
+    return;
+  }
+  if (/^(buy|purchase) (ferry|boat)/.test(input)) {
+    if (state.scene !== "ferry") return print("Ogee isn't here.");
+    if (state.hasFerry) return print("You already own the ferry.");
+    if (state.money < 300) return print("You don't have enough money. The ferry is three hundred dollars.");
+    state.money -= 300;
+    state.hasFerry = true;
+    print("You count out three hundred dollars. Ogee hands you the rope and the pole. The ferry is yours.");
+    print(`You now have $${state.money}.`);
+    return;
+  }
+  if (/^price/.test(input)) {
+    return print(state.scene === "ferry" ? 'Ogee says, “Three hundred dollars. Boat\'s sound. Rope\'s new last spring.”' : "Nothing here is for sale.");
+  }
+  print(`You can't think how to do that. (${VERBS})`);
 }
 
 function handle() {
-  let input = cmd.value.trim().slice(0, 40).toLowerCase();
+  const raw = cmd.value.trim().slice(0, 40);
   cmd.value = "";
-  if (!input) return;
-  input = input.replace(/^(get|grab|pick up)\s+/, "take ").replace(/^(check|inspect|study)\s+/, "examine ");
-  print("> " + input);
-
-  const s = getScene();
-
-  if (input.startsWith("look around") || input === "look") {
-    if (currentScene === "museum") {
-      let exhibitText = "The founding exhibit panel reads: “John Dixon established a ferry and trading post on the Rock River in the early 1830s. The settlement that grew around it took his name.”";
-      if (visited1830) {
-        if (hasLand && hasFerry) exhibitText = "The founding exhibit now includes a land-patent card and a note that the ferry passed to a newcomer in 1830. A small object sits on the previously empty pedestal.";
-        else if (hasLand) exhibitText = "The founding exhibit now includes a land-patent card for the ridge plot. The pedestal remains empty.";
-        else if (hasFerry) exhibitText = "The founding exhibit notes that the ferry changed hands in 1830. The pedestal remains empty.";
-        else exhibitText = "The founding exhibit remains generic. The pedestal is still empty.";
-      }
-      print(`You are at ${s.location}. ${s.sensory.join(". ")}.`);
-      print(exhibitText);
-      print("You see: <span class=\"interactive\">exhibit</span>, <span class=\"interactive\">pedestal</span>.");
-      print("Exits: <span class=\"interactive\">outside</span>.");
-    } else {
-      print(`You are at ${s.location}. ${s.sensory.join(". ")}.`);
-      const interactives = [];
-      for (const key of Object.keys(s.objects)) interactives.push(`<span class=\"interactive\">${key}</span>`);
-      for (const key of Object.keys(s.npcs || {})) interactives.push(`<span class=\"interactive\">${key}</span>`);
-      if (interactives.length) print("You see: " + interactives.join(", ") + ".");
-      const exitList = Object.keys(s.exits).map(d => `<span class=\"interactive\">${d}</span>`).join(", ");
-      print("Exits: " + exitList + ".");
-    }
-  } else if (input.startsWith("look ") && !input.startsWith("look at ")) {
-    const direction = input.slice(5);
-    if (s.exits[direction]) print(`You look ${direction} toward ${s.exits[direction]}.`);
-    else print("You don't see anything notable in that direction.");
-  } else if (input.startsWith("examine ") || input.startsWith("look at ")) {
-    const target = input.replace(/^(examine |look at )/, "");
-    const found = findObject(target);
-    if (found && found.type !== "object" && found.type !== "npc") describeMatchResult(found);
-    else if (found && found.type === "object") print(s.objects[found.key].desc);
-    else if (found && found.type === "npc") print(s.npcs[found.key].desc);
-    else print("You don't see that here.");
-  } else if (input.startsWith("talk to ")) {
-    const target = input.slice(8);
-    const found = findObject(target);
-    if (found && found.type !== "object" && found.type !== "npc") describeMatchResult(found);
-    else if (found && found.type === "npc") {
-      if (found.key === "ogee") print('Ogee sets down the axe. "Name\'s Ogee. Joseph Ogee. This is my place. You looking to settle, or just passing through?"');
-      else if (found.key === "dixon") print('Dixon steps forward as you tie off. "John Dixon." His handshake is firm. "Ogee send you?"');
-      else if (found.key === "clerk") print('The clerk looks up from the ledger. "Forty acres near the river go fast. Dollar twenty-five an acre from the government. Ridge line west is thicker timber if you take it as-is."');
-      else if (found.key === "settler") print('The young man shifts the rifle. "Dixon told me to watch for boats. Didn\'t say nothing about people. Name\'s Eli."');
-      else print(`${s.npcs[found.key].name} looks at you but says nothing yet.`);
-    } else print("There is no one by that name here.");
-  } else if (input.startsWith("ask ")) {
-    if (input.includes("price") || input.includes("ferry") || input.includes("buy")) {
-      if (currentScene === "ferry") print('Ogee says, "Three hundred dollars. Boat\'s sound. Rope\'s new last spring. Work it off if you want — whiskey kegs to the settlement, twenty dollars a trip."');
-      else print("Ask someone else about that.");
-    } else if (input.includes("land") || input.includes("plot") || input.includes("timber") || input.includes("acre")) {
-      print('The clerk (or Dixon) nods. "Plots near the ferry road go first. Ridge line west is thicker timber, sixty acres for forty dollars if you take it as-is. Land office fee is two more."');
-    } else if (input.includes("sauk") || input.includes("treaty") || input.includes("militia") || input.includes("black hawk") || input.includes("eli")) {
-      print('Dixon (or Eli) is quiet a moment. "Eighteen thirty-two. Black Hawk tried to come back east. Militia built Fort Dixon right here. Lincoln was a captain. Taylor had the regulars. Davis was a lieutenant. Never saw a battle. Just the aftermath." Eli adds that his pa died at Stillman\'s Run.');
-    } else if (input.includes("work") || input.includes("haul") || input.includes("keg") || input.includes("freight")) {
-      print('Ogee says, "Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river\'s calm. Wagon and mules in the barn."');
-    } else if (input.includes("dixon") && currentScene === "ferry") {
-      print('Ogee says, "John Dixon. Trader. Set up across the river a few years back. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him."');
-    } else {
-      print("They don't have much to say about that. Try asking about the ferry, land, work, or the militia.");
-    }
-  } else if (input.startsWith("go ")) {
-    const dir = input.slice(3);
-    if (currentScene === "museum" && (dir === "outside" || dir === "river" || dir === "to river")) {
-      currentScene = "ferry";
-      sceneSelect.value = "ferry";
-      visited1830 = true;
-      output.textContent = "";
-      print("You step outside and follow the path to the river. Dense fog rolls in. Your phone dims. A grizzled voice cuts through: “You lookin’ for work?”");
-      print("You are at the 1830 ferry landing. Type 'look around'.");
-    } else if (currentScene === "ferry" && (dir === "fog" || dir === "back" || dir === "return")) {
-      currentScene = "museum";
-      sceneSelect.value = "museum";
-      output.textContent = "";
-      print("The fog thickens again. You step through and find yourself back on the present-day path. The museum is a short walk away.");
-      print("You are at the museum. Type 'look around' to see what changed.");
-    } else if (s.exits[dir]) {
-      if (currentScene === "ferry" && dir === "west") {
-        currentScene = "farbank";
-        sceneSelect.value = "farbank";
-        output.textContent = "";
-        print("You pole across. The rope hums against the hull. Mid-river the current grabs, then eases. On the far bank a tall man in a dark coat watches you come in.");
-        print(`You are at ${scenes.farbank.location}. Type 'look around' or 'talk to dixon'.`);
-      } else if (currentScene === "farbank" && dir === "east") {
-        currentScene = "ferry";
-        sceneSelect.value = "ferry";
-        output.textContent = "";
-        print("You cross back. Ogee is on the dock coiling rope.");
-        print(`You are at ${scenes.ferry.location}.`);
-      } else if (currentScene === "ferry" && dir === "north") {
-        currentScene = "cabins";
-        sceneSelect.value = "cabins";
-        output.textContent = "";
-        print("You walk up the path. Three cabins sit in a clearing. Smoke comes from the middle one.");
-        print(`You are at ${scenes.cabins.location}.`);
-      } else if (currentScene === "cabins" && dir === "south") {
-        currentScene = "ferry";
-        sceneSelect.value = "ferry";
-        output.textContent = "";
-        print("You head back down the path to the dock.");
-        print(`You are at ${scenes.ferry.location}.`);
-      } else {
-        print(`You go ${dir} toward ${s.exits[dir]}. (Further scene transitions not yet implemented.)`);
-      }
-    } else print("You can't go that way.");
-  } else if (input === "goals") {
-    print("Goals: " + s.goals);
-    print(`Money: $${money}. ${hasLand ? "You own the ridge timber plot." : "No land yet."} ${hasFerry ? "You own the ferry." : ""} ${hasAxe ? "You have the axe." : ""}`);
-    if (hasLand && hasFerry) print("You have both the land and the ferry. The first chapter is complete.");
-  } else if (input === "inventory") {
-    print(inventory.length ? inventory.join(", ") : "You are carrying nothing.");
-    print(`Money: $${money}.`);
-  } else if (input.includes("take axe") || input.includes("get axe") || input.includes("pick up axe")) {
-    if (currentScene === "cabins" && !hasAxe) {
-      hasAxe = true;
-      inventory.push("axe");
-      print("You take the axe. It's heavier than it looks.");
-    } else if (hasAxe) print("You already have the axe.");
-    else print("There's no axe here.");
-  } else if (input.includes("haul") || input.includes("load keg") || input.includes("deliver")) {
-    if (currentScene === "ferry" || currentScene === "farbank") {
-      money += 20;
-      print("You load the kegs and pole across. Dixon counts them and marks the ledger. Twenty dollars for the trip.");
-      print(`You now have $${money}.`);
-    } else print("Nothing to haul here.");
-  } else if (input.includes("timber") || input.includes("cut wood") || input.includes("chop")) {
-    if (hasAxe && (currentScene === "cabins" || currentScene === "ferry")) {
-      money += 15;
-      print("You spend the day cutting white oak. The sawmill downriver will take it. Fifteen dollars for the load.");
-      print(`You now have $${money}.`);
-    } else if (!hasAxe) print("You need an axe for timber work. Check the cabins.");
-    else print("No timber work here.");
-  } else if (input.includes("buy land") || input.includes("buy plot") || input.includes("purchase land")) {
-    if (currentScene !== "farbank") {
-      print("The land office is across the river, at Dixon's trading post.");
-    } else if (money >= 42 && !hasLand) {
-      money -= 42;
-      hasLand = true;
-      print("You count out forty-two dollars. The clerk stamps the paper. The ridge-line timber plot is yours. Get it surveyed before you build.");
-      print(`You now have $${money}.`);
-    } else if (hasLand) print("You already own the ridge plot.");
-    else print("You don't have enough money. The ridge plot is forty dollars plus a two-dollar fee.");
-  } else if (input.includes("buy ferry") || input.includes("purchase ferry")) {
-    if (currentScene === "ferry") {
-      if (money >= 300 && !hasFerry) {
-        money -= 300;
-        hasFerry = true;
-        print("You count out three hundred dollars. Ogee hands you the rope and the pole. The ferry is yours.");
-        print(`You now have $${money}.`);
-      } else if (hasFerry) print("You already own the ferry.");
-      else print("You don't have enough money. The ferry is three hundred dollars. Keep hauling kegs or cutting timber.");
-    } else print("Ogee isn't here.");
-  } else if (input.includes("price")) {
-    if (currentScene === "ferry") print('Ogee says, "Three hundred dollars. Boat\'s sound. Rope\'s new last spring. Work it off if you want — whiskey kegs to the settlement, twenty dollars a trip."');
-    else print("Nothing to buy here.");
-  } else {
-    print("You don't know how to do that. Try look around, examine [object], talk to [person], ask about [topic], go [direction], haul, timber, buy land, or buy ferry.");
+  if (!raw) return;
+  print("> " + raw, "echo");
+  const before = state.scene;
+  run(raw.toLowerCase().replace(/[.!?]+$/, ""));
+  if (state.scene === before) {
+    state.turnsHere++;
+    if (scene().onTick) scene().onTick();
   }
 }
 
-print("Dixon Parser — Present-day museum. Type 'look around' to begin. Leave toward the river to enter the fog.");
-print("Earn money in 1830 by hauling kegs ($20) or cutting timber with an axe ($15). Changes appear in the museum on return.");
 cmd.maxLength = 40;
 cmd.addEventListener("keydown", e => { if (e.key === "Enter") handle(); });
+const enterButton = document.getElementById("enter");
+if (enterButton) enterButton.addEventListener("click", handle);
+
+const start = typeof location !== "undefined" && /scene=(\w+)/.exec(location.search);
+if (start && scenes[start[1]]) state.scene = start[1];
+print(scene().name, "heading");
+look();
 </script>
 </body>
 </html>
