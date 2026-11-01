@@ -16,11 +16,12 @@ button, select { padding: 0.5rem 1rem; margin-left: 0.5rem; }
   Scene: <select id="sceneSelect" onchange="switchScene()">
     <option value="ferry">1830 Ogee Ferry (east bank)</option>
     <option value="farbank">1830 Far Bank (Dixon)</option>
+    <option value="cabins">1830 Ogee's Cabins</option>
     <option value="lighthouse">1840 Lighthouse Cottage</option>
   </select>
 </div>
 <div id="output"></div>
-<input id="cmd" placeholder="type a command (look around, examine ferry, talk to ogee, go north...)" autofocus>
+<input id="cmd" placeholder="type a command (look around, examine ferry, talk to ogee, go north, haul, buy land...)" autofocus>
 <button onclick="handle()">Enter</button>
 <script>
 const output = document.getElementById('output');
@@ -57,6 +58,19 @@ const scenes = {
     exits: { east: "back across the river to Ogee's ferry landing", north: "the path toward the settlement and land office" },
     goals: "Meet John Dixon. Deliver goods or learn about the land."
   },
+  cabins: {
+    location: "Ogee's cabins in the clearing north of the ferry, 1830",
+    sensory: ["smoke rises from the middle cabin", "an axe leans against a chopping block", "the path back to the river is visible to the south"],
+    objects: {
+      cabin: { desc: "The middle cabin. A loft with a straw mattress and a chest. Blankets inside.", aliases: ["middle cabin", "loft"] },
+      axe: { desc: "A worn axe leaning against the wall. Good for splitting or timber work.", aliases: ["hatchet"] }
+    },
+    npcs: {
+      ogee: { name: "Joseph Ogee", desc: "Ogee is here when he's not at the dock. He can point you toward timber work.", aliases: ["ogee", "joseph"] }
+    },
+    exits: { south: "back down the path to the ferry landing" },
+    goals: "Rest, take the axe, or ask about timber work."
+  },
   lighthouse: {
     location: "lighthouse keeper's cottage, rocky Maine coast, 1840",
     sensory: ["salt-crusted window glass", "the lantern's wick hissing in its housing", "a smell of lamp oil and wet wool"],
@@ -76,6 +90,7 @@ let inventory = [];
 let money = 0;
 let hasLand = false;
 let hasFerry = false;
+let hasAxe = false;
 
 function print(text) {
   output.textContent += text + "\n\n";
@@ -161,22 +176,49 @@ function handle() {
         output.textContent = "";
         print("You cross back. Ogee is on the dock coiling rope.");
         print(`You are at ${scenes.ferry.location}.`);
+      } else if (currentScene === "ferry" && dir === "north") {
+        currentScene = "cabins";
+        sceneSelect.value = "cabins";
+        output.textContent = "";
+        print("You walk up the path. Three cabins sit in a clearing. Smoke comes from the middle one.");
+        print(`You are at ${scenes.cabins.location}.`);
+      } else if (currentScene === "cabins" && dir === "south") {
+        currentScene = "ferry";
+        sceneSelect.value = "ferry";
+        output.textContent = "";
+        print("You head back down the path to the dock.");
+        print(`You are at ${scenes.ferry.location}.`);
       } else {
         print(`You go ${dir} toward ${s.exits[dir]}. (Further scene transitions not yet implemented.)`);
       }
     } else print("You can't go that way.");
   } else if (input === "goals") {
     print("Goals: " + s.goals);
-    print(`Money: $${money}. ${hasLand ? "You own the ridge timber plot." : "No land yet."} ${hasFerry ? "You own the ferry." : ""}`);
+    print(`Money: $${money}. ${hasLand ? "You own the ridge timber plot." : "No land yet."} ${hasFerry ? "You own the ferry." : ""} ${hasAxe ? "You have the axe." : ""}`);
+    if (hasLand && hasFerry) print("You have both the land and the ferry. The first chapter is complete.");
   } else if (input === "inventory") {
     print(inventory.length ? inventory.join(", ") : "You are carrying nothing.");
     print(`Money: $${money}.`);
+  } else if (input.includes("take axe") || input.includes("get axe") || input.includes("pick up axe")) {
+    if (currentScene === "cabins" && !hasAxe) {
+      hasAxe = true;
+      inventory.push("axe");
+      print("You take the axe. It's heavier than it looks.");
+    } else if (hasAxe) print("You already have the axe.");
+    else print("There's no axe here.");
   } else if (input.includes("haul") || input.includes("load keg") || input.includes("deliver")) {
     if (currentScene === "ferry" || currentScene === "farbank") {
       money += 20;
       print("You load the kegs and pole across. Dixon counts them and marks the ledger. Twenty dollars for the trip.");
       print(`You now have $${money}.`);
     } else print("Nothing to haul here.");
+  } else if (input.includes("timber") || input.includes("cut wood") || input.includes("chop")) {
+    if (hasAxe && (currentScene === "cabins" || currentScene === "ferry")) {
+      money += 15;
+      print("You spend the day cutting white oak. The sawmill downriver will take it. Fifteen dollars for the load.");
+      print(`You now have $${money}.`);
+    } else if (!hasAxe) print("You need an axe for timber work. Check the cabins.");
+    else print("No timber work here.");
   } else if (input.includes("buy land") || input.includes("buy plot") || input.includes("purchase land")) {
     if (money >= 42 && !hasLand) {
       money -= 42;
@@ -193,17 +235,18 @@ function handle() {
         print("You count out three hundred dollars. Ogee hands you the rope and the pole. The ferry is yours.");
         print(`You now have $${money}.`);
       } else if (hasFerry) print("You already own the ferry.");
-      else print("You don't have enough money. The ferry is three hundred dollars. Keep hauling kegs.");
+      else print("You don't have enough money. The ferry is three hundred dollars. Keep hauling kegs or cutting timber.");
     } else print("Ogee isn't here.");
   } else if (input.includes("price")) {
     if (currentScene === "ferry") print('Ogee says, "Three hundred dollars. Boat\'s sound. Rope\'s new last spring. Work it off if you want — whiskey kegs to the settlement, twenty dollars a trip."');
     else print("Nothing to buy here.");
   } else {
-    print("You don't know how to do that. Try look around, examine [object], talk to [person], ask about [topic], or go [direction].");
+    print("You don't know how to do that. Try look around, examine [object], talk to [person], ask about [topic], go [direction], haul, timber, buy land, or buy ferry.");
   }
 }
 
 print("Dixon Parser — 1830 Ogee Ferry scene. Type 'look around' to begin. Money starts at $0.");
+print("Earn money by hauling kegs ($20) or cutting timber with an axe ($15). Buy the ridge plot ($42) or the ferry ($300).");
 cmd.addEventListener("keydown", e => { if (e.key === "Enter") handle(); });
 </script>
 </body>
