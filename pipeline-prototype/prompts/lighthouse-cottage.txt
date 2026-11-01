@@ -1,0 +1,10 @@
+Create an original, hand-crafted 1980s-era PC adventure-game background as low-resolution pixel art. Compose for a 320x200 (16:10) screen and a fixed, straight-on room view. Use chunky, intentional pixel clusters, hard pixel edges, strong silhouettes, and restrained checkerboard and cluster dithering for value transitions. Limit the image to the 16-color IBM EGA palette listed below; prioritize readable shapes over tiny detail. Use a moody night-time palette with deep blue shadows, cool grays, and small warm lantern highlights. No characters.
+
+Scene: Lighthouse keeper's cottage, rocky Maine coast, 1840; the lighthouse stands beyond the west window.
+Composition: Show the cottage interior from a fixed, straight-on adventure-game viewpoint. Place the west-facing door and brass telescope on the left, a desk with the logbook near the center, and the lantern on a wall shelf to the right. The spiral stair rises at the back-right toward the north. A salt-streaked window reveals the lighthouse beacon and a narrow strip of rocky Maine coast at night. Keep each interactive object distinct and unobstructed; leave the lower edge visually quiet for a future text interface.
+Palette (16 exact target colors): black #000000, blue #0000AA, green #00AA00, cyan #00AAAA, red #AA0000, magenta #AA00AA, brown #AA5500, light gray #AAAAAA, dark gray #555555, bright blue #5555FF, bright green #55FF55, bright cyan #55FFFF, bright red #FF5555, bright magenta #FF55FF, yellow #FFFF55, white #FFFFFF
+
+Negative prompt:
+photorealism, 3D render, modern smooth vector art, anti-aliased edges, soft focus, gradients without dithering, high-frequency noise, tiny indistinct objects, text, letters, logos, interface, frame, border, character, modern equipment, extra furniture, duplicated objects
+
+The prompt guides generation; the local processing step will resize and enforce the exact palette.

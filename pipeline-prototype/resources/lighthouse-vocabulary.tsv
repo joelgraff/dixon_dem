@@ -1,0 +1,409 @@
+D	N	amp	lantern	lamp
+D	N	antern	lantern	lantern
+D	N	bacon	lighthouse	beacon
+D	N	beacn	lighthouse	beacon
+D	N	beaco	lighthouse	beacon
+D	N	beacon	lighthouse	beacon
+D	N	beaon	lighthouse	beacon
+D	N	becon	lighthouse	beacon
+D	N	bok	logbook	book
+D	N	boo	logbook	book
+D	N	book	logbook	book
+D	N	dary	logbook	diary
+D	N	diar	logbook	diary
+D	N	diary	logbook	diary
+D	N	diay	logbook	diary
+D	N	diry	logbook	diary
+D	N	eacon	lighthouse	beacon
+D	N	elescope	telescope	telescope
+D	N	fame	lantern	flame
+D	N	flae	lantern	flame
+D	N	flam	lantern	flame
+D	N	flame	lantern	flame
+D	N	flme	lantern	flame
+D	N	gass	telescope	glass
+D	N	glas	telescope	glass
+D	N	glass	telescope	glass
+D	N	glss	telescope	glass
+D	N	iary	logbook	diary
+D	N	ight	lantern	light
+D	N	ight	lighthouse	light
+D	N	ighthouse	lighthouse	lighthouse
+D	N	jornal	logbook	journal
+D	N	jounal	logbook	journal
+D	N	joural	logbook	journal
+D	N	journa	logbook	journal
+D	N	journal	logbook	journal
+D	N	journl	logbook	journal
+D	N	jurnal	logbook	journal
+D	N	lam	lantern	lamp
+D	N	lame	lantern	flame
+D	N	lamp	lantern	lamp
+D	N	lanern	lantern	lantern
+D	N	lanten	lantern	lantern
+D	N	lanter	lantern	lantern
+D	N	lantern	lantern	lantern
+D	N	lantrn	lantern	lantern
+D	N	lap	lantern	lamp
+D	N	lass	telescope	glass
+D	N	latern	lantern	lantern
+D	N	lgbook	logbook	logbook
+D	N	lght	lantern	light
+D	N	lght	lighthouse	light
+D	N	lghthouse	lighthouse	lighthouse
+D	N	ligh	lantern	light
+D	N	ligh	lighthouse	light
+D	N	lighhouse	lighthouse	lighthouse
+D	N	light	lantern	light
+D	N	light	lighthouse	light
+D	N	lighthose	lighthouse	lighthouse
+D	N	lighthoue	lighthouse	lighthouse
+D	N	lighthous	lighthouse	lighthouse
+D	N	lighthouse	lighthouse	lighthouse
+D	N	lighthuse	lighthouse	lighthouse
+D	N	lightouse	lighthouse	lighthouse
+D	N	ligt	lantern	light
+D	N	ligt	lighthouse	light
+D	N	ligthouse	lighthouse	lighthouse
+D	N	liht	lantern	light
+D	N	liht	lighthouse	light
+D	N	lihthouse	lighthouse	lighthouse
+D	N	lmp	lantern	lamp
+D	N	lntern	lantern	lantern
+D	N	lobook	logbook	logbook
+D	N	logbok	logbook	logbook
+D	N	logboo	logbook	logbook
+D	N	logbook	logbook	logbook
+D	N	logook	logbook	logbook
+D	N	ogbook	logbook	logbook
+D	N	ook	logbook	book
+D	N	ournal	logbook	journal
+D	N	ower	lighthouse	tower
+D	N	pyglass	telescope	spyglass
+D	N	spglass	telescope	spyglass
+D	N	spygass	telescope	spyglass
+D	N	spyglas	telescope	spyglass
+D	N	spyglass	telescope	spyglass
+D	N	spyglss	telescope	spyglass
+D	N	spylass	telescope	spyglass
+D	N	syglass	telescope	spyglass
+D	N	teescope	telescope	telescope
+D	N	telecope	telescope	telescope
+D	N	telescoe	telescope	telescope
+D	N	telescop	telescope	telescope
+D	N	telescope	telescope	telescope
+D	N	telescpe	telescope	telescope
+D	N	telesope	telescope	telescope
+D	N	telscope	telescope	telescope
+D	N	tlescope	telescope	telescope
+D	N	toer	lighthouse	tower
+D	N	towe	lighthouse	tower
+D	N	tower	lighthouse	tower
+D	N	towr	lighthouse	tower
+D	N	twer	lighthouse	tower
+D	V		inventory	i
+D	V	ake	take	take
+D	V	alk	go	walk
+D	V	alk	talk	talk
+D	V	bserve	look	observe
+D	V	cat	talk	chat
+D	V	ceck	examine	check
+D	V	ceck inventory	inventory	check inventory
+D	V	cha	talk	chat
+D	V	chat	talk	chat
+D	V	chck	examine	check
+D	V	chck inventory	inventory	check inventory
+D	V	chec	examine	check
+D	V	chec inventory	inventory	check inventory
+D	V	check	examine	check
+D	V	check inentory	inventory	check inventory
+D	V	check invenory	inventory	check inventory
+D	V	check inventor	inventory	check inventory
+D	V	check inventory	inventory	check inventory
+D	V	check inventoy	inventory	check inventory
+D	V	check inventry	inventory	check inventory
+D	V	check invetory	inventory	check inventory
+D	V	check invntory	inventory	check inventory
+D	V	check iventory	inventory	check inventory
+D	V	check nventory	inventory	check inventory
+D	V	checkinventory	inventory	check inventory
+D	V	chek	examine	check
+D	V	chek inventory	inventory	check inventory
+D	V	cht	talk	chat
+D	V	cloe	close	close
+D	V	clos	close	close
+D	V	close	close	close
+D	V	clse	close	close
+D	V	cose	close	close
+D	V	ead	go	head
+D	V	ead	read	read
+D	V	eamine	examine	examine
+D	V	ear	listen	hear
+D	V	eel	touch	feel
+D	V	eruse	read	peruse
+D	V	et	take	get
+D	V	exaine	examine	examine
+D	V	examie	examine	examine
+D	V	examin	examine	examine
+D	V	examine	examine	examine
+D	V	examne	examine	examine
+D	V	exmine	examine	examine
+D	V	fee	touch	feel
+D	V	feel	touch	feel
+D	V	fel	touch	feel
+D	V	g	go	go
+D	V	gab	take	grab
+D	V	ge	take	get
+D	V	get	take	get
+D	V	go	go	go
+D	V	gra	take	grab
+D	V	grab	take	grab
+D	V	grb	take	grab
+D	V	gt	take	get
+D	V	had	go	head
+D	V	har	listen	hear
+D	V	hat	talk	chat
+D	V	hea	go	head
+D	V	hea	listen	hear
+D	V	head	go	head
+D	V	hear	listen	hear
+D	V	heck	examine	check
+D	V	heck inventory	inventory	check inventory
+D	V	hed	go	head
+D	V	her	listen	hear
+D	V	hut	close	shut
+D	V	i	inventory	i
+D	V	ick up	take	pick up
+D	V	inentory	inventory	inventory
+D	V	inpect	examine	inspect
+D	V	insect	examine	inspect
+D	V	inspct	examine	inspect
+D	V	inspec	examine	inspect
+D	V	inspect	examine	inspect
+D	V	inspet	examine	inspect
+D	V	invenory	inventory	inventory
+D	V	inventor	inventory	inventory
+D	V	inventory	inventory	inventory
+D	V	inventoy	inventory	inventory
+D	V	inventry	inventory	inventory
+D	V	invetory	inventory	inventory
+D	V	invntory	inventory	inventory
+D	V	ispect	examine	inspect
+D	V	isten	listen	listen
+D	V	iventory	inventory	inventory
+D	V	lisen	listen	listen
+D	V	liste	listen	listen
+D	V	listen	listen	listen
+D	V	listn	listen	listen
+D	V	liten	listen	listen
+D	V	lok	look	look
+D	V	lok around	look	look around
+D	V	loo	look	look
+D	V	loo around	look	look around
+D	V	look	look	look
+D	V	look aound	look	look around
+D	V	look arond	look	look around
+D	V	look aroud	look	look around
+D	V	look aroun	look	look around
+D	V	look around	look	look around
+D	V	look arund	look	look around
+D	V	look round	look	look around
+D	V	lookaround	look	look around
+D	V	lose	close	close
+D	V	lsten	listen	listen
+D	V	mell	smell	smell
+D	V	moe	go	move
+D	V	mov	go	move
+D	V	move	go	move
+D	V	mve	go	move
+D	V	niff	smell	sniff
+D	V	nlatch	open	unlatch
+D	V	nlock	open	unlock
+D	V	nspect	examine	inspect
+D	V	nventory	inventory	inventory
+D	V	o	go	go
+D	V	oberve	look	observe
+D	V	obsere	look	observe
+D	V	observ	look	observe
+D	V	observe	look	observe
+D	V	obseve	look	observe
+D	V	obsrve	look	observe
+D	V	oen	open	open
+D	V	oerate	use	operate
+D	V	ook	look	look
+D	V	ook around	look	look around
+D	V	ope	open	open
+D	V	opeate	use	operate
+D	V	open	open	open
+D	V	operae	use	operate
+D	V	operat	use	operate
+D	V	operate	use	operate
+D	V	operte	use	operate
+D	V	opn	open	open
+D	V	oprate	use	operate
+D	V	oserve	look	observe
+D	V	ouch	touch	touch
+D	V	ove	go	move
+D	V	pck up	take	pick up
+D	V	peak	talk	speak
+D	V	pen	open	open
+D	V	perate	use	operate
+D	V	perse	read	peruse
+D	V	perue	read	peruse
+D	V	perus	read	peruse
+D	V	peruse	read	peruse
+D	V	pess	push	press
+D	V	peuse	read	peruse
+D	V	pic up	take	pick up
+D	V	pick p	take	pick up
+D	V	pick u	take	pick up
+D	V	pick up	take	pick up
+D	V	pickup	take	pick up
+D	V	pik up	take	pick up
+D	V	pll	pull	pull
+D	V	pres	push	press
+D	V	press	push	press
+D	V	prss	push	press
+D	V	pruse	read	peruse
+D	V	psh	push	push
+D	V	puh	push	push
+D	V	pul	pull	pull
+D	V	pull	pull	pull
+D	V	pus	push	push
+D	V	push	push	push
+D	V	rab	take	grab
+D	V	rad	read	read
+D	V	rea	read	read
+D	V	read	read	read
+D	V	red	read	read
+D	V	ress	push	press
+D	V	se	use	use
+D	V	seak	talk	speak
+D	V	sell	smell	smell
+D	V	sht	close	shut
+D	V	shu	close	shut
+D	V	shut	close	shut
+D	V	siff	smell	sniff
+D	V	smel	smell	smell
+D	V	smell	smell	smell
+D	V	smll	smell	smell
+D	V	snff	smell	sniff
+D	V	snif	smell	sniff
+D	V	sniff	smell	sniff
+D	V	spak	talk	speak
+D	V	spea	talk	speak
+D	V	speak	talk	speak
+D	V	spek	talk	speak
+D	V	srvey	look	survey
+D	V	stdy	examine	study
+D	V	stud	examine	study
+D	V	study	examine	study
+D	V	stuy	examine	study
+D	V	sudy	examine	study
+D	V	surey	look	survey
+D	V	surve	look	survey
+D	V	survey	look	survey
+D	V	survy	look	survey
+D	V	sut	close	shut
+D	V	suvey	look	survey
+D	V	tae	take	take
+D	V	tak	take	take
+D	V	tak	talk	talk
+D	V	take	take	take
+D	V	tal	talk	talk
+D	V	talk	talk	talk
+D	V	tg	pull	tug
+D	V	tke	take	take
+D	V	tlk	talk	talk
+D	V	toch	touch	touch
+D	V	touc	touch	touch
+D	V	touch	touch	touch
+D	V	touh	touch	touch
+D	V	tu	pull	tug
+D	V	tuch	touch	touch
+D	V	tudy	examine	study
+D	V	tug	pull	tug
+D	V	ue	use	use
+D	V	ug	pull	tug
+D	V	ulatch	open	unlatch
+D	V	ull	pull	pull
+D	V	ulock	open	unlock
+D	V	unatch	open	unlatch
+D	V	unlach	open	unlatch
+D	V	unlatc	open	unlatch
+D	V	unlatch	open	unlatch
+D	V	unlath	open	unlatch
+D	V	unlck	open	unlock
+D	V	unloc	open	unlock
+D	V	unlock	open	unlock
+D	V	unlok	open	unlock
+D	V	unltch	open	unlatch
+D	V	unock	open	unlock
+D	V	urvey	look	survey
+D	V	us	use	use
+D	V	use	use	use
+D	V	ush	push	push
+D	V	wak	go	walk
+D	V	wal	go	walk
+D	V	walk	go	walk
+D	V	wlk	go	walk
+D	V	xamine	examine	examine
+META	auto_resolve_threshold	0.82
+META	clarification_floor	0.55
+META	max_input_length	40
+N	beacon	lighthouse	lighthouse_cottage
+N	book	logbook	lighthouse_cottage
+N	diary	logbook	lighthouse_cottage
+N	flame	lantern	lighthouse_cottage
+N	glass	telescope	lighthouse_cottage
+N	journal	logbook	lighthouse_cottage
+N	lamp	lantern	lighthouse_cottage
+N	lantern	lantern	lighthouse_cottage
+N	light	lantern	lighthouse_cottage
+N	light	lighthouse	lighthouse_cottage
+N	lighthouse	lighthouse	lighthouse_cottage
+N	logbook	logbook	lighthouse_cottage
+N	spyglass	telescope	lighthouse_cottage
+N	telescope	telescope	lighthouse_cottage
+N	tower	lighthouse	lighthouse_cottage
+V	chat	talk	talk
+V	check	examine	examine
+V	check inventory	inventory	inventory
+V	close	close	close
+V	examine	examine	examine
+V	feel	touch	touch
+V	get	take	take
+V	go	go	go
+V	grab	take	take
+V	head	go	go
+V	hear	listen	listen
+V	i	inventory	inventory
+V	inspect	examine	examine
+V	inventory	inventory	inventory
+V	listen	listen	listen
+V	look	look	look
+V	look around	look	look
+V	move	go	go
+V	observe	look	look
+V	open	open	open
+V	operate	use	use
+V	peruse	read	read
+V	pick up	take	take
+V	press	push	push
+V	pull	pull	pull
+V	push	push	push
+V	read	read	read
+V	shut	close	close
+V	smell	smell	smell
+V	sniff	smell	smell
+V	speak	talk	talk
+V	study	examine	examine
+V	survey	look	look
+V	take	take	take
+V	talk	talk	talk
+V	touch	touch	touch
+V	tug	pull	pull
+V	unlatch	open	open
+V	unlock	open	open
+V	use	use	use
+V	walk	go	go

@@ -1,0 +1,77 @@
+[
+  {
+    "name": "look",
+    "aliases": ["look", "look around", "survey", "observe"],
+    "handler": "look"
+  },
+  {
+    "name": "examine",
+    "aliases": ["examine", "inspect", "study", "check"],
+    "handler": "examine"
+  },
+  {
+    "name": "go",
+    "aliases": ["go", "walk", "head", "move"],
+    "handler": "go"
+  },
+  {
+    "name": "take",
+    "aliases": ["take", "get", "grab", "pick up"],
+    "handler": "take"
+  },
+  {
+    "name": "open",
+    "aliases": ["open", "unlatch", "unlock"],
+    "handler": "open"
+  },
+  {
+    "name": "talk",
+    "aliases": ["talk", "speak", "chat"],
+    "handler": "talk"
+  },
+  {
+    "name": "use",
+    "aliases": ["use", "operate"],
+    "handler": "use"
+  },
+  {
+    "name": "read",
+    "aliases": ["read", "peruse"],
+    "handler": "read"
+  },
+  {
+    "name": "listen",
+    "aliases": ["listen", "hear"],
+    "handler": "listen"
+  },
+  {
+    "name": "smell",
+    "aliases": ["smell", "sniff"],
+    "handler": "smell"
+  },
+  {
+    "name": "touch",
+    "aliases": ["touch", "feel"],
+    "handler": "touch"
+  },
+  {
+    "name": "push",
+    "aliases": ["push", "press"],
+    "handler": "push"
+  },
+  {
+    "name": "pull",
+    "aliases": ["pull", "tug"],
+    "handler": "pull"
+  },
+  {
+    "name": "close",
+    "aliases": ["close", "shut"],
+    "handler": "close"
+  },
+  {
+    "name": "inventory",
+    "aliases": ["inventory", "i", "check inventory"],
+    "handler": "inventory"
+  }
+]

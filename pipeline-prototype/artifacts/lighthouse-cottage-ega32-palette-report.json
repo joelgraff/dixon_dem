@@ -1,0 +1,204 @@
+{
+  "source": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/images/cabin-a.png",
+  "output": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/artifacts/lighthouse-cottage-ega32.png",
+  "size": [
+    320,
+    200
+  ],
+  "mode": "P",
+  "palette": "32-color extended EGA (16 standard + 16 from the 64-color master palette)",
+  "palette_key": "ega32",
+  "dithering": "none",
+  "resample": "nearest",
+  "used_color_count": 17,
+  "off_palette_pixels": 0,
+  "used_colors": [
+    {
+      "index": 0,
+      "name": "black",
+      "rgb": [
+        0,
+        0,
+        0
+      ],
+      "hex": "#000000",
+      "pixels": 50587
+    },
+    {
+      "index": 6,
+      "name": "brown",
+      "rgb": [
+        170,
+        85,
+        0
+      ],
+      "hex": "#AA5500",
+      "pixels": 10
+    },
+    {
+      "index": 7,
+      "name": "light gray",
+      "rgb": [
+        170,
+        170,
+        170
+      ],
+      "hex": "#AAAAAA",
+      "pixels": 349
+    },
+    {
+      "index": 8,
+      "name": "dark gray",
+      "rgb": [
+        85,
+        85,
+        85
+      ],
+      "hex": "#555555",
+      "pixels": 4779
+    },
+    {
+      "index": 15,
+      "name": "white",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "hex": "#FFFFFF",
+      "pixels": 36
+    },
+    {
+      "index": 16,
+      "name": "navy",
+      "rgb": [
+        0,
+        0,
+        85
+      ],
+      "hex": "#000055",
+      "pixels": 4016
+    },
+    {
+      "index": 17,
+      "name": "dark green",
+      "rgb": [
+        0,
+        85,
+        0
+      ],
+      "hex": "#005500",
+      "pixels": 84
+    },
+    {
+      "index": 18,
+      "name": "dark teal",
+      "rgb": [
+        0,
+        85,
+        85
+      ],
+      "hex": "#005555",
+      "pixels": 1059
+    },
+    {
+      "index": 19,
+      "name": "maroon",
+      "rgb": [
+        85,
+        0,
+        0
+      ],
+      "hex": "#550000",
+      "pixels": 1467
+    },
+    {
+      "index": 20,
+      "name": "dark purple",
+      "rgb": [
+        85,
+        0,
+        85
+      ],
+      "hex": "#550055",
+      "pixels": 33
+    },
+    {
+      "index": 21,
+      "name": "olive",
+      "rgb": [
+        85,
+        85,
+        0
+      ],
+      "hex": "#555500",
+      "pixels": 458
+    },
+    {
+      "index": 22,
+      "name": "steel blue",
+      "rgb": [
+        0,
+        85,
+        170
+      ],
+      "hex": "#0055AA",
+      "pixels": 1
+    },
+    {
+      "index": 24,
+      "name": "gray teal",
+      "rgb": [
+        85,
+        170,
+        170
+      ],
+      "hex": "#55AAAA",
+      "pixels": 444
+    },
+    {
+      "index": 27,
+      "name": "dusty rose",
+      "rgb": [
+        170,
+        85,
+        85
+      ],
+      "hex": "#AA5555",
+      "pixels": 221
+    },
+    {
+      "index": 28,
+      "name": "khaki",
+      "rgb": [
+        170,
+        170,
+        85
+      ],
+      "hex": "#AAAA55",
+      "pixels": 206
+    },
+    {
+      "index": 30,
+      "name": "peach",
+      "rgb": [
+        255,
+        170,
+        85
+      ],
+      "hex": "#FFAA55",
+      "pixels": 161
+    },
+    {
+      "index": 31,
+      "name": "pale yellow",
+      "rgb": [
+        255,
+        255,
+        170
+      ],
+      "hex": "#FFFFAA",
+      "pixels": 89
+    }
+  ]
+}

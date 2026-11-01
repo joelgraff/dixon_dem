@@ -1,0 +1,79 @@
+POSITIVE PROMPT
+
+Create an original animation sprite sheet of one lighthouse keeper for a late-1980s PC parser adventure set on the rocky Maine coast in 1840. Every frame depicts the same character with identical costume, proportions, palette, and pixel scale. Use an attached approved keeper sprite as the identity reference when available. Attached room images are palette and style references only; do not include their scenery.
+
+CHARACTER AND STYLE
+
+A weathered older keeper with a short gray beard, simple brimmed work cap, short dark wool coat with a light-gray collar, gray trousers, and sturdy brown boots. Compact human proportions with a modestly enlarged head for readability, not chibi. Suggest the face with a few pixels; do not draw realistic facial details. Use a slightly elevated adventure-game viewpoint, not overhead or isometric.
+
+Use hard square pixels, connected color clusters, and broad flat areas with two or three shades per material. No dithering, gradients, anti-aliasing, isolated texture speckles, or partially transparent edge pixels. Maintain subtle upper-left lighting in every direction; do not simply mirror directional highlights. Keep a few gray edge highlights so the coat remains visible against dark blue room backgrounds. No cast shadows, glow, scenery, floor, text, row labels, borders, or visible grid lines.
+
+Use a consistent six-to-eight-color subset of the standard EGA palette across the entire sheet. Allowed colors: black #000000, blue #0000AA, green #00AA00, cyan #00AAAA, red #AA0000, magenta #AA00AA, brown #AA5500, light gray #AAAAAA, dark gray #555555, bright blue #5555FF, bright green #55FF55, bright cyan #55FFFF, bright red #FF5555, bright magenta #FF55FF, yellow #FFFF55, white #FFFFFF. Favor black, dark gray, light gray, brown, and small white or yellow highlights. Reserve yellow for the carried lantern flame. Transparency is separate from the color palette.
+
+SHEET GEOMETRY
+
+Exactly six columns and 48 rows. Each cell is 32x52 logical pixels (32 wide, 52 tall); the complete sheet is 192x2496 logical pixels. No gutters, padding between cells, or external margins. Within each cell, leave a one-pixel transparent border; keep hands, cap, boots, and carried props inside it. The upright keeper is approximately 48 pixels tall and 16 to 20 pixels wide, matching Sierra SCI0 player characters such as Rosella in King's Quest IV, so raised hands have headroom.
+
+Use zero-based cell coordinates: x increases rightward and y increases downward. The ground-contact anchor is (16, 50) in every cell. Align the neutral feet around that anchor. Keep body scale and clothing lengths constant; crouching changes posture, not scale. Frames animate in place, with no accumulating travel across cells. Environmental movement is handled by the game, not painted into the sheet.
+
+Within every four-row action block, directions are always: DOWN (facing the viewer), LEFT (profile), RIGHT (profile), UP (back to the viewer). Distinguish front and back clearly. Columns 1 through 6 show chronological frames from left to right. Include exactly one complete figure in every cell, including repeated hold frames. Do not leave unused cells empty.
+
+ROW MAP AND MOTION
+
+Rows 1-4: IDLE, directions DOWN, LEFT, RIGHT, UP.
+Six subtle breathing frames. Boots stay planted; shoulders rise by at most one pixel. Calm, alert posture. Seamless loop.
+
+Rows 5-8: WALK, directions DOWN, LEFT, RIGHT, UP.
+Six frames: left contact, left support, passing, right contact, right support, passing. Opposed arm and leg swing, restrained one-pixel body bob, readable separation between boots. Seamless loop.
+
+Rows 9-12: RUN, directions DOWN, LEFT, RIGHT, UP.
+Six frames of a compact jogging cycle, with a slight forward lean, stronger arm swing, and a brief airborne pose. Same character scale and ground reference as walking. Seamless loop.
+
+Rows 13-16: TURN, starting directions DOWN, LEFT, RIGHT, UP.
+Six frames of a clockwise quarter-turn on the spot. DOWN turns to LEFT, LEFT to UP, UP to RIGHT, and RIGHT to DOWN. Columns 1 and 6 are the exact starting and destination idle poses; intermediate frames smoothly rotate the shoulders, head, and feet. Play once, not as a loop.
+
+Rows 17-20: REACH / OPEN, directions DOWN, LEFT, RIGHT, UP.
+Six frames: idle, begin reach, extend arm, hold at a waist-height imaginary panel, withdraw, idle. Empty hand; do not draw the panel or any scenery. Keep the reach readable without exaggerating arm length. Play once.
+
+Rows 21-24: PICK UP, directions DOWN, LEFT, RIGHT, UP.
+Six frames: idle, bend knees, crouch and reach near the floor, grasp, rise, return upright. No prop is painted into this base action; the game can switch to a carrying pose afterward. Play once.
+
+Rows 25-28: USE / INSPECT, directions DOWN, LEFT, RIGHT, UP.
+Six frames: idle, raise hands toward chest level, lean head toward hands, small working gesture, lower hands, idle. This is a generic close inspection or manipulation, not spellcasting. No tool or environmental object is painted into the frames. Play once.
+
+Rows 29-32: TALK, directions DOWN, LEFT, RIGHT, UP.
+Six restrained conversational frames, with one small hand gesture and a slight head movement. No speech balloon, text, or oversized mouth animation. Feet stay planted; the last frame returns naturally to the first. Seamless loop.
+
+Rows 33-36: ASCEND STAIRS, directions DOWN, LEFT, RIGHT, UP.
+Six frames alternating raised knees and planted boots, a slight forward lean, and one hand extended for balance. Suggest climbing with the pose only; do not draw stairs or railing. Keep the cell anchor fixed; the game moves the keeper upward along the stair path. Seamless loop.
+
+Rows 37-40: DESCEND STAIRS, directions DOWN, LEFT, RIGHT, UP.
+Six cautious stepping frames, with a lowered leading boot, slight backward weight shift, and one balancing hand. Distinct from ascent. No stairs or railing. Keep the cell anchor fixed; the game supplies downward travel. Seamless loop.
+
+Rows 41-44: CARRY LANTERN IDLE, directions DOWN, LEFT, RIGHT, UP.
+Six subtle breathing frames, holding a small storm lantern by its handle in the keeper's right hand at hip height. The lantern has a dark frame and a tiny yellow flame. Keep the lantern on the character's anatomical right in every direction, not always on the same side of the image. Use natural occlusion in views where the lantern is behind the body. No emitted glow or lighting change. Seamless loop.
+
+Rows 45-48: CARRY LANTERN WALK, directions DOWN, LEFT, RIGHT, UP.
+Six walking frames matching the base walk cycle, holding the same lantern in the same right hand. Use restrained lantern swing and keep it within the cell; the free arm counter-swings. No glow, trails, or palette changes. Seamless loop.
+
+OUTPUT
+
+One RGBA PNG with genuine transparency. If the tool cannot output 192x2496 pixels, use an exact integer enlargement of the entire logical sheet, such as 384x4992 at 2x scale. Every logical pixel must remain one solid square block; do not add high-resolution detail. Do not stretch to fit a different aspect ratio.
+
+NEGATIVE PROMPT
+
+photorealism, 3D render, smooth painting, vector illustration, anti-aliasing, blur, gradients, dithering, noise, realistic facial detail, chibi, anime, overhead view, isometric view, inconsistent character, changing costume, changing proportions, changing scale, random directions, missing frames, empty cells, extra columns, cropped limbs, duplicate limbs, detached hands, drifting baseline, scenery, floor, stairs, railing, cast shadows, glow, motion blur, trails, speech balloons, text, labels, logos, borders, grid lines, visible checkerboard background
+
+PRODUCTION NOTES (not part of the generation prompt)
+
+This is the proposed full motion set for the lighthouse prototype, not a list of implemented engine animations. Additional actions such as dropping objects, falls, or reactions can be added after gameplay requires them.
+
+Generating all 288 frames at once is ambitious. Prefer to approve one idle frame first, then generate one six-frame direction/action row at a time using that approved frame as a reference. For each row, replace SHEET GEOMETRY with: "Exactly six columns and one row, each cell 32x52 logical pixels, total 192x52; use the same anchor and transparent border." Include only the selected action and direction. Keep the character/style instructions. Assemble approved rows in Aseprite using the row map above. Generate matching rows together where possible to reduce identity drift.
+
+The 32x52 cell matches Sierra SCI0 player-character scale. Validate a walk cycle and a lantern pose against both rooms before producing the full set. If they are too cramped or too large, revise the cell size for the entire sheet rather than squeezing or rescaling individual frames.
+
+Suggested playback starting points: idle and lantern idle at 4 frames per second, walk and lantern walk at 8, run at 12, talk at 6, stairs at 6, and one-shot interactions at 6. Tune these in the engine after checking foot sliding and room scale.
+
+Verify frame count, pixel dimensions, palette, true transparency, consistent anchors, and seam-free loops manually. A prompt does not guarantee these constraints. If transparency is unavailable, use a flat #FF00FF background, forbid that color on the figure, and remove it manually.
+
+Do not use lighthouse_art.main process for this sheet. It crops to a 320x200 background and discards transparency. Sprite-sheet slicing, alpha-preserving palette enforcement, animation playback, and gameplay wiring are not implemented.

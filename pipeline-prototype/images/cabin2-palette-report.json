@@ -1,0 +1,170 @@
+{
+  "source": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/images/cabin.png",
+  "output": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/images/cabin2.png",
+  "size": [
+    320,
+    200
+  ],
+  "mode": "P",
+  "palette": "16-color IBM EGA",
+  "palette_key": "ega16",
+  "dithering": "Floyd-Steinberg",
+  "used_color_count": 14,
+  "off_palette_pixels": 0,
+  "used_colors": [
+    {
+      "index": 0,
+      "name": "black",
+      "rgb": [
+        0,
+        0,
+        0
+      ],
+      "hex": "#000000",
+      "pixels": 29529
+    },
+    {
+      "index": 1,
+      "name": "blue",
+      "rgb": [
+        0,
+        0,
+        170
+      ],
+      "hex": "#0000AA",
+      "pixels": 14662
+    },
+    {
+      "index": 2,
+      "name": "green",
+      "rgb": [
+        0,
+        170,
+        0
+      ],
+      "hex": "#00AA00",
+      "pixels": 48
+    },
+    {
+      "index": 3,
+      "name": "cyan",
+      "rgb": [
+        0,
+        170,
+        170
+      ],
+      "hex": "#00AAAA",
+      "pixels": 638
+    },
+    {
+      "index": 4,
+      "name": "red",
+      "rgb": [
+        170,
+        0,
+        0
+      ],
+      "hex": "#AA0000",
+      "pixels": 1449
+    },
+    {
+      "index": 6,
+      "name": "brown",
+      "rgb": [
+        170,
+        85,
+        0
+      ],
+      "hex": "#AA5500",
+      "pixels": 6872
+    },
+    {
+      "index": 7,
+      "name": "light gray",
+      "rgb": [
+        170,
+        170,
+        170
+      ],
+      "hex": "#AAAAAA",
+      "pixels": 974
+    },
+    {
+      "index": 8,
+      "name": "dark gray",
+      "rgb": [
+        85,
+        85,
+        85
+      ],
+      "hex": "#555555",
+      "pixels": 7709
+    },
+    {
+      "index": 9,
+      "name": "bright blue",
+      "rgb": [
+        85,
+        85,
+        255
+      ],
+      "hex": "#5555FF",
+      "pixels": 907
+    },
+    {
+      "index": 10,
+      "name": "bright green",
+      "rgb": [
+        85,
+        255,
+        85
+      ],
+      "hex": "#55FF55",
+      "pixels": 70
+    },
+    {
+      "index": 11,
+      "name": "bright cyan",
+      "rgb": [
+        85,
+        255,
+        255
+      ],
+      "hex": "#55FFFF",
+      "pixels": 46
+    },
+    {
+      "index": 12,
+      "name": "bright red",
+      "rgb": [
+        255,
+        85,
+        85
+      ],
+      "hex": "#FF5555",
+      "pixels": 55
+    },
+    {
+      "index": 14,
+      "name": "yellow",
+      "rgb": [
+        255,
+        255,
+        85
+      ],
+      "hex": "#FFFF55",
+      "pixels": 842
+    },
+    {
+      "index": 15,
+      "name": "white",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "hex": "#FFFFFF",
+      "pixels": 199
+    }
+  ]
+}

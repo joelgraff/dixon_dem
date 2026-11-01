@@ -1,0 +1,27 @@
+POSITIVE PROMPT
+
+Create one original lighthouse keeper character sprite for a late-1980s PC parser adventure, set on the rocky Maine coast in 1840. This is an isolated game sprite, not a portrait, room illustration, or sprite sheet.
+
+Character: a weathered older keeper wearing a short dark wool coat, a simple brimmed work cap, gray trousers, and sturdy brown boots. Suggest a pale face and a short gray beard with a few deliberate pixel clusters, not detailed facial features. Give the coat a light-gray collar or shoulder highlight so the figure separates from dark blue and black room backgrounds. Keep the costume practical and period-appropriate, with no modern equipment.
+
+Pose and viewpoint: full body, standing idle, facing three-quarter toward the viewer's left. Use a slightly elevated, near-frontal adventure-game viewpoint, not an overhead or isometric view. Both boots must be visible on the same baseline. Keep the arms relaxed and slightly separated from the torso, with empty hands. No handheld lantern; any carried item will be a separate future variation. Use compact human proportions with a modestly enlarged head for readability, not an exaggerated chibi figure.
+
+Pixel construction: design the entire sprite within a 32x52 logical-pixel cell (32 wide, 52 tall), including a one-pixel transparent margin. The figure should be approximately 48 pixels tall and 16 to 20 pixels wide, matching Sierra SCI0 player characters such as Rosella in King's Quest IV, narrow enough to leave space around the arms, and readable at native size against a 320x200 room background. Use hard square pixel edges, connected color clusters, and broad flat areas. Use only two or three shades per material. No added dithering, isolated decorative speckles, smooth gradients, anti-aliasing, or subpixel detail. Suggest volume with a few light-gray edge highlights, not a continuous bright halo.
+
+Palette: use a restrained subset of these exact standard 16-color EGA colors, preferably six to eight colors total. Black #000000, blue #0000AA, green #00AA00, cyan #00AAAA, red #AA0000, magenta #AA00AA, brown #AA5500, light gray #AAAAAA, dark gray #555555, bright blue #5555FF, bright green #55FF55, bright cyan #55FFFF, bright red #FF5555, bright magenta #FF55FF, yellow #FFFF55, white #FFFFFF. Favor black, dark gray, light gray, brown, and small white or yellow highlights. These colors also fit the project's extended 32-color backgrounds.
+
+Lighting: subtle, consistent light from the upper left, sufficient to read the head, shoulders, coat, and boots. Do not bake in a lantern glow, a cast shadow, or a room-specific colored light.
+
+Output: exactly one centered character on a truly transparent background, with no floor, scenery, text, border, or visible grid. If native 32x52 output is unavailable, render a 320x520 image as an exact 10-times nearest-neighbor enlargement of the 32x52 logical-pixel design. Every logical pixel must be a solid 10x10 square; do not add higher-resolution details.
+
+NEGATIVE PROMPT
+
+photorealism, 3D render, smooth painting, vector illustration, anti-aliasing, blur, gradients, dithering, noise, tiny texture, realistic face detail, chibi, anime, overhead view, isometric view, cropped feet, floating pose, multiple characters, duplicate limbs, sprite sheet, animation frames, handheld prop, lantern, weapon, modern clothing, electric light, scenery, floor, cast shadow, glow, text, logo, border, visible checkerboard background
+
+USAGE NOTES (not part of the generation prompt)
+
+The 32x52 cell and roughly 48-pixel figure match Sierra SCI0 player characters (Rosella in King's Quest IV measures about 50 pixels tall and 18 wide at 320x200). SCI0 cannot scale actors, so rooms must be composed to fit this figure. SCI0 displays its 320x200 pixels slightly taller than square on a 4:3 monitor, so the figure will look a little taller in game than in a square-pixel editor; check it against both rooms before drawing the full animation set.
+
+Image models may ignore exact pixel grids, hex colors, or transparency. Treat the result as a draft: clean it in Aseprite or GIMP, verify the actual alpha channel, remove partially transparent edge pixels, and inspect it at native size. A visible checkerboard is not transparency. If transparency is unsupported, request a flat magenta #FF00FF backdrop, forbid that color on the character, then remove the backdrop manually before palette enforcement.
+
+Do not use lighthouse_art.main process for this sprite: that command crops to a 320x200 background and converts to RGB, discarding transparency. Import this sprite separately, preserve its alpha channel, and use nearest-neighbor scaling for previews.

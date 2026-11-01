@@ -1,0 +1,105 @@
+{
+  "source": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/images/cabin-a.png",
+  "output": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/artifacts/lighthouse-cottage-ega.png",
+  "size": [
+    320,
+    200
+  ],
+  "mode": "P",
+  "palette": "16-color IBM EGA",
+  "palette_key": "ega16",
+  "dithering": "none",
+  "resample": "lanczos",
+  "used_color_count": 8,
+  "off_palette_pixels": 0,
+  "used_colors": [
+    {
+      "index": 0,
+      "name": "black",
+      "rgb": [
+        0,
+        0,
+        0
+      ],
+      "hex": "#000000",
+      "pixels": 55754
+    },
+    {
+      "index": 1,
+      "name": "blue",
+      "rgb": [
+        0,
+        0,
+        170
+      ],
+      "hex": "#0000AA",
+      "pixels": 4
+    },
+    {
+      "index": 6,
+      "name": "brown",
+      "rgb": [
+        170,
+        85,
+        0
+      ],
+      "hex": "#AA5500",
+      "pixels": 41
+    },
+    {
+      "index": 7,
+      "name": "light gray",
+      "rgb": [
+        170,
+        170,
+        170
+      ],
+      "hex": "#AAAAAA",
+      "pixels": 844
+    },
+    {
+      "index": 8,
+      "name": "dark gray",
+      "rgb": [
+        85,
+        85,
+        85
+      ],
+      "hex": "#555555",
+      "pixels": 7240
+    },
+    {
+      "index": 12,
+      "name": "bright red",
+      "rgb": [
+        255,
+        85,
+        85
+      ],
+      "hex": "#FF5555",
+      "pixels": 8
+    },
+    {
+      "index": 14,
+      "name": "yellow",
+      "rgb": [
+        255,
+        255,
+        85
+      ],
+      "hex": "#FFFF55",
+      "pixels": 45
+    },
+    {
+      "index": 15,
+      "name": "white",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "hex": "#FFFFFF",
+      "pixels": 64
+    }
+  ]
+}

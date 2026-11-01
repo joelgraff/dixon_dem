@@ -1,0 +1,160 @@
+{
+  "source": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/images/cabin.png",
+  "output": "/home/joel/Projects/dixon_dem-pipeline-prototype/pipeline-prototype/images/cabin3.png",
+  "size": [
+    320,
+    200
+  ],
+  "mode": "P",
+  "palette": "16-color IBM EGA",
+  "palette_key": "ega16",
+  "dithering": "none",
+  "resample": "box",
+  "used_color_count": 13,
+  "off_palette_pixels": 0,
+  "used_colors": [
+    {
+      "index": 0,
+      "name": "black",
+      "rgb": [
+        0,
+        0,
+        0
+      ],
+      "hex": "#000000",
+      "pixels": 28469
+    },
+    {
+      "index": 1,
+      "name": "blue",
+      "rgb": [
+        0,
+        0,
+        170
+      ],
+      "hex": "#0000AA",
+      "pixels": 16702
+    },
+    {
+      "index": 3,
+      "name": "cyan",
+      "rgb": [
+        0,
+        170,
+        170
+      ],
+      "hex": "#00AAAA",
+      "pixels": 182
+    },
+    {
+      "index": 4,
+      "name": "red",
+      "rgb": [
+        170,
+        0,
+        0
+      ],
+      "hex": "#AA0000",
+      "pixels": 313
+    },
+    {
+      "index": 6,
+      "name": "brown",
+      "rgb": [
+        170,
+        85,
+        0
+      ],
+      "hex": "#AA5500",
+      "pixels": 9570
+    },
+    {
+      "index": 7,
+      "name": "light gray",
+      "rgb": [
+        170,
+        170,
+        170
+      ],
+      "hex": "#AAAAAA",
+      "pixels": 1104
+    },
+    {
+      "index": 8,
+      "name": "dark gray",
+      "rgb": [
+        85,
+        85,
+        85
+      ],
+      "hex": "#555555",
+      "pixels": 6628
+    },
+    {
+      "index": 9,
+      "name": "bright blue",
+      "rgb": [
+        85,
+        85,
+        255
+      ],
+      "hex": "#5555FF",
+      "pixels": 46
+    },
+    {
+      "index": 10,
+      "name": "bright green",
+      "rgb": [
+        85,
+        255,
+        85
+      ],
+      "hex": "#55FF55",
+      "pixels": 2
+    },
+    {
+      "index": 11,
+      "name": "bright cyan",
+      "rgb": [
+        85,
+        255,
+        255
+      ],
+      "hex": "#55FFFF",
+      "pixels": 9
+    },
+    {
+      "index": 12,
+      "name": "bright red",
+      "rgb": [
+        255,
+        85,
+        85
+      ],
+      "hex": "#FF5555",
+      "pixels": 1
+    },
+    {
+      "index": 14,
+      "name": "yellow",
+      "rgb": [
+        255,
+        255,
+        85
+      ],
+      "hex": "#FFFF55",
+      "pixels": 796
+    },
+    {
+      "index": 15,
+      "name": "white",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "hex": "#FFFFFF",
+      "pixels": 178
+    }
+  ]
+}
