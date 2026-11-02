@@ -40,7 +40,9 @@ const state = {
   visited1830: false,
   returned: false,
   turnsHere: 0,
-  volunteerSpoke: false
+  volunteerSpoke: false,
+  signed: false,
+  found: {}
 };
 
 const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -67,12 +69,18 @@ const scenes = {
     look: () => {
       let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit.\n\n";
       text += state.returned
-        ? "A [volunteer] in a cardigan has taken the [desk] by the entrance, a [guestbook] open in front of her. "
-        : "A [desk] near the entrance holds a [guestbook] and a cold cup of coffee, but nobody sits behind it. ";
+        ? "A [volunteer] in a cardigan has taken the [desk] by the entrance. "
+        : "A [desk] stands near the entrance, but nobody sits behind it. ";
       text += "Late light comes through the [window] the color of weak tea, and the glass door to the street has been propped open.";
       return text;
     },
     listen: "The lights hum. Somewhere in the back a clock ticks a little behind the others.",
+    extras: {
+      guestbook: "A [guestbook] lies open on the desk.",
+      emptycase: "At the end of the row, one [emptycase] has been dusted and left bare.",
+      mats: "Two frames at the end of the row hold only sun-bleached [mats].",
+      card: "A small typed [card] is propped against the pedestal."
+    },
     objects: {
       exhibit: {
         aliases: ["panel", "founding", "display", "wall"],
@@ -86,39 +94,90 @@ const scenes = {
       },
       cases: {
         aliases: ["case", "glass", "glass cases", "display case"],
-        desc: "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. One case at the end is empty and has been dusted."
+        desc: "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. Toward the end of the row, one case looks different from the others.",
+        reveals: ["emptycase"],
+        verbs: { open: "The cases are locked. The little brass keyholes are clean, as if someone opens them often." }
+      },
+      emptycase: {
+        hidden: true,
+        aliases: ["empty case", "bare case", "last case"],
+        desc: "The felt has been brushed and the glass wiped, but there is nothing on it and no card. Whatever belonged here has not come back."
+      },
+      mats: {
+        hidden: true,
+        aliases: ["mat", "bleached mats", "empty frames", "blank frames", "frames"],
+        desc: "Plain frames with a clean pale rectangle in each where a print used to hang. The hooks are still in the wall."
+      },
+      card: {
+        hidden: true,
+        aliases: ["label", "note"],
+        desc: "Typed, slightly crooked: Exhibit temporarily removed for conservation. Below it, in pencil, someone has written and half erased: ask Margaret."
       },
       photos: {
         aliases: ["photo", "photographs", "pictures", "frames", "wall of photos"],
         desc: () => {
-          let text = "Mostly the twentieth century: a parade on Galena Avenue, the theatre marquee lit at night, a flooded riverbank with men in rowboats. Two frames at the end of the row hold only sun-bleached mats.";
-          if (state.returned && state.hasFerry) text += " One of those frames is no longer empty. A faded print shows a flatboat and a figure at its pole. The label says: Ferry operator, 1830s, name unknown.";
-          else if (state.returned && state.hasLand) text += " One of those frames is no longer empty. A survey plat of a ridge lot, labeled Unknown claimant.";
+          let text = "Mostly the twentieth century: a parade on Galena Avenue, the theatre marquee lit at night, a flooded riverbank with men in rowboats. The last two frames in the row look wrong in a way you can't place from here.";
+          if (state.returned && state.hasFerry) text += " One of them is no longer empty. A faded print shows a flatboat and a figure at its pole. The label says: Ferry operator, 1830s, name unknown.";
+          else if (state.returned && state.hasLand) text += " One of them is no longer empty. A survey plat of a ridge lot, labeled Unknown claimant.";
           return text;
-        }
+        },
+        reveals: ["mats"]
       },
       pedestal: {
         aliases: ["empty", "stand", "plinth"],
         desc: () => {
           if (state.returned && state.hasLand && state.hasFerry) return "On the velvet where there was only a faded ring, a corroded iron pole-shoe from a river flatboat. The card says: Donor unknown.";
-          return "A waist-high pedestal with a ring pressed into its velvet, as if something heavy and round sat here for decades. The card says: Exhibit temporarily removed for conservation.";
+          return "A waist-high pedestal with a ring pressed into its velvet, as if something heavy and round sat here for decades. A small typed [card] is propped against its base.";
+        },
+        reveals: ["card"],
+        verbs: {
+          touch: "The velvet is cool and compressed into a perfect ring. Whatever sat here sat here a very long time.",
+          push: "It doesn't budge. It's bolted to the floor."
         }
       },
       desk: {
         aliases: ["volunteer desk", "table", "chair"],
         desc: () => state.returned
-          ? "A tidy desk now. A lanyard, a roll of mints, and a hand-lettered sign: ASK ABOUT THE LATEST LABELS."
-          : "An empty chair and a cold cup of coffee with a lipstick ring on the lid. The volunteer is evidently somewhere else."
+          ? "A tidy desk now. A lanyard, a roll of mints, and a hand-lettered sign: ASK ABOUT THE LATEST LABELS. A [guestbook] lies open at her elbow."
+          : "An empty chair and a cold cup of coffee with a lipstick ring on the lid. A [guestbook] lies open beside it. The volunteer is evidently somewhere else.",
+        reveals: ["guestbook"],
+        verbs: { sit: "You settle into the volunteer's chair. The seat is still warm, which is odd. You get up again before anyone sees." }
       },
       guestbook: {
+        hidden: true,
         aliases: ["book", "register", "guest book", "log"],
-        desc: () => state.visited1830
-          ? "The newest entries are in a hurried hand. Someone has written “the river is not where it was,” then crossed it out. Other visitors are from Rockford, Peoria, and Ohio."
-          : "Visitors from Rockford, Peoria, and Ohio. The last line, in pencil, has only a date and the words “fog again today.”"
+        desc: () => {
+          let text = state.visited1830
+            ? "The newest entries are in a hurried hand. Someone has written “the river is not where it was,” then crossed it out. Other visitors are from Rockford, Peoria, and Ohio."
+            : "Visitors from Rockford, Peoria, and Ohio. The last line, in pencil, has only a date and the words “fog again today.”";
+          if (state.signed) text += " Your own name is there, in your own hand, under the date.";
+          return text + " A [pen] on a bead chain hangs beside it.";
+        },
+        reveals: ["pen"],
+        verbs: {
+          sign: () => {
+            if (state.signed) return "You've already signed. Your name sits there, a little smaller than you remembered writing it.";
+            state.signed = true;
+            return "You take the pen on its chain and sign your name under the last line. The ink is darker than you expected.";
+          },
+          read: () => scenes.museum.objects.guestbook.desc(),
+          close: "You flip the cover shut, then open it again; it feels rude to hide it."
+        }
+      },
+      pen: {
+        hidden: true,
+        aliases: ["chain", "bead chain", "ballpoint"],
+        desc: "A cheap ballpoint chained to the desk so it can't wander. The chain is the old bead kind.",
+        verbs: { take: "The chain is only so long. It's not going anywhere, and neither is the pen.", use: () => scenes.museum.objects.guestbook.verbs.sign() }
       },
       window: {
         aliases: ["view", "pane"],
-        desc: "Past the lot and a row of rooftops, the river is a pewter strip. A low mist lies on it, though the afternoon is warm and nothing else out there is hazy."
+        desc: "Past the lot and a row of rooftops, the river is a pewter strip. A low mist lies on it, though the afternoon is warm and nothing else out there is hazy.",
+        verbs: {
+          open: "It's painted shut. The sash hasn't moved in decades.",
+          touch: "The glass is cool and faintly damp on the outside.",
+          sit: "There's no sill deep enough to sit on."
+        }
       }
     },
     npcs: {
@@ -166,15 +225,25 @@ const scenes = {
     objects: {
       marker: {
         aliases: ["sign", "plaque", "historical marker", "post"],
-        desc: "OGEE'S FERRY. “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. The settlement that grew on this bank took its name from John Dixon, who arrived in 1830.” Beneath it, in smaller type, a line has been sanded off."
+        desc: "OGEE'S FERRY. “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. The settlement that grew on this bank took its name from John Dixon, who arrived in 1830.” Near the bottom, a line of smaller type has been [sanded] away, leaving a pale smooth patch.",
+        reveals: ["sanded"],
+        verbs: { touch: "The paint is gritty with old salt. You can feel where the sanding stopped." }
+      },
+      sanded: {
+        hidden: true,
+        aliases: ["sanded line", "patch", "pale patch", "line"],
+        desc: "A few letters survive at the edge of the patch: …ever re… Whatever it said, someone cared enough to take it off, and not enough to repaint.",
+        verbs: { touch: "Smooth as a pebble, and cooler than the paint around it." }
       },
       bench: {
         aliases: ["seat"],
-        desc: "A slatted bench with a brass plate for someone who loved this view. The slats are damp, though it hasn't rained."
+        desc: "A slatted bench with a brass plate for someone who loved this view. The slats are damp, though it hasn't rained.",
+        verbs: { sit: "You sit for a while. The mist on the water doesn't move, and neither, you notice, does anything else. The city sounds seem a little farther away than when you sat down." }
       },
       railing: {
         aliases: ["rail", "fence"],
-        desc: "Painted iron, cold and a little wet. Past it the bank drops away to riprap and the water."
+        desc: "Painted iron, cold and a little wet. Past it the bank drops away to riprap and the water.",
+        verbs: { climb: "Not a good idea, with that drop behind it.", touch: "Cold, wet iron. Someone has scratched initials in the paint." }
       },
       river: {
         aliases: ["water", "rock river", "mist"],
@@ -324,7 +393,13 @@ const VERBS = "look, examine, go, take, talk, ask, use, open, wait, listen";
 
 function scene() { return scenes[state.scene]; }
 
-function visible(entry) { return !entry.visible || entry.visible(); }
+function visible(entry) { return (!entry.visible || entry.visible()); }
+
+function isFound(key) { return state.found[state.scene + ":" + key]; }
+
+function reveal(keys) {
+  (keys || []).forEach(k => { state.found[state.scene + ":" + k] = true; });
+}
 
 function describe(entry) { return typeof entry.desc === "function" ? entry.desc() : entry.desc; }
 
@@ -346,7 +421,7 @@ function candidates() {
   const s = scene();
   const list = [];
   for (const [key, obj] of Object.entries(s.objects)) {
-    if (visible(obj)) list.push({ type: "object", key, entry: obj, labels: [key, ...(obj.aliases || [])] });
+    if (visible(obj) && (!obj.hidden || isFound(key))) list.push({ type: "object", key, entry: obj, labels: [key, ...(obj.aliases || [])] });
   }
   for (const [key, npc] of Object.entries(s.npcs || {})) {
     if (visible(npc)) list.push({ type: "npc", key, entry: npc, labels: [key, npc.name.toLowerCase(), ...(npc.aliases || [])] });
@@ -356,8 +431,18 @@ function candidates() {
   return list;
 }
 
+function cleanName(name) {
+  name = name.toLowerCase().trim();
+  let prev;
+  do {
+    prev = name;
+    name = name.replace(/^(the|a|an|at|to|in|on|out of|out|through|thru|inside|behind|under|around|over|into|up)\s+/, "");
+  } while (name !== prev);
+  return name;
+}
+
 function findTarget(name) {
-  name = name.toLowerCase().trim().replace(/^(the|a|an|at|to|in)\s+/, "");
+  name = cleanName(name);
   const matches = candidates();
   const exact = matches.filter(m => m.labels.includes(name));
   if (exact.length === 1) return exact[0];
@@ -382,7 +467,11 @@ function findExit(name) {
 }
 
 function look() {
-  print(scene().look());
+  const s = scene();
+  let text = s.look();
+  const extras = Object.entries(s.extras || {}).filter(([k]) => isFound(k)).map(([, t]) => t);
+  if (extras.length) text += " " + extras.join(" ");
+  print(text);
 }
 
 function arrive(id, text, onArrive) {
@@ -406,6 +495,52 @@ function examine(name) {
   if (!found) return print("You don't see that here.");
   if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
   print(describe(found.entry));
+  reveal(found.entry.reveals);
+}
+
+const VERB_CANON = {
+  sign: "sign", write: "sign", "write in": "sign", "write on": "sign", autograph: "sign",
+  read: "read", sit: "sit", "sit on": "sit", "sit at": "sit", "sit in": "sit", "sit down": "sit",
+  touch: "touch", feel: "touch", pat: "touch", rub: "touch", stroke: "touch",
+  push: "push", pull: "push", shove: "push", turn: "push", move: "push", knock: "push", "knock on": "push", kick: "push",
+  smell: "smell", sniff: "smell", taste: "taste", lick: "taste",
+  open: "open", close: "close", shut: "close",
+  climb: "climb", "climb on": "climb",
+  search: "search", rummage: "search", "look through": "search", "dig through": "search",
+  drink: "drink", sip: "drink", ring: "push", lean: "touch", "lean on": "touch",
+  use: "use", take: "take", get: "take", grab: "take"
+};
+
+const VERB_DEFAULT = {
+  sign: "There's nothing here to sign.",
+  read: "There's nothing to read on it.",
+  sit: "You'd rather not sit on that.",
+  touch: "You touch it. Nothing in particular happens.",
+  push: "It doesn't budge, and you feel a bit silly.",
+  smell: "It smells like what it is.",
+  taste: "You think better of it.",
+  open: "It doesn't open, or there's nothing in it that you'd find.",
+  close: "It isn't open.",
+  climb: "You can't climb that.",
+  search: "You look it over carefully but find nothing more.",
+  drink: "That isn't something you can drink.",
+  use: "You're not sure how to use that here.",
+  take: "That isn't yours to take."
+};
+
+function act(verb, name) {
+  const found = findTarget(name);
+  if (!found) return print("You don't see that here.");
+  if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
+  const e = found.entry;
+  if (verb === "use" && found.key === "phone") return print(phoneText());
+  const custom = e.verbs && e.verbs[verb];
+  if (custom) return print(typeof custom === "function" ? custom() : custom);
+  if (verb === "take" && e.take) return print(e.take());
+  if (verb === "take" && found.type === "item") return print("It's already with you.");
+  if (verb === "read" || verb === "search") return examine(name);
+  if (verb === "open" && e.open) return print(e.open());
+  print(VERB_DEFAULT[verb]);
 }
 
 function talk(name) {
@@ -442,15 +577,8 @@ function ask(rest) {
 function run(input) {
   let m;
   if (/^(look|l)( around)?$/.test(input)) return look();
-  if ((m = input.match(/^(?:pick up|take|get|grab)\s+(.+)$/))) {
-    const found = findTarget(m[1]);
-    if (!found) return print("You don't see that here.");
-    if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
-    if (found.entry.take) return print(found.entry.take());
-    if (found.type === "item") return print("It's already with you.");
-    return print("That isn't yours to take.");
-  }
-  if ((m = input.match(/^(?:look at|examine|x|inspect|check|study|read|look in|look under)\s+(.+)$/))) return examine(m[1]);
+  if ((m = input.match(/^(?:pick up|take|get|grab)\s+(.+)$/))) return act("take", m[1]);
+  if ((m = input.match(/^(?:look at|examine|x|inspect|check|study|look in|look under|look behind)\s+(.+)$/))) return examine(m[1]);
   if ((m = input.match(/^look\s+(.+)$/))) {
     const exit = findExit(m[1]);
     if (exit) return print(exit.peek || `You look ${m[1]}, but see nothing you hadn't already seen.`);
@@ -464,16 +592,9 @@ function run(input) {
   }
   const bare = findExit(input);
   if (bare) return move(bare);
-  if ((m = input.match(/^open\s+(.+)$/))) {
-    const found = findTarget(m[1]);
-    if (!found) return print("You don't see that here.");
-    if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
-    return print(found.entry.open ? found.entry.open() : "It doesn't open, or there's nothing in it that you'd find.");
-  }
-  if ((m = input.match(/^use\s+(.+)$/))) {
-    const found = findTarget(m[1]);
-    if (found && found.key === "phone") return print(phoneText());
-    return print("You're not sure how to use that here.");
+  const verbs = Object.keys(VERB_CANON).sort((a, b) => b.length - a.length);
+  for (const v of verbs) {
+    if (input.startsWith(v + " ")) return act(VERB_CANON[v], input.slice(v.length + 1));
   }
   if (/^(wait|z|rest)$/.test(input)) return print("You wait. Time passes, slowly.");
   if (/^listen$/.test(input)) return print(scene().listen || "You listen. Nothing stands out.");
