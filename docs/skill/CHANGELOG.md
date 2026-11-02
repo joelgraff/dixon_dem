@@ -1,5 +1,6 @@
 # Changelog
 ## 2026-11-02
+- Ogee, Dixon, the clerk and `price` now acknowledge what you have already bought (ferry or ridge plot) instead of repeating the sales pitch.
 - 1830 anachronisms removed (chapter stays in 1830, since the panel, marker and ferry sale all depend on it): Dixon now talks about the Sauk and Fox and Saukenuk, and treats 1832 as two years off; Eli's father died in the 1827 Winnebago trouble, and his rifle is a flintlock; Dixon "came up this spring".
 - Land price matches the government rate: thirty-two acres for forty dollars at $1.25 an acre.
 - Hauling names whoever is present (Ogee at his landing, Dixon on the far bank) and is blocked in the chapter-end fog.

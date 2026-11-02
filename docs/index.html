@@ -621,11 +621,11 @@ const scenes = {
         desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town.",
         fallback: "Ogee shrugs. “Can't say. Ask me about work, or the boat.”",
         topics: [
-          { keys: ["price", "ferry", "buy", "boat", "sell"], say: "Ogee says, “Three hundred dollars. Boat's sound. Rope's new last spring. Work it off if you want. Whiskey kegs to the settlement, twenty dollars a trip.”" },
+          { keys: ["price", "ferry", "buy", "boat", "sell"], say: () => state.hasFerry ? "Ogee says, “She's yours. Keep the seams tarred, and don't pole her out when the river's running high.”" : "Ogee says, “Three hundred dollars. Boat's sound. Rope's new last spring. Work it off if you want. Whiskey kegs to the settlement, twenty dollars a trip.”" },
           { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm. Wagon and mules in the barn.”" },
           { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
           { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Came up this spring and set up across the river. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
-          { keys: ["land", "plot", "acre"], say: "Ogee says, “Land office is across the river, at Dixon's post. You'll want money.”" },
+          { keys: ["land", "plot", "acre"], say: () => state.hasLand ? "Ogee says, “Heard you took the ridge plot. Good oak up there.”" : "Ogee says, “Land office is across the river, at Dixon's post. You'll want money.”" },
           { keys: ["fog", "mist", "east", "from", "where", "home"], say: "Ogee looks upriver for a long moment. “Comes and goes. Folks walk into it and don't always walk out the same.” He goes back to the plank." },
           { keys: ["river", "flood", "floods"], say: "“River does what it wants. Four times I've rebuilt this dock. Fifth time, I'll build it higher.”" },
           { keys: ["pole", "shoe"], say: "“Ash pole, iron shoe. I had the smith make that. It'll outlast me.”" }
@@ -693,8 +693,8 @@ const scenes = {
         topics: [
           { keys: ["sauk", "treaty", "militia", "black hawk", "war", "saukenuk"], say: "Dixon is quiet a moment. “The Sauk and Fox winter west of the Mississippi and come back every spring to their corn at Saukenuk. The settlers there don't like it. The government says the old treaty sold the land, and Black Hawk says nobody sold it.” He looks at the river. “I'd rest easier if I thought that was finished.”" },
           { keys: ["1832", "lincoln", "fort"], say: "Dixon gives you an odd look. “Eighteen thirty-two? That's two years off. I don't keep accounts that far ahead.”" },
-          { keys: ["ogee", "ferry", "joseph"], say: "“Ogee had the ferry before I came. Good man. I'd buy it, if he'd sell.” He looks across the water. “He won't, yet.”" },
-          { keys: ["land", "plot", "clerk", "acre"], say: "“Land's what I'd buy, if I were you. The clerk has the ridge plots. Go and see him.”" },
+          { keys: ["ogee", "ferry", "joseph"], say: () => state.hasFerry ? "“So you bought Ogee's ferry. I'd have paid his price, if he'd sold to me.” He almost smiles. “I expect we'll do business.”" : "“Ogee had the ferry before I came. Good man. I'd buy it, if he'd sell.” He looks across the water. “He won't, yet.”" },
+          { keys: ["land", "plot", "clerk", "acre"], say: () => state.hasLand ? "“You took the ridge plot, I hear. Good timber. Get it surveyed before you build.”" : "“Land's what I'd buy, if I were you. The clerk has the ridge plots. Go and see him.”" },
           { keys: ["trade", "pelts", "post", "whiskey"], say: "“Pelts, iron, cloth, and a little whiskey. People come a long way for the iron.”" },
           { keys: ["fog", "mist", "east"], say: "“The mist? It's been odd this year.” He doesn't say more." }
         ]
@@ -705,7 +705,7 @@ const scenes = {
         reveals: ["map", "ledger"],
         fallback: "The clerk looks pained. “That isn't a land matter.”",
         topics: [
-          { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy"], say: "The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, thirty-two acres for forty dollars at the government rate if you take it as-is. Land office fee is two more.”" },
+          { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy"], say: () => state.hasLand ? "The clerk glances up. “The ridge plot is stamped and filed in your name. Nothing more to sell you, unless you want to learn to read the survey.”" : "The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, thirty-two acres for forty dollars at the government rate if you take it as-is. Land office fee is two more.”" },
           { keys: ["map", "survey"], say: "The clerk taps it. “West ridge, thirty-two acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
           { keys: ["ledger", "name", "names"], say: "“Names and acreage. Most of it is paper and promises.”" }
         ]
@@ -1261,7 +1261,7 @@ function run(input) {
     return;
   }
   if (/^price/.test(input)) {
-    return print(state.scene === "ferry" ? 'Ogee says, “Three hundred dollars. Boat\'s sound. Rope\'s new last spring.”' : "Nothing here is for sale.");
+    return print(state.scene === "ferry" ? (state.hasFerry ? "The ferry is yours; there's nothing left to buy." : 'Ogee says, “Three hundred dollars. Boat\'s sound. Rope\'s new last spring.”') : "Nothing here is for sale.");
   }
   print(`You can't think how to do that. (${VERBS})`);
 }
