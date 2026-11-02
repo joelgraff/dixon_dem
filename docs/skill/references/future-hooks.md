@@ -30,9 +30,10 @@ A running ledger of ideas and planted details to reuse as new scenes and the pre
 - **Pole shoe** on Ogee's ferry pole: the pedestal object.
 - **Flood lines** on the dock pilings: four, so Ogee has rebuilt after floods. A later scene can show the dock after a flood.
 - **Canoe** with a cracked hull, no paddle. Could be repaired, or turn up in a later scene.
-- **Clerk's map**: a question mark at Ogee's landing, "not for sale, not on my map." Ledger whose last line is dated for a day that hasn't come yet.
+- **Surveyor's map and field book**: the surveyor (in 1830 to lay out the Galena road, replacing Kellogg's trail) writes up claims; there was no land office until the 1830s migration. The map has a question mark at Ogee's landing, "not for sale, not on my map." The field book's last line is dated for a day that hasn't come yet.
+- **Wagons at Ogee's landing and the mail pouch at Dixon's post**: Galena lead teams waiting to cross (the only crossing for fifty miles) and an OGEE'S FERRY, ILL. mail pouch. History: Dixon bought Ogee's claim and ferry, moved his family in April 11, 1830, and was commissioned postmaster Sept 29, 1830; the family of seven was nearly the whole population.
 - **Dixon**: wants to buy the ferry if Ogee will sell. The player buying it first is the key divergence.
-- **Eli**: his father died with Stillman's men. A thread tied to 1832 and Black Hawk.
+- **Eli**: a young teamster bound for the Galena diggings; his father died on the 1827 Winnebago militia march. A thread for 1832, when Eli could return as a soldier or refugee.
 - **Cabin loft**: slept in recently, a grey hair on the pillow. Someone else has been staying in Ogee's cabin. Unresolved.
 
 ## Mechanics worth reusing

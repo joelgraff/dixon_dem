@@ -23,7 +23,7 @@ Examining reveals further nouns; none are listed up front.
   Variants driven by flags:  
   - Dixon dies or leaves before town solidifies → rewritten to emphasize Ogee / early settlers; town first known as Ogee’s Ferry or Rock River Crossing; “Dixon” delayed or absent.  
   - Player buys ferry → additional line or small plaque noting transfer to a newcomer (player-linked name or “unknown”).  
-  - Player buys ridge plot → land-patent card appears with family name or “unknown claimant.”  
+  - Player buys ridge plot → surveyor's claim receipt appears with family name or “unknown claimant.”  
   - Player name can be written into the record on successful non-trivial actions.
 
 - **Empty pedestals / blank cases**  
