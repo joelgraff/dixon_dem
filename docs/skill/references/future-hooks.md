@@ -41,3 +41,4 @@ A running ledger of ideas and planted details to reuse as new scenes and the pre
 - NPC `topics` with state-dependent answers; topic hits can `reveals` new objects.
 - Random-but-persistent entries (guestbook) as a lightweight way to show change.
 - Gradual fog threshold: turns spent in a place drive the transition.
+- **The riverfront** is a well-developed public campus used for community events: the farmers market, Petunia Festival concerts over the Fourth of July weekend, and smaller gatherings. Tonight it is empty. Useful for later present-day scenes (crowds, stages, booths) and as a contrast with the 1830 bank.

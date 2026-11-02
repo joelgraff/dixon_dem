@@ -281,9 +281,14 @@ const scenes = {
 
   street: {
     name: "West Fifth Street at Hennepin",
-    look: () => "The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner], and a house porch light clicks on across the way. The [museum] door stands behind you. This is a quiet residential block of old frame houses and big maples. Hennepin runs north; at the end of the next block you can make out the police station and the [courthouse], and beyond them the downtown blocks run on toward the [river], where a [path] follows the water.",
+    look: () => "The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner], and a house porch light clicks on across the way. The [museum] door stands behind you. This is a quiet residential block of old frame houses and big maples. Hennepin runs north; at the end of the next block you can make out the police station and the [courthouse], and beyond them the downtown blocks run on toward the [river], where the riverfront [path] begins.",
     listen: "A truck downshifts somewhere. Under it, very faintly, the sound of moving water.",
     objects: {
+      museum: {
+        aliases: ["center", "historic center", "dixon historic center", "building", "door"],
+        desc: "The Dixon Historic Center, a modest brick building on the corner, with its glass door propped open. Inside, the fluorescents are still lit.",
+        verbs: { open: "The door is already open.", touch: "The brick is still warm from the day." }
+      },
       courthouse: {
         aliases: ["police station", "police", "station"],
         desc: "At the end of the next block, the courthouse and the police station sit side by side, stone and brick. Past them the buildings get taller and closer together: downtown.",
@@ -323,7 +328,7 @@ const scenes = {
 
   riverpath: {
     name: "Riverside walk",
-    look: () => "A paved walk follows the bank above the water, with a [railing] on the river side and a [bench] facing it. Between them a green historical [marker] stands on a post. The [river] is wide and brown and slow below you, and a long raft of mist lies on the water. At the far end of the railing, a [stairway] of worn concrete steps leads down to the bank. Back up the hill is the [street].",
+    look: () => "The riverfront is a broad, well-kept public space of paved walks, lawn and lamp posts, the kind of place that fills up for the farmers market, the concerts of the Petunia Festival and other community events. Tonight it is nearly empty. A paved walk follows the bank above the water, with a [railing] on the river side and a [bench] facing it. Between them a green historical [marker] stands on a post. The [river] is wide and brown and slow below you, and a long raft of mist lies on the water. At the far end of the railing, a [stairway] of worn concrete steps leads down to the bank. Four blocks back up Hennepin is the [street].",
     listen: "Water against stone. A halyard clinking, though there are no boats.",
     objects: {
       marker: {
