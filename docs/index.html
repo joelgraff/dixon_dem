@@ -79,6 +79,9 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
       <button data-fill="talk to ">talk</button>
       <button data-fill="ask about ">ask</button>
       <button data-run="inventory">inv</button>
+      <button data-run="wait">wait</button>
+      <button data-run="listen">listen</button>
+      <button data-run="help">help</button>
     </div>
   </div>
   <aside id="notes" aria-label="Things you have looked at"></aside>
@@ -107,6 +110,9 @@ const state = {
   hasLand: false,
   hasFerry: false,
   hasAxe: false,
+  dixonOwns: false,
+  dixonCash: 260,
+  warnedClaim: false,
   visited1830: false,
   returned: false,
   turnsHere: 0,
@@ -135,6 +141,7 @@ function phoneText() {
   }
   if (fog >= 4) return "The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.";
   if (fog >= 2) return "The signal is down to one bar and flickering. The mist has beaded on the glass.";
+  if (done()) return "Battery at 58 percent, full signal. The clock reads 4:21 and, while you watch, turns to 4:22.";
   return "Battery at 61 percent, full signal. Nothing new.";
 }
 
@@ -160,20 +167,24 @@ function guestEntries() {
   return entries;
 }
 
+const FERRY_PRICE = 360;
+const done = () => state.returned && state.dixonOwns;
+const wrongFix = () => state.returned && state.hasFerry && !state.dixonOwns;
+const townName = () => done() ? "Dixon" : "Ogee's Ferry";
+
 const scenes = {
   museum: {
-    name: "Dixon Historic Center",
+    get name() { return townName() + " Historic Center"; },
     look: () => {
-      let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit.\n\n";
+      let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit. A schoolhouse [clock] hangs by the back door.\n\n";
       text += state.returned
-        ? "A [volunteer] in a cardigan sits behind the [desk] by the entrance, frowning across the room at the exhibit panel. "
-        : "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a pencil moving slowly over a crossword. ";
+        ? "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a [guestbook] open at her elbow, frowning across the room at the exhibit panel. "
+        : "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a [guestbook] open at her elbow and a pencil moving slowly over a [crossword]. ";
       text += "Late light comes through the [window] the color of weak tea, and the glass door to the street has been propped open.";
       return text;
     },
-    listen: "The lights hum. Somewhere in the back a clock ticks a little behind the others.",
+    listen: () => done() ? "The lights hum. In the back a clock ticks, a little behind the others, as though it had never stopped." : "The lights hum. In the back, one clock is silent.",
     extras: {
-      guestbook: "A [guestbook] lies open on the desk.",
       drawer: "The desk has a [drawer] with a small brass lock.",
       card: "A small typed [card] is propped against the pedestal."
     },
@@ -181,24 +192,42 @@ const scenes = {
       exhibit: {
         aliases: ["panel", "founding", "display", "wall"],
         desc: () => {
-          if (!state.visited1830) return "A wall panel and a small case, titled THE FOUNDING OF DIXON. “John Dixon established a ferry and trading post on the Rock River in the early 1830s. The settlement that grew around it took his name.” The paragraph ends a line short, as though a sentence was left out.";
-          if (state.hasLand && state.hasFerry) return "The panel has changed. A land-patent card is pinned beside it, and a new line notes that the ferry passed to a newcomer in 1830. The case now holds a small object where there was only felt before.";
-          if (state.hasLand) return "The panel is the same, but a new land-patent card has been pinned beside it. It describes a sixty-acre ridge timber plot, claimant unknown.";
-          if (state.hasFerry) return "The panel is the same, but a new line has been added: the ferry changed hands in 1830, to a newcomer whose name was not recorded.";
-          return "The panel reads exactly as it did. If anything changed, it isn't here.";
+          if (done()) return "The panel is whole. THE FOUNDING OF DIXON. It ends: “In April 1830 John Dixon bought the ferry from Joseph Ogee, and the settlement took his name.” The last glass case holds a small brass token where there was only felt before." + (state.hasLand ? " A surveyor's claim receipt is pinned beside the panel: a thirty-two-acre ridge timber claim, claimant unknown." : "");
+          if (wrongFix()) return "The panel is worse. THE FOUNDING OF OGEE'S FERRY, and then a few lines that trail off. A new sentence has been added: the ferry passed to a newcomer in 1830, whose name was not recorded. After that the settlement simply stops.";
+          return "A wall panel and a small case, titled THE FOUNDING OF OGEE'S FERRY. “Joseph Ogee kept a ferry on the Rock River from about 1828. A post office and a few cabins grew up beside it.” The paragraph ends a line short, as though the story wasn't finished.";
         }
+      },
+      clock: {
+        aliases: ["schoolhouse clock", "back clock", "wall clock", "clocks"],
+        desc: () => done()
+          ? "The schoolhouse clock by the back door is running. Its hands stand a few minutes past four, and it ticks a little behind the others. The strip of masking tape on the case, DO NOT WIND, has come loose."
+          : "A schoolhouse clock by the back door, stopped at 4:17. Every other clock in the building runs a little fast or slow, but this one has stopped dead. A strip of masking tape on the case reads DO NOT WIND, in someone's careful hand.",
+        verbs: { touch: "The case is cool and slightly dusty.", take: "It's bolted to the wall.", open: "You'd have to wind it, and the tape says not to." }
+      },
+      crossword: {
+        aliases: ["puzzle", "grid", "clue", "clues", "seven down", "crosswords", "newspaper"],
+        desc: () => done()
+          ? "The crossword is finished, every square in neat pencil. Seven down, five letters, “Founder of the ferry town”: DIXON. The letters cross cleanly. In the margin, rubbed nearly out: john, john, john."
+          : wrongFix()
+            ? "The crossword has gone soft. Half the squares are blank, and seven down has no clue at all, only a smudge where it was."
+            : "A newspaper crossword, nearly finished in neat pencil. Four across, four letters, “Rock River ferryman”: OGEE, in ink. Seven down, five letters, “Founder of the ferry town,” is blank, the squares rubbed raw from erasing. In the margin, over and over: john.",
+        verbs: { touch: "The paper is soft where the eraser has been. Margaret glances over, and you take your hand away.", take: "Margaret's hand covers it, politely." }
       },
       cases: {
         aliases: ["case", "glass", "glass cases", "display case"],
-        desc: "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. The last case in the row is an [empty case], the felt brushed and the glass wiped.",
+        desc: () => "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. " + (done()
+          ? "The last case in the row, empty before, now holds a brass [token]."
+          : "The last case in the row is an [empty case], the felt brushed and the glass wiped."),
         reveals: ["emptycase"],
         verbs: { open: "The cases are locked. The little brass keyholes are clean, as if someone opens them often." }
       },
       emptycase: {
         hidden: true,
         title: "empty case",
-        aliases: ["empty case", "bare case", "last case", "empty"],
-        desc: "A case like the others, with a card holder and nothing in it. The card holder is empty too. Somebody dusts it regularly, all the same."
+        aliases: ["empty case", "bare case", "last case", "empty", "token", "brass token", "something"],
+        desc: () => done()
+          ? "On the felt that was bare this morning, a worn brass token stamped with a flatboat and the initials J.O. The card holder now has a card: “Ferry token, c. 1830. Donor unknown.”"
+          : "A case like the others, with a card holder and nothing in it. The card holder is empty too. Somebody dusts it regularly, all the same."
       },
       card: {
         hidden: true,
@@ -209,7 +238,7 @@ const scenes = {
         aliases: ["photo", "photographs", "pictures", "frames", "wall of photos"],
         desc: () => {
           let text = "Mostly the twentieth century: a parade on Galena Avenue, the theatre marquee lit at night, a flooded riverbank with men in rowboats. The last two frames in the row are empty, just bare mats.";
-          if (state.returned && state.hasFerry) text = text.replace("The last two frames in the row are empty, just bare mats.", "One of the last two frames, empty before, now holds a faded print of a flatboat and a figure at its pole. The label says: Ferry operator, 1830s, name unknown.");
+          if (done()) text = text.replace("The last two frames in the row are empty, just bare mats.", "One of the last two frames, empty before, now holds a faded print of a flatboat and a tall man in a dark coat at its pole. The label says: John Dixon at his ferry, 1830s.");
           else if (state.returned && state.hasLand) text = text.replace("The last two frames in the row are empty, just bare mats.", "One of the last two frames, empty before, now holds a survey plat of a ridge lot, labeled Unknown claimant.");
           return text;
         }
@@ -217,7 +246,7 @@ const scenes = {
       pedestal: {
         aliases: ["empty", "stand", "plinth"],
         desc: () => {
-          if (state.returned && state.hasLand && state.hasFerry) return "On the velvet where there was only a faded ring, a corroded iron pole-shoe from a river flatboat. The card says: “Donor unknown.”";
+          if (done()) return "On the velvet where there was only a faded ring, a corroded iron pole-shoe from a river flatboat. The card says: “Donor unknown.”";
           return "A waist-high pedestal with a ring pressed into its velvet, as if something heavy and round sat here for decades. A small typed [card] is propped against its base.";
         },
         reveals: ["card"],
@@ -233,7 +262,6 @@ const scenes = {
         verbs: { sit: "You glance at the chair. Margaret looks at you over her glasses and you think better of it." }
       },
       drawer: {
-        hidden: true,
         aliases: ["middle drawer", "lock", "keyhole"],
         desc: "A shallow middle drawer with a small brass lock, much older than the rest of the desk's hardware. The keyhole is worn bright.",
         verbs: {
@@ -243,7 +271,6 @@ const scenes = {
         }
       },
       guestbook: {
-        hidden: true,
         aliases: ["book", "register", "guest book", "log"],
         desc: () => {
           const pool = guestEntries();
@@ -287,9 +314,13 @@ const scenes = {
           : "A woman in a cardigan, sixty or so, reading glasses pushed up into grey hair. Her name tag says MARGARET. She sits at the [desk] working the crossword with the patience of long habit.",
         talk: () => {
           if (state.returned) {
-            return state.volunteerSpoke === "back"
-              ? "“Mm?” Margaret glances up. “Sorry. Still thinking about the labels.”"
-              : (state.volunteerSpoke = "back", "“Oh, hello again. You were in earlier, weren't you?” She frowns at the wall. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She laughs, not quite convincingly.");
+            if (state.volunteerSpoke === "back") return done()
+              ? "“Mm?” Margaret glances up. “Sorry. Still looking at seven down. Isn't it odd, finishing something and not knowing what it was?”"
+              : "“Mm?” Margaret glances up. “Sorry. Still thinking about the labels.”";
+            state.volunteerSpoke = "back";
+            return done()
+              ? "“Oh, hello again. You were in earlier, weren't you?” She frowns at the wall, then at the crossword, and something in her face settles. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She taps the finished grid. “Well. That's one done. Come by again, will you? I've a feeling the next puzzle won't be so easy.”"
+              : "“Oh, hello again. You were in earlier, weren't you?” She frowns at the wall. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She laughs, not quite convincingly.";
           }
           if (state.volunteerSpoke) return "Margaret glances up from the crossword and smiles. “Mm?”";
           state.volunteerSpoke = true;
@@ -298,15 +329,16 @@ const scenes = {
         },
         fallback: "“Hm. I couldn't tell you. I'm afraid I couldn't say. You could try the front office on a weekday.”",
         topics: [
-          { keys: ["river", "walk", "riverwalk", "river walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], reveals: ["riverwalk"], say: "“The [riverwalk]? It's the best of Dixon at this hour. Go up Hennepin, four blocks north, past the courthouse. There's a marker there, Ogee's Ferry. Most people walk right past it.” She glances toward the window, though it only faces the parking lot. “The fog's been coming off the water all week. Odd, for the time of year.”" },
-          { keys: ["ogee", "joseph"], say: "“Joseph Ogee. He ran a ferry here before anyone had heard of Dixon, by most accounts. Our panel gives him no line at all. The marker by the river does a little better.”" },
-          { keys: ["dixon", "john", "founder", "founding", "exhibit", "panel", "ferry"], say: () => state.returned ? "“I'd have said that panel ended differently. Isn't that silly? Thirty-one years.”" : "“John Dixon, 1830. He took over the ferry, the panel says established, which is a tidy way to put it. If you want the untidy version, there's a marker on the river walk.”" },
-          { keys: ["pedestal", "removed", "conservation", "card"], say: () => state.returned && state.hasLand && state.hasFerry ? "“That wasn't there this morning. It's an iron pole-shoe, off a flatboat. I couldn't tell you where it came from.” She doesn't sound as though she expects to be asked again." : "“Empty since before my time. Conservation, the card says. I've never once seen anyone conserve anything.” She smiles. “I've never known what stood there, either.”" },
-          { keys: ["photo", "frames", "mats", "frame", "picture"], say: () => state.returned && (state.hasLand || state.hasFerry) ? "“One of the empty frames has something in it now. Nobody told me.”" : "“Those last two came back from the framer's in 'ninety-eight with nothing in them. Nobody ever filled them in.”" },
+          { keys: ["river", "walk", "riverwalk", "river walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], reveals: ["riverwalk"], say: () => "“The [riverwalk]? It's the best of " + townName() + " at this hour. Go up Hennepin, four blocks north. There's a marker there, Ogee's Ferry. Most people walk right past it.” She glances toward the window, though it only faces the parking lot. " + (done() ? "“The fog's been coming off the water all week. Odd, for the time of year.”" : "“Seven down has been bothering me all week, and the marker's missing a line, if you ask me. People say if you look at the water long enough, you lose track of time.” She goes back to her pencil. “Silly, I know.”") },
+          { keys: ["ogee", "joseph"], say: () => done() ? "“Joseph Ogee. He ran a ferry here before John Dixon bought it. Our panel gives him a line now. Funny, I'd have sworn it didn't.”" : "“Joseph Ogee. He kept the ferry, and the whole town started at his dock. Our panel stops short of what came next. The marker by the river does a little better.”" },
+          { keys: ["dixon", "john", "founder", "founding", "exhibit", "panel", "ferry"], say: () => done() ? "“John Dixon bought the ferry in 1830. Of course he did. Why did I ever think the panel ended anywhere else?” She laughs, not quite convincingly." : wrongFix() ? "“Now there's a newcomer nobody can name. That isn't right. It isn't right at all.”" : "“It ends mid-thought, doesn't it? Thirty-one years of Saturdays and I've never known what comes after Ogee. I keep writing a name in the margin, ‘John’, and then I can't think why.”" },
+          { keys: ["crossword", "puzzle", "clue", "seven", "pencil", "margin"], say: () => done() ? "“Seven down. Dixon, five letters. I couldn't get it all week. Look, it fits.” She taps the grid." : wrongFix() ? "“The whole puzzle has gone to pieces. Seven down isn't even there any more.”" : "“Seven down. ‘Founder of the ferry town,’ five letters. It's on the tip of my pencil, and then it slides right off.” She taps the margin. “I keep writing the same name there. John.”" },
+          { keys: ["pedestal", "removed", "conservation", "card"], say: () => done() ? "“That wasn't there this morning. It's an iron pole-shoe, off a flatboat. I couldn't tell you where it came from.” She doesn't sound as though she expects to be asked again." : "“Empty since before my time. Conservation, the card says. I've never once seen anyone conserve anything.” She smiles. “I've never known what stood there, either.”" },
+          { keys: ["photo", "frames", "mats", "frame", "picture"], say: () => state.returned && (state.hasLand || state.dixonOwns) ? "“One of the empty frames has something in it now. Nobody told me.”" : "“Those last two came back from the framer's in 'ninety-eight with nothing in them. Nobody ever filled them in.”" },
           { keys: ["desk", "drawer", "lock", "key"], reveals: ["drawer"], say: "“That desk came out of the old county clerk's office when they cleared it in the seventies. It's the nicest thing in the building, and the drawers still work, too. Except the locked one. Always wondered what's in it.”" },
           { keys: ["case", "cases", "arrowhead", "locked"], say: "“Locked, since 1998. The key's with the board. The empty one at the end I dust every Saturday, out of habit.”" },
           { keys: ["guestbook", "book", "sign", "visitor"], say: "“Everyone signs, even the ones who say they won't. Some of them write the oddest things.”" },
-          { keys: ["lincoln", "black hawk", "fort", "war", "militia", "1832"], say: "“Dixon's Ferry was the staging ground in 1832. Lincoln came through as a militia captain, and so did half the officers of the next war. They never fought a battle here. Just passed through.”" },
+          { keys: ["lincoln", "black hawk", "fort", "war", "militia", "1832"], say: () => done() ? "“Dixon's Ferry was the staging ground in 1832. Lincoln came through as a militia captain, and so did half the officers of the next war. They never fought a battle here. Just passed through.”" : "“Ogee's Ferry saw troops in 1832, I'm told. The militia crossed here, and then went on. There's not much to show for it.”" },
           { keys: ["label", "labels", "change", "changed", "different"], say: () => state.returned ? "She hesitates. “I'd rather not say it out loud. The labels have changed, and nobody's touched them. That's all.”" : "“Labels? I wouldn't think so. They've been the same since the nineties.”" },
           { keys: ["museum", "center", "centre", "historic center", "building", "hours", "collection", "place"], say: "“The Historic Center? It's small, but it's ours. The founding exhibit is what most people come for, and the cases hold what the county collected over the years. The photographs are mostly parades and floods. We're open Saturdays, and weekdays when someone can be spared.” She smiles. “If you want the rest of Dixon, the best of it is outside. Take the [riverwalk].”", reveals: ["riverwalk"] },
           { keys: ["margaret", "you", "yourself", "volunteer"], say: "“Thirty-one years on Saturdays. Someone has to know where the stapler is.”" }
@@ -324,8 +356,8 @@ const scenes = {
     listen: "A truck downshifts somewhere. Under it, very faintly, the sound of moving water.",
     objects: {
       museum: {
-        aliases: ["center", "historic center", "dixon historic center", "building", "door"],
-        desc: "The Dixon Historic Center, a modest brick building on the corner, with its glass door propped open. Inside, the fluorescents are still lit.",
+        aliases: ["center", "historic center", "ogee's ferry historic center", "dixon historic center", "building", "door"],
+        desc: "The Historic Center, a modest brick building on the corner, with its glass door propped open. Inside, the fluorescents are still lit.",
         verbs: { open: "The door is already open.", touch: "The brick is still warm from the day." }
       },
       courthouse: {
@@ -361,7 +393,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["museum", "door", "back", "inside", "in", "south"], to: "museum", text: "You step back into the cool, bright room. Margaret glances up from her desk and gives you a small smile." },
-      { names: ["path", "river", "north", "uphill", "riverfront", "walk"], to: "riverpath", text: "You walk north up Hennepin, past the police station and the courthouse, then through three blocks of downtown storefronts, until the pavement gives out into the riverside walk." }
+      { names: ["path", "river", "north", "uphill", "riverfront", "walk"], peek: "Hennepin runs north, past the police station and the courthouse and through three blocks of downtown, to the riverfront path.", to: "riverpath", text: "You walk north up Hennepin, past the police station and the courthouse, then through three blocks of downtown storefronts, until the pavement gives out into the riverside walk." }
     ]
   },
 
@@ -377,7 +409,7 @@ const scenes = {
     objects: {
       marker: {
         aliases: ["sign", "historical marker", "post"],
-        desc: "OGEE'S FERRY. “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. The settlement that grew on this bank took its name from John Dixon, who arrived in 1830.” Near the bottom, a line of smaller type has been [sanded] away, leaving a pale smooth patch.",
+        desc: () => "OGEE'S FERRY. “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. " + (done() ? "The settlement that grew on this bank took its name from John Dixon, who arrived in 1830." : "The settlement that grew on this bank kept the ferryman's name.") + "” Near the bottom, a line of smaller type has been [sanded] away, leaving a pale smooth patch.",
         reveals: ["sanded"],
         verbs: { touch: "The paint is gritty with old salt. You can feel where the sanding stopped." }
       },
@@ -401,7 +433,7 @@ const scenes = {
       bronzeplaque: {
         hidden: true,
         aliases: ["plaque", "statue plaque", "dedication", "begins the trail", "paving"],
-        desc: "The plaque is titled BEGINS THE TRAIL. Beneath it, a line in quotation marks: “It was in Dixon that I really found myself.” It is attributed to Ronald Reagan, who lived here from 1920 to 1933 and always called Dixon his hometown. The text goes on to describe his return in the summer of 1950, when he rode a palomino through these streets in the Injun Summer Days parade, and how that ride inspired the statue. It was sculpted by Donald L. Reed and given to the city by thirteen local donors, in Heritage Crossing Riverfront Plaza, and it recalls his years as a lifeguard on the Rock River, where he is said to have saved 77 lives. At the bottom: Dedicated August 14, 2009.",
+        desc: () => "The plaque is titled BEGINS THE TRAIL. Beneath it, a line in quotation marks: “It was in " + townName() + " that I really found myself.” It is attributed to Ronald Reagan, who lived here from 1920 to 1933 and always called this town his hometown. The text goes on to describe his return in the summer of 1950, when he rode a palomino through these streets in the Injun Summer Days parade, and how that ride inspired the statue. It was sculpted by Donald L. Reed and given to the city by thirteen local donors, in Heritage Crossing Riverfront Plaza, and it recalls his years as a lifeguard on the Rock River, where he is said to have saved 77 lives. At the bottom: Dedicated August 14, 2009.",
         verbs: { touch: "The raised letters are cool and slightly gritty." }
       },
       pavilion: {
@@ -469,7 +501,7 @@ const scenes = {
     extras: {
       ridges: () => state.shift ? "" : "Two shallow [ridges] run through the silt on the lowest step, from the water toward the walk."
     },
-    listen: "Water. Nothing else, and then, for a moment, something else.",
+    listen: () => state.shift >= 1 ? (state.shift = 2, "Wood knocks against wood out in the white, and a hoarse voice calls across the water: “You lookin' for work?”") : "Water. Nothing else, and then, for a moment, something else.",
     onTick: () => {
       const t = state.turnsHere;
       if (state.shift) return;
@@ -480,7 +512,8 @@ const scenes = {
       water: {
         aliases: ["river", "mist", "fog", "bank", "shore"],
         desc: () => {
-          if (state.shift >= 1) return "Brown water slides past, the same river and not. Nothing crosses it now, and the far bank is nothing but dark trees.";
+          if (state.shift === 1) return scene().look();
+          if (state.shift >= 2) return "Brown water slides past, the same river and not. Nothing crosses it now, and the far bank is nothing but dark trees. Out in the white, the knocking goes on, and the voice is waiting.";
           if (state.turnsHere >= 4) {
             state.shift = 1;
             return "You watch the current slide past, brown and smooth, a single leaf turning in it, and for a moment you lose track of everything else. When you look down, the concrete under your feet is gone. You are standing on rough-hewn wooden planks, grey with age and wet with mist.";
@@ -551,20 +584,29 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["stairway", "stairs", "steps", "stair", "back", "up", "south", "walk", "street", "hennepin", "riverfront", "plaza", "statue", "path"], to: "riverpath", when: () => !state.shift, blocked: "You turn, but there are no steps behind you now; only planks, and the mist.", text: "You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces." },
-      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.shift >= 2, blocked: "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it.", text: "You call back, and walk out along the planks toward the sound. The mist parts, and the knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
+      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.shift >= 2, blocked: () => state.shift === 1 ? "You can't make out where the planks lead. Take a look around, or listen." : "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it." + (state.turnsHere >= 4 ? " Still, it is hard to stop watching." : ""), text: "You call back, and walk out along the planks toward the sound. The mist parts, and the knocking is suddenly very close.", onArrive: () => {
+        state.visited1830 = true;
+        if (state.hasFerry && !state.dixonOwns) {
+          state.hasFerry = false; state.money = 0; state.dixonCash = 260; state.warnedClaim = false; state.rewound = true;
+        }
+      } }
     ]
   },
 
   ferry: {
-    name: "Ogee's ferry landing, 1830",
+    get name() { return (state.dixonOwns ? "Dixon's" : "Ogee's") + " ferry landing, 1830"; },
     look: () => {
-      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel along the bank, a cracked [canoe] lies on its side. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
+      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. " + (state.dixonOwns ? "The landing is Dixon's now; Ogee has gone, and a hired hand is tarring a seam. " : "A man in a buckskin shirt, [Ogee], is working on the boat. ") + "Half buried in the gravel along the bank, a cracked [canoe] lies on its side. Two loaded [wagons] wait their turn at the head of the landing. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
       text += state.fog
         ? "The [fog] has come in off the river, thick and white, and you can barely see the end of the dock."
         : "The afternoon is clear; the mist you came through has burned off.";
+      if (state.rewound) {
+        state.rewound = false;
+        text += "\n\nSomething is different. Ogee's ferry is Ogee's again, and the rope is the old rope, as though nobody had ever paid for it. Across the water, the post is lit and busy. Whatever you did last time has been unmade, and you remember it anyway.";
+      }
       return text;
     },
-    listen: "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
+    listen: () => state.dixonOwns ? "Water slapping the hull. A mallet somewhere up the path. Somebody is tarring a seam, and it isn't Ogee." : "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
     extras: {
       pole: "An iron-shod [pole] is stowed along the ferry's rail.",
       shoe: "The pole's [shoe] is worn bright and thin.",
@@ -580,6 +622,11 @@ const scenes = {
           touch: "The planks are slick and warm in the sun. Fresh tar on one seam.",
           climb: () => { move(scene().exits[1]); return null; }
         }
+      },
+      wagons: {
+        aliases: ["wagon", "teams", "team", "teamsters", "oxen", "freight", "lead"],
+        desc: "Two ox-drawn wagons stacked with pigs of lead, the metal still grey and dull, bound from the Galena mines for the markets downriver. The teamsters are asleep on the seats. Ogee says there is a line some days, and the ferry is the only crossing for fifty miles.",
+        verbs: { take: "Each pig weighs about seventy pounds. You leave them.", search: "Nothing in the wagons but lead, a water keg and a tattered quilt." }
       },
       pole: {
         hidden: true,
@@ -619,16 +666,18 @@ const scenes = {
     },
     npcs: {
       ogee: {
+        visible: () => !state.dixonOwns,
         name: "Joseph Ogee",
         aliases: ["joseph", "ferryman", "man"],
         desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town.",
         fallback: "Ogee shrugs. “Can't say. Ask me about work, or the boat.”",
         topics: [
-          { keys: ["price", "ferry", "buy", "boat", "sell"], say: "Ogee says, “Three hundred dollars. Boat's sound. Rope's new last spring. Work it off if you want. Whiskey kegs to the settlement, twenty dollars a trip.”" },
-          { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm. Wagon and mules in the barn.”" },
+          { keys: ["price", "ferry", "buy", "boat", "sell"], say: () => state.hasFerry ? "Ogee says, “She's yours. Keep the seams tarred, and don't pole her out when the river's running high.”" : "Ogee says, “Three hundred sixty. A man from downriver offered it flat, and I can't sell for less than I'm offered. Dixon has been over twice with less than that. I'd sooner sell to a neighbor.” He shrugs. “The money decides it.”" },
+          { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm.” (Type “haul” or “haul week”.)" },
+          { keys: ["lead", "galena", "wagon", "wagons", "teams", "mines", "traffic", "teamsters"], say: "Ogee says, “Lead out of the Galena mines, bound downriver. Some days I've five, ten teams waiting. It's the only crossing for fifty miles, so they wait.”" },
           { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
-          { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Set up across the river a few years back. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
-          { keys: ["land", "plot", "acre"], say: "Ogee says, “Land office is across the river, at Dixon's post. You'll want money.”" },
+          { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Came up this spring and set up across the river. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
+          { keys: ["land", "plot", "acre"], say: () => state.hasLand ? "Ogee says, “Heard you took the ridge claim. Good oak up there.”" : "Ogee says, “No land office hereabouts. The surveyor over at Dixon's post writes up claims. You'll want money.”" },
           { keys: ["fog", "mist", "east", "from", "where", "home"], say: "Ogee looks upriver for a long moment. “Comes and goes. Folks walk into it and don't always walk out the same.” He goes back to the plank." },
           { keys: ["river", "flood", "floods"], say: "“River does what it wants. Four times I've rebuilt this dock. Fifth time, I'll build it higher.”" },
           { keys: ["pole", "shoe"], say: "“Ash pole, iron shoe. I had the smith make that. It'll outlast me.”" }
@@ -636,8 +685,8 @@ const scenes = {
       }
     },
     exits: [
-      { names: ["south", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
-      { names: ["north", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
+      { names: ["south", "path", "cabins", "smoke"], peek: "A worn path climbs south, away from the water, toward woodsmoke and the cabins.", to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
+      { names: ["north", "far bank", "across", "river"], peek: "Across the water, on the north bank, a log trading post stands above a small dock.", noFarewell: true, to: "farbank", text: () => (state.dixonOwns ? "A hired hand poles you across." : "Ogee poles you across.") + " The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
       { names: ["east", "west"], blocked: "The bank runs on in both directions, thick with brush and willow. There is no path that way, and no reason to push into it yet." },
       { names: ["fog", "mist", "back", "return"], blocked: "There is nothing there but the clear afternoon and the river. Whatever brought you here has gone for now, and you still have things to settle in 1830." }
     ]
@@ -645,13 +694,13 @@ const scenes = {
 
   farbank: {
     name: "The far bank, 1830",
-    look: () => "The ferry rocks against a smaller dock on the north bank. A rough log [post] stands above the landing, its door open on the dim interior. A tall man in a dark coat, [Dixon], stands on the path watching the river. Through a side door, a thin man behind a counter, the [clerk], is writing in a book. A young man with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [south] across the water, Ogee's landing.",
+    look: () => "The ferry rocks against a smaller dock on the north bank. A rough log [post] stands above the landing, its door open on the dim interior. A tall man in a dark coat, [Dixon], stands on the path watching the river. Through a side door, a thin man at a plank table, the [surveyor], is writing in a field book. A young teamster with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [south] across the water, " + (state.dixonOwns ? "the ferry landing." : "Ogee's landing."),
     listen: "Rope creaking, a murmur of voices from inside the post, and farther up the bank the clatter of someone stacking wood.",
     objects: {
       post: {
         aliases: ["trading post", "store", "door"],
-        desc: "Dixon's trading post: a single room of logs and plank, its door open on shelves of goods, stacked [barrels] and bundled [pelts].",
-        reveals: ["barrels", "pelts"],
+        desc: "Dixon's trading post: a single room of logs and plank, its door open on shelves of goods, stacked [barrels], bundled [pelts] and a canvas [mail] pouch on a peg.",
+        reveals: ["barrels", "pelts", "mail"],
         verbs: { open: "The door is already open. Inside it's dim and smells of tallow.", climb: "You'd rather use the door." }
       },
       barrels: {
@@ -659,6 +708,12 @@ const scenes = {
         aliases: ["barrel", "kegs", "keg"],
         desc: "Oak barrels branded with a trader's mark, stacked three high. Some are lighter than others.",
         verbs: { push: "They don't budge. They're heavier than they look.", open: "They're sealed with wax. That's someone's whiskey." }
+      },
+      mail: {
+        hidden: true,
+        aliases: ["mail pouch", "pouch", "letters", "post office", "mailbag"],
+        desc: "A canvas mail pouch on a peg, tagged OGEE'S FERRY, ILL. Inside, a few folded letters addressed to settlers up and down the river, and one to a man in Galena. The post office came with the ferry.",
+        verbs: { open: "You leave the pouch alone. Other people's letters are other people's letters.", take: "It isn't yours." }
       },
       pelts: {
         hidden: true,
@@ -674,57 +729,60 @@ const scenes = {
       map: {
         hidden: true,
         aliases: ["wall map", "survey"],
-        desc: "A hand-drawn survey, the river a thick blue line. A band of ridge land to the west is shaded in and labelled in a small clerk's hand. Across the river, at Ogee's landing, someone has pencilled a question mark.",
+        desc: "A hand-drawn survey, the river a thick blue line. A band of ridge land to the west is shaded in and labelled in a small surveyor's hand. Across the river, at Ogee's landing, someone has pencilled a question mark.",
         verbs: { touch: "The paper is soft and a little brittle at the edges." }
       },
       ledger: {
         hidden: true,
-        aliases: ["book", "accounts", "register"],
-        desc: "The clerk's ledger, columns of acreage and names. Most lines are crossed out. The last unfilled line is dated for a day that hasn't come yet in this century.",
-        verbs: { touch: "The clerk shifts it out of reach without looking up." }
+        aliases: ["field book", "book", "notes", "accounts", "register"],
+        desc: "The surveyor's field book, columns of bearings, distances and the odd name. Most lines are crossed out. The last unfilled line is dated for a day that hasn't come yet in this century.",
+        verbs: { touch: "The surveyor shifts it out of reach without looking up." }
       }
     },
     extras: {
-      map: "A large survey [map] hangs behind the clerk.",
-      ledger: "The clerk's [ledger] lies open on the counter."
+      map: "A large survey [map] hangs behind the surveyor.",
+      ledger: "The surveyor's [field book] lies open on the table."
     },
     npcs: {
       dixon: {
         name: "John Dixon", aliases: ["john"],
-        desc: "A tall man in a dark coat. A quiet trader who does fair business with the Sauk and Fox. He set up here a few years back.",
-        fallback: "Dixon considers. “Not my line. You might ask Ogee, or the clerk.”",
+        desc: "A tall man in a dark coat. A quiet trader who does fair business with the Sauk and Fox. He set up here this spring.",
+        fallback: "Dixon considers. “Not my line. You might ask Ogee, or the surveyor.”",
         topics: [
-          { keys: ["sauk", "treaty", "militia", "black hawk", "fort", "war", "1832", "lincoln"], say: "Dixon is quiet a moment. “Eighteen thirty-two. Black Hawk tried to come back east. Militia built Fort Dixon right here. Lincoln was a captain. Taylor had the regulars. Davis was a lieutenant. Never saw a battle. Just the aftermath.”" },
-          { keys: ["ogee", "ferry", "joseph"], say: "“Ogee had the ferry before I came. Good man. I'd buy it, if he'd sell.” He looks across the water. “He won't, yet.”" },
-          { keys: ["land", "plot", "clerk", "acre"], say: "“Land's what I'd buy, if I were you. The clerk has the ridge plots. Go and see him.”" },
+          { keys: ["sauk", "treaty", "militia", "black hawk", "war", "saukenuk"], say: "Dixon is quiet a moment. “From what I hear, the Sauk and Fox winter west of the Mississippi and come back every spring to their corn at Saukenuk. The settlers there don't like it. The government says an old treaty sold the land, and Black Hawk says nobody sold it.” He looks at the river. “I'd rest easier if I thought that was finished.”" },
+          { keys: ["1832", "lincoln", "fort"], say: "Dixon gives you an odd look. “Eighteen thirty-two? That's two years off. I don't keep accounts that far ahead.”" },
+          { keys: ["ogee", "ferry", "joseph", "money", "price", "buy", "short", "speculator", "downriver", "offer", "help", "need", "want", "himself", "yourself", "problem", "trouble"], say: () => state.dixonOwns ? "“It's mine. Thank you for that.”" : state.dixonCash >= FERRY_PRICE ? "“I have it all.”" : `“I have $${state.dixonCash}, and Ogee won't take less than $${FERRY_PRICE}. A speculator came up from downriver and offered it flat. I'm $${FERRY_PRICE - state.dixonCash} short.” He looks across the water. “If you could lend me the difference, I'd see you right. Say \"give Dixon $${FERRY_PRICE - state.dixonCash}\".”` },
+          { keys: ["land", "plot", "clerk", "surveyor", "claim", "acre"], say: () => state.hasLand ? "“You took the ridge claim, I hear. Good timber. Keep that receipt safe; it's all the law there is out here.”" : "“Land's what I'd buy, if I were you. The surveyor writes up claims on the ridge. Go and see him.”" },
+          { keys: ["family", "wife", "children", "kids", "cabin", "seven"], say: "“My wife and the children are up the bank. Seven of us all told, so you'll forgive me if I notice a stranger. We came the eleventh of April and took over Ogee's claim.”" },
           { keys: ["trade", "pelts", "post", "whiskey"], say: "“Pelts, iron, cloth, and a little whiskey. People come a long way for the iron.”" },
           { keys: ["fog", "mist", "east"], say: "“The mist? It's been odd this year.” He doesn't say more." }
         ]
       },
       clerk: {
-        name: "the land office clerk", aliases: ["land clerk", "office"],
-        desc: "A thin man at a counter in a side room of the post. He handles government land sales at a dollar twenty-five an acre. A large [map] hangs behind him and his [ledger] is open on the counter.",
+        name: "the surveyor", aliases: ["surveyor", "land clerk", "clerk", "agent", "office"],
+        desc: "A thin man at a plank table in a side room of the post, in the country to lay out the Galena road. Between sightings he writes up claims for settlers. A large [map] hangs behind him and his [field book] lies open on the table.",
         reveals: ["map", "ledger"],
-        fallback: "The clerk looks pained. “That isn't a land matter.”",
+        fallback: "The surveyor looks pained. “That isn't my line. I measure; I don't know.”",
         topics: [
-          { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy"], say: "The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, sixty acres for forty dollars if you take it as-is. Land office fee is two more.”" },
-          { keys: ["map", "survey"], say: "The clerk taps it. “West ridge, sixty acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
-          { keys: ["ledger", "name", "names"], say: "“Names and acreage. Most of it is paper and promises.”" }
+          { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy", "claim"], say: () => state.hasLand ? "The surveyor glances up. “Your claim is in my field book, bounds and all. Nothing more I can sell you.”" : "The surveyor nods. “There's no government sale yet; that's years off. Till then a claim is a man's word and a witness. The ridge timber west is staked by a fellow who's gone back east. Thirty-two acres, forty dollars to him, two to me for entering the bounds.”" },
+          { keys: ["road", "galena", "trail", "kellogg", "teams", "lead"], say: "“I'm laying out the road to Galena, to replace Kellogg's old trail. Hilly in places, but passable. Everything for the lead mines crosses here.”" },
+          { keys: ["map", "survey"], say: "The surveyor taps it. “West ridge, thirty-two acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
+          { keys: ["ledger", "book", "field", "name", "names"], say: "“Bounds and bearings. Names, when there's anyone to put down.”" }
         ]
       },
       settler: {
-        name: "a young settler", aliases: ["eli", "boy", "young man"],
-        desc: "A nervous young man in patched homespun with an old percussion rifle across his knees. He glances at the river often.",
+        name: "a young teamster", aliases: ["eli", "boy", "young man", "teamster"],
+        desc: "A young man in patched homespun with an old flintlock rifle across his knees, on his way to the Galena lead mines. He keeps glancing at the south bank, where his uncle's second wagon waits its turn.",
         fallback: "Eli shrugs and looks at the river.",
         topics: [
-          { keys: ["stillman", "black hawk", "militia", "pa", "father", "war", "1832"], say: "Eli says, “My pa went with Stillman's men. Never came back from Sycamore Creek.” He looks at the rifle. “Dixon says to watch the river anyway.”" },
-          { keys: ["rifle", "gun"], say: "“Pa's old percussion piece. Shoots true, if you hold your breath.”" },
-          { keys: ["river", "boats", "boat", "watch"], say: "“Dixon told me to watch for boats. Don't say nothing about people.”" }
+          { keys: ["winnebago", "black hawk", "militia", "pa", "father", "war"], say: "Eli says, “My pa went out with the militia in '27, the Winnebago trouble. Took sick on the march and never came home.” He looks at the rifle. “Ma says the diggings pay better than corn.”" },
+          { keys: ["rifle", "gun"], say: "“Pa's old flintlock. Shoots true, if you hold your breath.”" },
+          { keys: ["river", "boats", "boat", "watch", "wagon", "uncle", "galena", "lead", "mines", "diggings"], say: "“Uncle's first wagon is over. The second waits on the far side. Folks say there's a day's line some days. Dixon lets me sit here out of the sun.”" }
         ]
       }
     },
     exits: [
-      { names: ["south", "back", "across", "ferry", "river"], to: "ferry", text: "You cross back. Ogee is on the dock, coiling rope." },
+      { names: ["south", "back", "across", "ferry", "river"], peek: "Back across the water is the ferry landing, and the path to the cabins beyond it.", to: "ferry", text: () => state.dixonOwns ? "You cross back. A hired hand is coiling rope on the dock." : "You cross back. Ogee is on the dock, coiling rope." },
       { names: ["north", "path", "settlement"], blocked: "The path north leads toward the settlement, but it's a long walk and the afternoon is going. Not today." }
     ]
   },
@@ -783,19 +841,35 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["north", "back", "river", "ferry", "landing"], to: "ferry", text: "You head back down the path to the dock." }
+      { names: ["north", "back", "river", "ferry", "landing"], peek: "The path runs back north, down to the river and the ferry landing.", to: "ferry", text: "You head back down the path to the dock." }
     ]
   }
 };
 
 const npcTalk = {
-  ogee: "Ogee wipes his hands on his shirt. “Name's Ogee. Joseph Ogee. This is my place. You looking to settle, or just passing through?”",
-  dixon: "Dixon steps forward, hand out. “John Dixon.” His handshake is firm. “Ogee send you?”",
-  clerk: "The clerk looks up from the ledger. “Forty acres near the river go fast. Dollar twenty-five an acre from the government. Ridge line west is thicker timber if you take it as-is.”",
-  settler: "The young man shifts the rifle. “Dixon told me to watch for boats. Didn't say nothing about people. Name's Eli.”"
+  ogee: "Ogee wipes his hands on his shirt. “Name's Ogee. Joseph Ogee. This is my place. You looking for work, or just passing through? Kegs go to the settlement, twenty dollars a trip.” (Type “haul” for one trip, or “haul week” for three.)",
+  dixon: "Dixon steps forward, hand out. “John Dixon.” His handshake is firm. “Ogee send you? I'll be plain: I'm trying to buy his ferry, and I'm short of the price. If you've a strong back, kegs pay twenty dollars a trip, and I'd make it right with anyone who helped me.” (Try “haul week”, then “give Dixon 100”.)",
+  clerk: "The surveyor looks up from his field book. “Claims near the river are spoken for. There's timber on the west ridge, if you take it as it stands. Mind, I only enter the bounds; the claim is between you and your neighbors.”",
+  settler: "The young man shifts the rifle. “Waiting on the second wagon. Uncle says we'll make the diggings by the first frost. Name's Eli.”"
 };
 
 const VERBS = "look, examine, go, take, talk, ask, use, open, wait, listen";
+
+function hint() {
+  let h;
+  if (state.fog && PAST.includes(state.scene)) h = "The fog has you. Ogee has hold of your sleeve; try “follow Ogee”.";
+  else if (state.scene === "riverbank" && state.shift === 1) h = "The air has changed. Take a look around, or listen.";
+  else if (state.scene === "riverbank" && state.shift >= 2) h = "Someone is calling from the water. Try “call”.";
+  else if (state.scene === "riverbank" && !state.returned) h = "The water is hard to stop watching. Wait a little, or look at the water, and see what happens.";
+  else if (PAST.includes(state.scene) && !state.dixonOwns && !state.hasFerry) {
+    const short = FERRY_PRICE - state.dixonCash;
+    h = state.dixonCash >= FERRY_PRICE ? "Dixon has what he needs." : `Dixon is $${short} short of Ogee's ferry. Earn money with “haul” or “haul week” (at the ferry landing or Dixon's post), then “give Dixon ${short}”. The surveyor's ridge claim is optional.`;
+  }
+  else if (done()) h = "The first chapter is finished. Margaret's next puzzle may take longer to find. Look around the museum and the river while you wait, or “go to museum” and talk to her.";
+  else if (state.returned) h = "Margaret may have noticed something new. “Go to museum”, and look at the exhibit and the crossword.";
+  else h = "Margaret keeps mentioning the river and the marker. Talk to her, look around, then walk north to the river.";
+  print(h + ` (${VERBS})`);
+}
 
 function scene() { return scenes[state.scene]; }
 
@@ -889,7 +963,7 @@ function look() {
 const PAST = ["ferry", "farbank", "cabins"];
 
 function chapterEnd() {
-  if (!(state.hasLand && state.hasFerry) || state.fog || !PAST.includes(state.scene)) return;
+  if (!(state.dixonOwns || state.hasFerry) || state.fog || !PAST.includes(state.scene)) return;
   state.fog = true;
   print("A chill comes up off the river. Within a few breaths the fog is on you, thick and white and wet, and you can no longer see your own hands. Out of it, Ogee's voice, close by: “Easy now. Don't go wandering in this. Stay where you are, and take my arm.” A rough hand finds your sleeve.");
 }
@@ -897,7 +971,7 @@ function chapterEnd() {
 function followOgee() {
   if (!state.fog) return print("There's nobody to follow right now.");
   state.returned = true; state.shift = 0; state.fog = false;
-  arrive("riverbank", "You take Ogee's arm and walk blind through the white, step by step. His hand lets go of your sleeve somewhere along the way. The planks give way to concrete, the knocking fades, and the city sounds come back one by one.");
+  arrive("riverbank", "You take Ogee's arm and walk blind through the white, step by step. His hand lets go of your sleeve somewhere along the way. The planks give way to concrete, the knocking fades, and the city sounds come back one by one. The museum is a short walk; Margaret will want to hear about it. (Say “go to museum”.)");
 }
 
 function arrive(id, text, onArrive) {
@@ -917,10 +991,11 @@ function move(exit) {
     print("The fog is too thick to go anywhere. You take a step and lose all sense of direction, and Ogee's hand tightens on your sleeve. “Not that way. Follow me.”");
     return true;
   }
-  if (exit.when && !exit.when()) { print(exit.blocked || "You can't go that way."); return true; }
-  if (!exit.to) { print(exit.blocked || "You can't go that way."); return true; }
+  const blocked = typeof exit.blocked === "function" ? exit.blocked() : exit.blocked;
+  if (exit.when && !exit.when()) { print(blocked || "You can't go that way."); return true; }
+  if (!exit.to) { print(blocked || "You can't go that way."); return true; }
   farewell(exit);
-  arrive(exit.to, exit.text, exit.onArrive);
+  arrive(exit.to, typeof exit.text === "function" ? exit.text() : exit.text, exit.onArrive);
   return true;
 }
 
@@ -930,7 +1005,7 @@ const PARTING = {
     : "You thank Margaret and say you'll be back. “Do come again,” she says, pencil already moving. “And mind the fog, it comes up quick.”",
   ogee: "You nod to Ogee. He lifts his chin without looking up from the plank.",
   dixon: "You nod to Dixon, and he touches two fingers to his hat brim.",
-  clerk: "You nod to the clerk, who does not look up from the ledger.",
+  clerk: "You nod to the surveyor, who does not look up from his field book.",
   settler: "You nod to Eli, and he nods back, watching the river."
 };
 
@@ -949,7 +1024,11 @@ function farewell(exit) {
 
 function examine(name) {
   const found = findTarget(name);
-  if (!found) return print("You don't see that here.");
+  if (!found) {
+    const exit = findExit(name);
+    if (exit && !(exit.when && !exit.when())) return print(exit.peek || `That way leads on. (Try “go ${name}”.)`);
+    return print("You don't see that here.");
+  }
   if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
   const text = describe(found.entry);
   print(text);
@@ -1038,7 +1117,7 @@ function act(verb, name) {
   print(VERB_DEFAULT[verb]);
 }
 
-const SPEAKER = { volunteer: "Margaret", ogee: "Ogee", dixon: "Dixon", clerk: "The clerk", settler: "Eli" };
+const SPEAKER = { volunteer: "Margaret", ogee: "Ogee", dixon: "Dixon", clerk: "The surveyor", settler: "Eli" };
 
 const SOCIAL = {
   volunteer: {
@@ -1063,10 +1142,10 @@ const SOCIAL = {
     sorry: "“No offence taken.”"
   },
   clerk: {
-    hello: "The clerk glances up from the ledger. “Yes?”",
-    thanks: "“It's the office's duty.” He sounds as though it is not entirely a pleasure.",
+    hello: "The surveyor glances up from his field book. “Yes?”",
+    thanks: "“Pay me, and we're square.” He sounds as though thanks are not entirely a pleasure.",
     bye: "“Do come again when you have the money.”",
-    how: "“Busy. The government doesn't survey itself.”",
+    how: "“Busy. The Galena road doesn't survey itself.”",
     sorry: "“Quite.”"
   },
   settler: {
@@ -1110,7 +1189,7 @@ function social(kind, name) {
     const here = npcsHere();
     if (here.length === 1) target = here[0];
     else if (!here.length) return print("There's no one here to say that to.");
-    else return print(`Say that to whom? ${here.map(n => n.key).join(" or ")}?`);
+    else return print(`Say that to whom? ${here.map(n => (SPEAKER[n.key] || n.key).toLowerCase()).join(" or ")}?`);
   }
   const lines = SOCIAL[target.key];
   if (kind === "hello" && target.key === "volunteer" && state.returned && !state.greeted) {
@@ -1154,7 +1233,7 @@ function ask(rest) {
     else {
       const guess = findTarget(rest);
       if (guess && guess.type === "npc") return talk(rest);
-      return print(`Ask whom? ${sole.map(n => n.key).join(" or ")}?`);
+      return print(`Ask whom? ${sole.map(n => (SPEAKER[n.key] || n.key).toLowerCase()).join(" or ")}?`);
     }
   }
   if (!target || target.type !== "npc") {
@@ -1172,6 +1251,12 @@ function ask(rest) {
 
 function run(input) {
   let m;
+  if (state.returned && !state.fog && !state.shift && (state.scene === "riverbank" || state.scene === "riverpath")
+      && /^(?:(?:go|walk|head|return|run|get|come)\s+)?(?:(?:back\s+)?to\s+)?(?:the\s+)?(?:museum|historic center|center|margaret)$/.test(input)) {
+    return arrive("museum", "You make your way back to the Historic Center, the river walk and Hennepin passing in a blur of ordinary evening. Margaret glances up from her desk.");
+  }
+  if (state.scene === "riverbank" && /^(?:swim|wade|jump in(?:to)?|dive in(?:to)?|go in(?:to)?|walk into|step into)(?:\s+(?:the\s+)?(?:water|river))?$/.test(input)) return run("go water");
+  if (/^(?:help|hint|hints|\?|what (?:now|next|do i do|should i do)|what can i do|i'm stuck|stuck)$/.test(input)) return hint();
   if (/^(look|l)( around)?$/.test(input)) return look();
   if ((m = input.match(/^(?:pick up|take|get|grab)\s+(.+)$/))) return act("take", m[1]);
   if ((m = input.match(/^(?:look at|examine|x|inspect|check|study|look in|look under|look behind)\s+(.+)$/))) return examine(m[1]);
@@ -1183,6 +1268,10 @@ function run(input) {
   if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|tell|chat with)\s+(.+?)\s+about\s+(.+)$/))) return ask(`${m[1]} about ${m[2]}`);
   if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|greet|chat with)\s+(.+)$/))) return talk(m[1]);
   if (state.fog && PAST.includes(state.scene) && /^(?:follow|take (?:his |ogee's )?arm|go with ogee|stay|stay close|trust ogee|walk with ogee|let ogee lead)(?:.*)?$/.test(input)) return followOgee();
+  if (/^(?:yes|yeah|sure|ok|okay|aye)$/.test(input)) {
+    if (state.scene === "riverbank" && state.shift >= 2) return act("call", "voice");
+    if (state.scene === "ferry" || state.scene === "farbank") return run("haul");
+  }
   if (/^(?:shout|call|yell|answer)(?: out| back)?$/.test(input)) {
     return state.scene === "riverbank" && state.shift >= 2 ? act("call", "voice") : print(VERB_DEFAULT.call);
   }
@@ -1190,6 +1279,11 @@ function run(input) {
   if ((m = input.match(/^(?:go|walk|head|enter|move|descend|ascend|climb down|climb up|run|step)(?: to| toward| towards| into| through)?\s+(?:the\s+)?(.+)$/))) {
     const exit = findExit(m[1]);
     return exit ? move(exit) : print("You can't go that way.");
+  }
+  const dirWord = DIRS[input] || input;
+  if (["north", "south", "east", "west", "up", "down"].includes(dirWord)) {
+    const dirExit = findExit(dirWord);
+    return dirExit ? move(dirExit) : print("You can't go that way.");
   }
   const bare = findExit(input);
   if (bare) return move(bare);
@@ -1199,27 +1293,37 @@ function run(input) {
   }
   if (/^(wait|z|rest)$/.test(input)) return print("You wait. Time passes, slowly.");
   if (pleasantry(input) !== false) return;
-  if (/^listen$/.test(input)) return print(scene().listen || "You listen. Nothing stands out.");
+  if (/^listen$/.test(input)) { const l = scene().listen; return print((typeof l === "function" ? l() : l) || "You listen. Nothing stands out."); }
   if (/^(i|inv|inventory)$/.test(input)) {
     const carried = ["your phone"];
     if (state.hasAxe) carried.push("an axe");
-    print(`You are carrying ${carried.join(" and ")}.` + (state.visited1830 ? ` There is $${state.money} in your pocket.` : ""));
+    print(`You are carrying ${carried.join(" and ")}.` + (PAST.includes(state.scene) ? ` There is $${state.money} in your pocket.` : ""));
     return;
   }
   if (/^(think|goals|recall)$/.test(input)) {
     if (!state.visited1830) return print("You think about the empty pedestal, and the line of the panel that ends too soon.");
-    const bits = [`You have $${state.money}.`];
-    if (state.hasLand) bits.push("The ridge plot is yours.");
-    if (state.hasFerry) bits.push("The ferry is yours.");
-    if (state.hasLand && state.hasFerry) bits.push("It feels, for a moment, like the first chapter is finished.");
+    const bits = PAST.includes(state.scene) ? [`You have $${state.money}.`] : [];
+    if (state.hasLand) bits.push("The ridge claim is yours.");
+    if (state.dixonOwns) bits.push("Dixon has his ferry.");
+    else if (state.hasFerry) bits.push("The ferry is yours, which does not feel right.");
+    else bits.push(`Dixon is $${FERRY_PRICE - state.dixonCash} short of the ferry.`);
+    if (state.dixonOwns) bits.push("It feels, for a moment, like the first chapter is finished.");
     return print(bits.join(" "));
   }
-  if (/^(haul|load kegs?|deliver)$/.test(input) || /^(haul|load keg|deliver)/.test(input)) {
-    if (state.scene === "ferry" || state.scene === "farbank") {
-      state.money += 20;
-      print("You load the kegs and pole across. Dixon counts them and marks the ledger. Twenty dollars for the trip.");
-      print(`You now have $${state.money}.`);
-    } else print("There's nothing here to haul.");
+  if ((m = input.match(/^(?:haul|load (?:the )?(?:kegs?|wagons?)|carry (?:the )?kegs?|deliver|work|take (?:the|a) (?:job|trip)|do (?:the|a) (?:job|trip)|earn money|make money)(?:\s+(?:kegs?\s+)?(\d+|week))?$/))) {
+    if (state.scene !== "ferry" && state.scene !== "farbank") return print("There's nothing here to haul.");
+    const trips = m[1] === "week" ? 3 : Math.min(Math.max(parseInt(m[1] || "1", 10), 1), 6);
+    if (state.fog) return print("The fog is too thick to pole across. Ogee's hand stays on your sleeve.");
+    const boss = state.scene === "ferry" && !state.dixonOwns ? "Ogee" : "Dixon";
+    const lines = [
+      `You load the kegs and pole across. ${boss} counts them off and marks the tally.`,
+      `Four kegs, a calm river, and a team of oxen that does not want to board. ${boss} marks the tally.`,
+      `The current is running high today. You pole hard, and ${boss} marks the tally without a word.`
+    ];
+    state.hauls = (state.hauls || 0) + trips;
+    state.money += 20 * trips;
+    print(trips === 1 ? lines[state.hauls % lines.length] + " Twenty dollars for the trip." : `You work ${trips} trips, kegs across and empty boat back. Twenty dollars a trip: $${20 * trips}.`);
+    print(`You now have $${state.money}.`);
     return;
   }
   if (/^(chop|cut wood|timber|cut timber)/.test(input)) {
@@ -1232,29 +1336,57 @@ function run(input) {
     return;
   }
   if (/^(buy|purchase) (land|plot)/.test(input)) {
-    if (state.scene !== "farbank") return print("The land office is across the river, at Dixon's trading post.");
+    if (state.scene !== "farbank") return print("Claims are written up across the river, by the surveyor at Dixon's trading post.");
     if (state.hasLand) return print("You already own the ridge plot.");
-    if (state.money < 42) return print("You don't have enough money. The ridge plot is forty dollars plus a two-dollar fee.");
+    if (state.money < 42) return print("You don't have enough money. The ridge claim is forty dollars plus a two-dollar fee for entering the bounds.");
     state.money -= 42;
     state.hasLand = true;
-    print("You count out forty-two dollars. The clerk stamps the paper. The ridge-line timber plot is yours. Get it surveyed before you build.");
+    print("You count out forty-two dollars. The surveyor enters the bounds in his field book and signs a receipt. The ridge-line timber claim is yours.");
     print(`You now have $${state.money}.`);
     chapterEnd();
     return;
   }
   if (/^(buy|purchase) (ferry|boat)/.test(input)) {
     if (state.scene !== "ferry") return print("Ogee isn't here.");
+    if (state.dixonOwns) return print("The ferry isn't for sale. It's Dixon's now.");
     if (state.hasFerry) return print("You already own the ferry.");
-    if (state.money < 300) return print("You don't have enough money. The ferry is three hundred dollars.");
-    state.money -= 300;
+    if (state.money < FERRY_PRICE) return print(`You don't have enough money. Ogee wants $${FERRY_PRICE}. (Dixon is the one who wants this ferry; you could help him with it.)`);
+    state.money -= FERRY_PRICE;
     state.hasFerry = true;
-    print("You count out three hundred dollars. Ogee hands you the rope and the pole. The ferry is yours.");
+    print(`You count out $${FERRY_PRICE}. Ogee hands you the rope and the pole. The ferry is yours. Across the river, Dixon watches from his dock, then turns and walks slowly back toward the post.`);
+    print(`You now have $${state.money}.`);
+    chapterEnd();
+    return;
+  }
+  if (/^(?:give|lend|pay|hand)(?:\s+(?:dixon|john|him))?$/.test(input)) return print("Give how much? (give Dixon 50)");
+  if ((m = input.match(/^(?:give|lend|pay|hand)\s+(?:(?:dixon|john|him)\s+)?\$?(\d+|all|the rest|the difference)(?:\s*(?:dollars?|bucks))?(?:\s+to\s+(?:dixon|john|him))?$/))) {
+    if (state.scene !== "farbank") return print("Dixon isn't here.");
+    if (state.dixonOwns) return print("Dixon has what he needs.");
+    const need = FERRY_PRICE - state.dixonCash;
+    if (state.money <= 0) return print("You have no money to give.");
+    let amount = /^\d+$/.test(m[1]) ? parseInt(m[1], 10) : Math.min(state.money, need);
+    if (amount <= 0) return print("Give how much?");
+    if (amount > state.money) return print(`You only have $${state.money}.`);
+    amount = Math.min(amount, need);
+    if (amount >= need && !state.hasLand && !state.warnedClaim) {
+      state.warnedClaim = true;
+      return print("Dixon holds up a hand before you can pass it over. “Wait. Once this is done, I don't expect you'll be staying. If you want anything of your own, the surveyor is still writing up claims.” Say it again when you're ready.");
+    }
+    state.money -= amount;
+    state.dixonCash += amount;
+    if (state.dixonCash < FERRY_PRICE) {
+      print(`Dixon takes the money slowly. “That's $${state.dixonCash} I have now. $${FERRY_PRICE - state.dixonCash} to go.”`);
+      print(`You now have $${state.money}.`);
+      return;
+    }
+    state.dixonOwns = true;
+    print("Dixon counts the money into a leather pouch and looks at you for a long moment. “I'll make this right, whatever the river allows.” He walks you down to the dock. Across the water, he and Ogee settle it in the old way: a handshake, a pouch, and a rope and a pole changing hands. Ogee looks across the river at you and lifts his chin. Then Dixon's hand closes on the pole.");
     print(`You now have $${state.money}.`);
     chapterEnd();
     return;
   }
   if (/^price/.test(input)) {
-    return print(state.scene === "ferry" ? 'Ogee says, “Three hundred dollars. Boat\'s sound. Rope\'s new last spring.”' : "Nothing here is for sale.");
+    return print(state.scene === "ferry" ? (state.dixonOwns ? "The ferry is Dixon's now." : state.hasFerry ? "The ferry is yours; there's nothing left to buy." : `Ogee says, “Three hundred sixty. Boat's sound. Rope's new last spring.”`) : "Nothing here is for sale.");
   }
   print(`You can't think how to do that. (${VERBS})`);
 }
@@ -1285,7 +1417,7 @@ if (gear && gear.addEventListener) gear.addEventListener("click", () => {
 });
 output.addEventListener && output.addEventListener("click", e => {
   const noun = e.target.dataset && e.target.dataset.noun;
-  if (settings.clicks && noun) { cmd.value = "examine " + noun; handle(); cmd.focus(); }
+  if (settings.clicks && noun) { cmd.value = (findExit(noun) && !findTarget(noun) ? "go " : "examine ") + noun; handle(); cmd.focus(); }
 });
 applySettings();
 const quick = document.getElementById("quick");

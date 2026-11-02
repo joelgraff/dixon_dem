@@ -30,9 +30,10 @@ A running ledger of ideas and planted details to reuse as new scenes and the pre
 - **Pole shoe** on Ogee's ferry pole: the pedestal object.
 - **Flood lines** on the dock pilings: four, so Ogee has rebuilt after floods. A later scene can show the dock after a flood.
 - **Canoe** with a cracked hull, no paddle. Could be repaired, or turn up in a later scene.
-- **Clerk's map**: a question mark at Ogee's landing, "not for sale, not on my map." Ledger whose last line is dated for a day that hasn't come yet.
+- **Surveyor's map and field book**: the surveyor (in 1830 to lay out the Galena road, replacing Kellogg's trail) writes up claims; there was no land office until the 1830s migration. The map has a question mark at Ogee's landing, "not for sale, not on my map." The field book's last line is dated for a day that hasn't come yet.
+- **Wagons at Ogee's landing and the mail pouch at Dixon's post**: Galena lead teams waiting to cross (the only crossing for fifty miles) and an OGEE'S FERRY, ILL. mail pouch. History: Dixon bought Ogee's claim and ferry, moved his family in April 11, 1830, and was commissioned postmaster Sept 29, 1830; the family of seven was nearly the whole population.
 - **Dixon**: wants to buy the ferry if Ogee will sell. The player buying it first is the key divergence.
-- **Eli**: his father died with Stillman's men. A thread tied to 1832 and Black Hawk.
+- **Eli**: a young teamster bound for the Galena diggings; his father died on the 1827 Winnebago militia march. A thread for 1832, when Eli could return as a soldier or refugee.
 - **Cabin loft**: slept in recently, a grey hair on the pillow. Someone else has been staying in Ogee's cabin. Unresolved.
 
 ## Mechanics worth reusing
@@ -45,3 +46,17 @@ A running ledger of ideas and planted details to reuse as new scenes and the pre
 - **Riverfront layout (from user photos):** south bank of the Rock River along River Street, between Peoria Ave (west) and Galena Ave (east). Limestone retaining walls and block seawall, green iron railings, wide curved steps down to the water, a stone-pier pavilion with a shingled roof, cupola and weathervane, a brick-paver plaza with benches and lamp posts, a bronze equestrian statue on a dark granite pedestal with flagpoles and low fountains, a bridge to the west, and a steel transmission tower. Downtown brick buildings face the river. Each is a candidate for era changes (what stood here in 1830) and for later scenes.
 - **"Begins the Trail" statue** (195 W River St, Heritage Crossing Riverfront Plaza): bronze Ronald Reagan on a palomino ("Dutch"), by Donald L. Reed, dedicated Aug 14, 2009, commemorating the 1950 Injun Summer Days parade. Reagan lived in Dixon 1920-1933 and lifeguarded on the Rock River at Lowell Park, several miles from the plaza (77 rescues; a plaque is also at Lowell Park). The plaza is not the lifeguard site. Thirteen local donors. In the demo it is a plaque discoverable by examining the statue. Era-change hook: what the statue shows if history shifts.
 - **Lower riverwalk (from user photos):** below the stairs is a broad concrete walkway along the water, with a curved limestone retaining wall under the upper railing on one side and a low concrete seawall with a green railing on the other. A bridge crosses upstream, with a steel transmission tower on the bank, and wide stepped terraces run down into the water. In the demo the 1830 bank is the same spot: the concrete becomes planking at the transition, and the drag marks are in silt on the lowest step.
+
+## Broken-present premise (2026-11-02)
+The starting present is a timeline where history went wrong. Open decisions are marked **OPEN**.
+- **The name:** the settlement is recorded as Ogee's Ferry before it became Dixon's Ferry, so the broken present's town and museum can still carry the old name. Restored when Dixon owns the ferry. **OPEN:** exactly how visible this is at the start (subtle clues vs. an obviously wrong town).
+- **Dixon's alias:** he goes by a different name until the deal is done. **OPEN:** the alias (a different surname, or a nickname).
+- **Wrongness ledger** (each item is a clue now and a repair later): the Walgreens pharmacy chain never started (Charles Walgreen's Dixon boyhood, Hazelwood 1929); the Reagan "Begins the Trail" statue missing or different; the arch, theatre and courthouse with wrong names or details; the panel's missing sentence; the sanded line on the marker; the empty frames and case.
+- **Margaret as guide:** she knows "things" without knowing why and gives the missions each time the player returns. Her topics track what has been repaired. Everyone else has no memory.
+- **Travel:** always the fog at the river. Each era needs its own entry cue. Margaret names the place and the object to look for, not the portal.
+- **Guestbook:** signing it is the leaper hook. Later entries from people met in the past (bloodlines) make repairs visible.
+- **Player's backstory:** deliberately unexplained (Quantum Leap).
+- **Walgreens (decided 2026-11-02, not built):** its own rupture, in the 1890s, separate from the 1830 fix. Charles Walgreen clerked at a Dixon drugstore (Horton's on West First Street, about $4 a week, steered there by a physician) before moving to Chicago in 1893; the break is that the physician's referral never happens, and the repair is one small nudge. Present-day clue: a **ghost sign** (faded painted advertisement, `...ORTON'S DRUG STORE`) on a downtown brick wall, with a stranger, newer layer showing through. Sources disagree on details; verify before using.
+- **Scope note:** for now, only the trip to 1830 and the return are built and polished. The rest are plans.
+- **4:17 (decided 2026-11-02):** an unexplained easter egg, the minute things broke. Stopped clocks in the broken present read 4:17 (phone in the fog, the museum's schoolhouse clock); each fixed era sets one running again. Never a puzzle, never tied to a specific historical event (no verified times). Built so far: the museum clock (stopped, then running) and the phone, which shows a live time after the repair. Later: a stopped courthouse, theatre or bridge clock per era.
+

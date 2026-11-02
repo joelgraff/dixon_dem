@@ -1,4 +1,21 @@
 # Changelog
+## 2026-11-02
+- `examine path` / `north` / `south` on highlighted exit words now gives a short description of that way; the locked desk drawer is available from the start (`open drawer` works without examining the desk first).
+- 4:17 easter egg: a schoolhouse clock in the museum (stopped at 4:17 in the broken present, running after the repair) and a live phone clock after the repair.
+- Polish: the guestbook is always available (named in the room text, no need to examine the desk first); `think` shows money only in 1830; after the repair, Margaret closes the first chapter ("I've a feeling the next puzzle won't be so easy") and `help` says so.
+- New-player playtest fixes: Dixon and Ogee now state the goal and teach `haul` / `give` in their greetings; `work`, `carry kegs`, `take the job` and `yes` (at the landing) all haul; `look at water` and `listen` advance the fog sequence; `swim`/`wade` at the water's edge use the wade line; full direction words (north, down...) work and say "You can't go that way" when blocked; new contextual `help` / `hint` command; quick buttons gain wait, listen and help.
+- After the first return from 1830, "go to museum" (also "back to the museum", "museum") takes you straight back from the water's edge or the riverfront; the return text mentions it.
+- Revisiting 1830 after Dixon buys the ferry: Ogee is gone, a hired hand runs the landing, the landing is renamed Dixon's, the ferry is no longer for sale; `give Dixon` without an amount prompts; `listen` accepts state-dependent text.
+- Broken-present premise implemented: the opening town is "Ogee's Ferry" (museum name, panel, marker and Reagan plaque change to Dixon once fixed); Margaret's crossword (seven down: "Founder of the ferry town") is her tell and mission; she points you to the river.
+- 1830 reworked: Dixon has $260 but a downriver speculator pushed Ogee's price to $360, so Dixon is $100 short. Earn it by hauling and `give Dixon $N` (or `give Dixon all`); buying the ferry yourself ($360) is the failed fix, which leaves the present worse and rewinds 1830 on the next visit. The ridge claim is optional (Dixon warns once before the deal ends the chapter). No deadline, no timer.
+- Design docs only (no game changes yet): broken-present premise, Margaret as mission-giver, fog as the only travel mechanism, wrongness ledger. Updated `story-spine.md` and `references/future-hooks.md`.
+- History alignment: the land office clerk is now a surveyor laying out the Galena road who writes up claims (no government land sales until the 1830s migration); the museum shows a surveyor's claim receipt; Eli is a young teamster bound for the Galena diggings; added lead wagons at Ogee's landing, an Ogee's Ferry mail pouch at Dixon's post, and a topic on Dixon's family of seven; NPC prompts use display names.
+- Ogee, Dixon, the clerk and `price` now acknowledge what you have already bought (ferry or ridge plot) instead of repeating the sales pitch.
+- 1830 anachronisms removed (chapter stays in 1830, since the panel, marker and ferry sale all depend on it): Dixon now talks about the Sauk and Fox and Saukenuk, and treats 1832 as two years off; Eli's father died in the 1827 Winnebago trouble, and his rifle is a flintlock; Dixon "came up this spring".
+- Land price matches the government rate: thirty-two acres for forty dollars at $1.25 an acre.
+- Hauling names whoever is present (Ogee at his landing, Dixon on the far bank) and is blocked in the chapter-end fog.
+- Clicking a highlighted exit word ([path], [north], [south]) now walks that way instead of failing to examine it (only with click-to-examine on).
+- Playtest fixes: the empty museum case now matches the changed exhibit panel (brass ferry token) after the chapter; inventory shows 1830 money only while in 1830; `haul` has varied lines and accepts `haul week` / `haul N` (max 6); the ferry price message mentions hauling; `go water` gives a nudge during the fog build-up and after the planks appear. Re-entering 1830 after the ending stays allowed.
 ## 2026-11-01
 - Demo redesign: scrollback instead of clearing, prose rooms, gradual museum-to-1830 transition with fog, `?scene=` test param, lighthouse removed from the demo
 - Progressive discovery (`hidden`/`reveals`), per-object verbs, topic-based `ask` for every NPC, Margaret present from the start
