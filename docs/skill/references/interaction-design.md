@@ -16,6 +16,11 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - Do not invent views that real places would not give. The museum window shows a parking lot and wires, not the river. Place-appropriate dullness is fine; the hint to go outside comes from people.
 - When something is intriguing, end the description on the intriguing detail (the exhibit panel that ends one line short). Do not explain it.
 
+## Looked-At Sidebar
+- A sidebar lists what the player has examined, grouped by scene with the current scene first. Entries expand on click to show the description as last read. It only records things the player has examined, so it never gives away unexamined nouns, and it stands in for scrolling back up or retyping `look`.
+- Notes persist when the player leaves and re-enters a scene. Items an examined object revealed appear in the prose of the room, not in the sidebar, until examined.
+- On narrow screens the sidebar moves below the play area.
+
 ## Natural Verbs
 - Objects respond to the verbs a real person would try: sign, read, sit, touch, push, open, climb, smell, search, board, call. Each object may supply its own reply; unhandled verbs get a mild default.
 - `look out/through/in/under/behind <thing>` examines the thing.

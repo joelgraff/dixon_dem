@@ -9,3 +9,4 @@
 - Added lighthouse prototype scene card, parser rules, design principles, and Dixon scene spine as references
 - Spoken lines are attributed to the speaker; added pleasantries (thanks, hello, goodbye, how are you, sorry)
 - Museum renamed Dixon Historic Center (205 W 5th St); added `references/future-hooks.md`
+- Added a looked-at sidebar (per-scene, expandable notes of examined things)

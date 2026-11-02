@@ -6,7 +6,17 @@
 <title>Dixon Parser</title>
 <style>
 body { font-family: Georgia, "Times New Roman", serif; background: #16181a; color: #d8d4c8; margin: 0; }
-main { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+main { max-width: 64rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+#layout { display: flex; gap: 1rem; align-items: flex-start; }
+#play { flex: 1; min-width: 0; }
+#notes { width: 16rem; height: 62vh; overflow-y: auto; border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 0.5rem 0.8rem; font-size: 0.95rem; line-height: 1.4; }
+#notes h2 { font-size: 0.8rem; font-weight: normal; letter-spacing: 0.12em; text-transform: uppercase; color: #8a867a; margin: 0.8rem 0 0.3rem; }
+#notes h2.current { color: #d8d4c8; }
+#notes details { margin: 0.15rem 0; }
+#notes summary { cursor: pointer; color: #7ec8e3; text-transform: capitalize; }
+#notes details p { margin: 0.3rem 0 0.6rem; color: #b8b4a8; }
+#notes .empty { color: #6c685e; font-style: italic; }
+@media (max-width: 760px) { #layout { flex-direction: column; } #notes { width: auto; height: auto; max-height: 30vh; } }
 h1 { font-weight: normal; letter-spacing: 0.15em; font-size: 1.1rem; color: #8a867a; text-transform: uppercase; }
 #output { height: 62vh; overflow-y: auto; padding: 0.5rem 1rem; border-top: 1px solid #333; border-bottom: 1px solid #333; line-height: 1.55; font-size: 1.05rem; }
 #output p { margin: 0 0 0.9rem; }
@@ -21,10 +31,15 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
 <body>
 <main>
 <h1>Dixon</h1>
-<div id="output" aria-live="polite"></div>
-<div id="bar">
-  <input id="cmd" maxlength="40" autocomplete="off" spellcheck="false" placeholder="what do you do?" autofocus>
-  <button id="enter">Enter</button>
+<div id="layout">
+  <div id="play">
+    <div id="output" aria-live="polite"></div>
+    <div id="bar">
+      <input id="cmd" maxlength="40" autocomplete="off" spellcheck="false" placeholder="what do you do?" autofocus>
+      <button id="enter">Enter</button>
+    </div>
+  </div>
+  <aside id="notes" aria-label="Things you have looked at"></aside>
 </div>
 </main>
 <script>
@@ -42,7 +57,9 @@ const state = {
   turnsHere: 0,
   volunteerSpoke: false,
   signed: false,
-  found: {}
+  found: {},
+  notes: {},
+  visitedScenes: []
 };
 
 const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -121,6 +138,7 @@ const scenes = {
       },
       emptycase: {
         hidden: true,
+        title: "empty case",
         aliases: ["empty case", "bare case", "last case", "empty"],
         desc: "A case like the others, with a card holder and nothing in it. The card holder is empty too. Somebody dusts it regularly, all the same."
       },
@@ -730,10 +748,12 @@ function look() {
 function arrive(id, text, onArrive) {
   state.scene = id;
   state.turnsHere = 0;
+  if (!state.visitedScenes.includes(id)) state.visitedScenes.push(id);
   if (onArrive) onArrive();
   if (text) print(text);
   print(scene().name, "heading");
   look();
+  renderNotes();
 }
 
 function move(exit) {
@@ -747,8 +767,39 @@ function examine(name) {
   const found = findTarget(name);
   if (!found) return print("You don't see that here.");
   if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
-  print(describe(found.entry));
+  const text = describe(found.entry);
+  print(text);
   reveal(found.entry.reveals);
+  recordNote(found, text);
+}
+
+function recordNote(found, text) {
+  if (found.type === "item") return;
+  const id = state.scene;
+  state.notes[id] = state.notes[id] || {};
+  const title = found.entry.title || (found.type === "npc" ? found.entry.name.replace(/^(the|a)\s+/, "") : found.key);
+  state.notes[id][found.key] = { title, text };
+  renderNotes();
+}
+
+function renderNotes() {
+  const panel = document.getElementById("notes");
+  if (!panel) return;
+  const open = new Set([...panel.querySelectorAll("details[open]")].map(d => d.dataset.id));
+  const order = [state.scene, ...state.visitedScenes.filter(id => id !== state.scene).reverse()];
+  let html = "";
+  for (const id of order) {
+    const entries = Object.entries(state.notes[id] || {});
+    const current = id === state.scene;
+    if (!entries.length && !current) continue;
+    html += `<h2${current ? ' class="current"' : ""}>${esc(scenes[id].name)}</h2>`;
+    if (!entries.length) html += '<div class="empty">Nothing yet.</div>';
+    for (const [key, note] of entries) {
+      const did = id + ":" + key;
+      html += `<details data-id="${did}"${open.has(did) ? " open" : ""}><summary>${esc(note.title)}</summary><p>${fmt(note.text)}</p></details>`;
+    }
+  }
+  panel.innerHTML = html;
 }
 
 const VERB_CANON = {
@@ -1037,8 +1088,10 @@ if (enterButton) enterButton.addEventListener("click", handle);
 
 const start = typeof location !== "undefined" && /scene=(\w+)/.exec(location.search);
 if (start && scenes[start[1]]) state.scene = start[1];
+state.visitedScenes.push(state.scene);
 print(scene().name, "heading");
 look();
+renderNotes();
 </script>
 </body>
 </html>
