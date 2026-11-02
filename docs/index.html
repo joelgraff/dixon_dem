@@ -201,7 +201,7 @@ const scenes = {
       card: {
         hidden: true,
         aliases: ["label", "note"],
-        desc: "Typed, slightly crooked: Exhibit temporarily removed for conservation. Below it, in pencil, someone has written and half erased: ask Margaret."
+        desc: "The typed card, slightly crooked, reads: “Exhibit temporarily removed for conservation.” Below it, in pencil, someone has written and half erased: ask Margaret."
       },
       photos: {
         aliases: ["photo", "photographs", "pictures", "frames", "wall of photos"],
@@ -215,7 +215,7 @@ const scenes = {
       pedestal: {
         aliases: ["empty", "stand", "plinth"],
         desc: () => {
-          if (state.returned && state.hasLand && state.hasFerry) return "On the velvet where there was only a faded ring, a corroded iron pole-shoe from a river flatboat. The card says: Donor unknown.";
+          if (state.returned && state.hasLand && state.hasFerry) return "On the velvet where there was only a faded ring, a corroded iron pole-shoe from a river flatboat. The card says: “Donor unknown.”";
           return "A waist-high pedestal with a ring pressed into its velvet, as if something heavy and round sat here for decades. A small typed [card] is propped against its base.";
         },
         reveals: ["card"],
