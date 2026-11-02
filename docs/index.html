@@ -111,6 +111,7 @@ const state = {
   returned: false,
   turnsHere: 0,
   shift: 0,
+  fog: false,
   volunteerSpoke: false,
   signed: false,
   found: {},
@@ -550,10 +551,10 @@ const scenes = {
   ferry: {
     name: "Ogee's ferry landing, 1830",
     look: () => {
-      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel to the south, a cracked [canoe] lies on its side. A worn [path] climbs north toward woodsmoke; the river opens [west] to a far bank where a few buildings stand. ";
-      text += state.hasLand && state.hasFerry
-        ? "Along the shore to the east the [fog] has come back, thick and white, lying on the water where you first arrived."
-        : "The shore to the east is clear in the afternoon light; the mist you came through has burned off.";
+      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel along the bank, a cracked [canoe] lies on its side. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
+      text += state.fog
+        ? "The [fog] has come in off the river, thick and white, and you can barely see the end of the dock."
+        : "The afternoon is clear; the mist you came through has burned off.";
       return text;
     },
     listen: "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
@@ -599,13 +600,14 @@ const scenes = {
       },
       canoe: {
         aliases: ["dugout"],
-        desc: "An old dugout canoe, cracked along the seam and half-buried in gravel south of the dock. No paddle.",
+        desc: "An old dugout canoe, cracked along the seam and half-buried in gravel by the dock. No paddle.",
         verbs: { push: "It's stuck fast in the gravel.", climb: "You'd go straight through the crack.", search: "No paddle, no gear. Just gravel, and a long split down the hull." }
       },
       fog: {
         aliases: ["mist"],
-        desc: () => !(state.hasLand && state.hasFerry) ? "Nothing there but clear air and gravel, where the mist was when you arrived." : "A low wall of mist, hanging along the east shore as though it had been left there. It is the only direction that looks like home, and the only one that sounds like traffic.",
-        verbs: { touch: "Cold, damp, and a little electric. Through it, very faintly, you hear a car door.", smell: "Diesel and cut grass, from somewhere that isn't here." }
+        visible: () => state.fog,
+        desc: "A wall of white, so thick the river is only a sound. It is cold, and a little electric. Through it, very faintly, you hear a car door.",
+        verbs: { touch: "Cold, damp, and a little electric.", smell: "Diesel and cut grass, from somewhere that isn't here." }
       }
     },
     npcs: {
@@ -620,23 +622,23 @@ const scenes = {
           { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
           { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Set up across the river a few years back. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
           { keys: ["land", "plot", "acre"], say: "Ogee says, “Land office is across the river, at Dixon's post. You'll want money.”" },
-          { keys: ["fog", "mist", "east", "from", "where", "home"], say: "Ogee looks east for a long moment. “Comes and goes. Folks walk into it and don't always walk out the same.” He goes back to the plank." },
+          { keys: ["fog", "mist", "east", "from", "where", "home"], say: "Ogee looks upriver for a long moment. “Comes and goes. Folks walk into it and don't always walk out the same.” He goes back to the plank." },
           { keys: ["river", "flood", "floods"], say: "“River does what it wants. Four times I've rebuilt this dock. Fifth time, I'll build it higher.”" },
           { keys: ["pole", "shoe"], say: "“Ash pole, iron shoe. I had the smith make that. It'll outlast me.”" }
         ]
       }
     },
     exits: [
-      { names: ["north", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
-      { names: ["west", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
-      { names: ["south"], blocked: "The gravel shelf gives way to dense forest. There's no path that way, and no reason to push into it yet." },
-      { names: ["east", "fog", "mist", "back", "return"], to: "riverbank", when: () => state.hasLand && state.hasFerry, blocked: "The shore to the east is bare gravel in clear light. Whatever brought you here has gone for now, and there is no way back until it returns. You still have things to settle in 1830.", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to concrete.", onArrive: () => { state.returned = true; state.shift = 0; } }
+      { names: ["south", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
+      { names: ["north", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
+      { names: ["east", "west"], blocked: "The bank runs on in both directions, thick with brush and willow. There is no path that way, and no reason to push into it yet." },
+      { names: ["fog", "mist", "back", "return"], blocked: "There is nothing there but the clear afternoon and the river. Whatever brought you here has gone for now, and you still have things to settle in 1830." }
     ]
   },
 
   farbank: {
     name: "The far bank, 1830",
-    look: () => "The ferry rocks against a smaller dock on the west bank. A rough log [post] stands above the landing, its door open on the dim interior. A tall man in a dark coat, [Dixon], stands on the path watching the river. Through a side door, a thin man behind a counter, the [clerk], is writing in a book. A young man with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [east] across the water, Ogee's landing.",
+    look: () => "The ferry rocks against a smaller dock on the north bank. A rough log [post] stands above the landing, its door open on the dim interior. A tall man in a dark coat, [Dixon], stands on the path watching the river. Through a side door, a thin man behind a counter, the [clerk], is writing in a book. A young man with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [south] across the water, Ogee's landing.",
     listen: "Rope creaking, a murmur of voices from inside the post, and farther up the bank the clatter of someone stacking wood.",
     objects: {
       post: {
@@ -659,7 +661,7 @@ const scenes = {
       },
       dock: {
         aliases: ["landing"],
-        desc: "The west-bank dock, smaller than Ogee's, with a hitching post nearby.",
+        desc: "The north-bank dock, smaller than Ogee's, with a hitching post nearby.",
         verbs: { sit: "You sit on the edge of the dock and watch the river go by. A fish rises." }
       },
       map: {
@@ -715,7 +717,7 @@ const scenes = {
       }
     },
     exits: [
-      { names: ["east", "back", "across", "ferry", "river"], to: "ferry", text: "You cross back. Ogee is on the dock, coiling rope." },
+      { names: ["south", "back", "across", "ferry", "river"], to: "ferry", text: "You cross back. Ogee is on the dock, coiling rope." },
       { names: ["north", "path", "settlement"], blocked: "The path north leads toward the settlement, but it's a long walk and the afternoon is going. Not today." }
     ]
   },
@@ -725,7 +727,7 @@ const scenes = {
     look: () => {
       let text = "Three log [cabin]s stand in a clearing, smoke rising from the middle one. ";
       text += !state.hasAxe ? "An [axe] leans against a chopping [block] beside a stack of split oak. " : "A chopping [block] stands beside a stack of split oak. ";
-      text += "The path back [south] to the river is plain from here.";
+      text += "The path back [north] to the river is plain from here.";
       return text;
     },
     listen: "A woodpecker. Water through the trees. Wind in the cabin chinking.",
@@ -774,7 +776,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["south", "back", "river", "ferry", "landing"], to: "ferry", text: "You head back down the path to the dock." }
+      { names: ["north", "back", "river", "ferry", "landing"], to: "ferry", text: "You head back down the path to the dock." }
     ]
   }
 };
@@ -873,12 +875,22 @@ function look() {
   let text = s.look();
   const extras = Object.entries(s.extras || {}).filter(([k]) => isFound(k)).map(([, t]) => typeof t === "function" ? t() : t).filter(Boolean);
   if (extras.length) text += " " + extras.join(" ");
+  if (state.fog && PAST.includes(state.scene) && state.scene !== "ferry") text += " The fog has closed in around you, thick and white, and a rough hand has found your sleeve.";
   print(text);
 }
 
+const PAST = ["ferry", "farbank", "cabins"];
+
 function chapterEnd() {
-  if (state.hasLand && state.hasFerry && state.scene === "ferry")
-    print("Along the east shore, something is changing. A low white fog is gathering on the water again, exactly where you first arrived.");
+  if (!(state.hasLand && state.hasFerry) || state.fog || !PAST.includes(state.scene)) return;
+  state.fog = true;
+  print("A chill comes up off the river. Within a few breaths the fog is on you, thick and white and wet, and you can no longer see your own hands. Out of it, Ogee's voice, close by: “Easy now. Don't go wandering in this. Stay where you are, and take my arm.” A rough hand finds your sleeve.");
+}
+
+function followOgee() {
+  if (!state.fog) return print("There's nobody to follow right now.");
+  state.returned = true; state.shift = 0; state.fog = false;
+  arrive("riverbank", "You take Ogee's arm and walk blind through the white, step by step. His hand lets go of your sleeve somewhere along the way. The planks give way to concrete, the knocking fades, and the city sounds come back one by one.");
 }
 
 function arrive(id, text, onArrive) {
@@ -894,6 +906,10 @@ function arrive(id, text, onArrive) {
 }
 
 function move(exit) {
+  if (state.fog && PAST.includes(state.scene)) {
+    print("The fog is too thick to go anywhere. You take a step and lose all sense of direction, and Ogee's hand tightens on your sleeve. “Not that way. Follow me.”");
+    return true;
+  }
   if (exit.when && !exit.when()) { print(exit.blocked || "You can't go that way."); return true; }
   if (!exit.to) { print(exit.blocked || "You can't go that way."); return true; }
   farewell(exit);
@@ -1159,6 +1175,7 @@ function run(input) {
   }
   if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|tell|chat with)\s+(.+?)\s+about\s+(.+)$/))) return ask(`${m[1]} about ${m[2]}`);
   if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|greet|chat with)\s+(.+)$/))) return talk(m[1]);
+  if (state.fog && PAST.includes(state.scene) && /^(?:follow|take (?:his |ogee's )?arm|go with ogee|stay|stay close|trust ogee|walk with ogee|let ogee lead)(?:.*)?$/.test(input)) return followOgee();
   if (/^(?:shout|call|yell|answer)(?: out| back)?$/.test(input)) {
     return state.scene === "riverbank" && state.shift >= 2 ? act("call", "voice") : print(VERB_DEFAULT.call);
   }
