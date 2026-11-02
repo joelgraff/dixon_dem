@@ -555,7 +555,7 @@ const scenes = {
         fallback: "The clerk looks pained. “That isn't a land matter.”",
         topics: [
           { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy"], say: "The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, sixty acres for forty dollars if you take it as-is. Land office fee is two more.”" },
-          { keys: ["map", "survey"], say: "He taps it. “West ridge, sixty acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
+          { keys: ["map", "survey"], say: "The clerk taps it. “West ridge, sixty acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
           { keys: ["ledger", "name", "names"], say: "“Names and acreage. Most of it is paper and promises.”" }
         ]
       },
@@ -803,6 +803,52 @@ function act(verb, name) {
   print(VERB_DEFAULT[verb]);
 }
 
+const SPEAKER = { volunteer: "Margaret", ogee: "Ogee", dixon: "Dixon", clerk: "The clerk", settler: "Eli" };
+
+const SOCIAL = {
+  volunteer: {
+    hello: "“Hello, hello.” She smiles over her glasses.",
+    thanks: "“Oh, you're very welcome. Nobody thanks the volunteers. Not often.”",
+    bye: "“Mind the fog on your way. It comes up quick this time of year.”",
+    how: "“Can't complain. Quiet Saturday, a crossword, and someone to talk to. That's a good day.”",
+    sorry: "“Don't mention it.”"
+  },
+  ogee: {
+    hello: "Ogee nods without stopping what he's doing. “Mm.”",
+    thanks: "Ogee grunts. “Don't thank me yet. River's not done with any of us.”",
+    bye: "“Watch the water.”",
+    how: "“Alive. Dock's still standing. That's a good week.”",
+    sorry: "“No harm done.”"
+  },
+  dixon: {
+    hello: "Dixon inclines his head. “Good day to you.”",
+    thanks: "“You're welcome. A man ought to be civil on a river.”",
+    bye: "“Safe passage.”",
+    how: "“Well enough. Trade is slow, but it's early yet.”",
+    sorry: "“No offence taken.”"
+  },
+  clerk: {
+    hello: "The clerk glances up from the ledger. “Yes?”",
+    thanks: "“It's the office's duty.” He sounds as though it is not entirely a pleasure.",
+    bye: "“Do come again when you have the money.”",
+    how: "“Busy. The government doesn't survey itself.”",
+    sorry: "“Quite.”"
+  },
+  settler: {
+    hello: "Eli gives a quick, nervous nod. “Evening.”",
+    thanks: "“Oh. Sure. Anytime.” He looks pleased and a little surprised.",
+    bye: "“See you around. Watch the river.”",
+    how: "“Jumpy, mostly. Folks say the war's coming back.”",
+    sorry: "“It's all right.”"
+  }
+};
+
+function speak(key, text) {
+  const who = SPEAKER[key];
+  if (who && text.startsWith("“")) text = `${who} says, ${text}`;
+  print(text);
+}
+
 function talk(name) {
   const found = findTarget(name);
   if (!found || found.type === "suggestions" || found.type === "ambiguous") {
@@ -811,8 +857,42 @@ function talk(name) {
   }
   if (found.type !== "npc") return print("It doesn't answer.");
   const npc = found.entry;
-  if (npc.talk) return print(npc.talk());
-  print(npcTalk[found.key] || `${npc.name} looks at you but says nothing yet.`);
+  if (npc.talk) return speak(found.key, npc.talk());
+  speak(found.key, npcTalk[found.key] || `${npc.name} looks at you but says nothing yet.`);
+}
+
+function social(kind, name) {
+  let target = null;
+  if (name) {
+    const found = findTarget(name);
+    if (found && (found.type === "ambiguous" || found.type === "suggestions")) return clarify(found);
+    if (found && found.type === "npc") target = found;
+  }
+  if (!target) {
+    const here = npcsHere();
+    if (here.length === 1) target = here[0];
+    else if (!here.length) return print("There's no one here to say that to.");
+    else return print(`Say that to whom? ${here.map(n => n.key).join(" or ")}?`);
+  }
+  const lines = SOCIAL[target.key];
+  if (kind === "hello" && target.key === "volunteer" && state.returned && !state.greeted) {
+    state.greeted = true;
+    return speak(target.key, "“Oh, hello again.” She glances at the panel and back. “Were you down by the river?”");
+  }
+  speak(target.key, (lines && lines[kind]) || `${target.entry.name} acknowledges you with a nod.`);
+}
+
+function pleasantry(input) {
+  let m;
+  const person = "(?:\\s+(?:to\\s+)?(.+))?";
+  if ((m = input.match(new RegExp("^(?:say\\s+)?(?:thanks|thank you|thank-you|thx|ty|cheers)(?:\\s+(?:so much|very much|a lot))?" + person + "$"))) ||
+      (m = input.match(/^thank\s+(?:you\s+)?(.+)$/))) return social("thanks", m[1]);
+  if ((m = input.match(new RegExp("^(?:say\\s+)?(?:hello|hi|hey|howdy|greetings|good (?:morning|afternoon|evening|day)|evening|afternoon)" + person + "$")))) return social("hello", m[1]);
+  if ((m = input.match(new RegExp("^(?:say\\s+)?(?:goodbye|good-bye|bye|farewell|see you|see you later|take care|good night|cheerio)" + person + "$")))) return social("bye", m[1]);
+  if ((m = input.match(/^(?:how are you|how's it going|how are things|how do you do|what's up|how have you been)(?:\s+(.+))?$/))) return social("how", m[1]);
+  if ((m = input.match(new RegExp("^(?:say\\s+)?(?:sorry|excuse me|pardon me|apologi[sz]e)" + person + "$")))) return social("sorry", m[1]);
+  if ((m = input.match(/^(?:have a (?:good|nice|great) (?:day|evening|night|one)|good luck|best wishes|well wishes)(?:\s+(.+))?$/))) return social("bye", m[1]);
+  return false;
 }
 
 function npcsHere() {
@@ -846,8 +926,8 @@ function ask(rest) {
   const npc = target.entry;
   topic = cleanName(topic);
   const hit = (npc.topics || []).find(t => t.keys.some(k => topic.includes(k)));
-  if (!hit) return print(npc.fallback || `${npc.name} has nothing to say about that.`);
-  print(typeof hit.say === "function" ? hit.say() : hit.say);
+  if (!hit) return speak(target.key, npc.fallback || `${npc.name} has nothing to say about that.`);
+  speak(target.key, typeof hit.say === "function" ? hit.say() : hit.say);
   reveal(hit.reveals);
 }
 
@@ -878,6 +958,7 @@ function run(input) {
     if (input.startsWith(v + " ")) return act(VERB_CANON[v], input.slice(v.length + 1));
   }
   if (/^(wait|z|rest)$/.test(input)) return print("You wait. Time passes, slowly.");
+  if (pleasantry(input) !== false) return;
   if (/^listen$/.test(input)) return print(scene().listen || "You listen. Nothing stands out.");
   if (/^(i|inv|inventory)$/.test(input)) {
     const carried = ["your phone"];

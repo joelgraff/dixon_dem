@@ -12,6 +12,7 @@ Verb optionally followed by a noun phrase. Core verbs: look, examine, go, take, 
 5. Object verbs — a verb table (sign, read, sit, touch, push, open, close, climb, smell, taste, search, drink, board, call, use, take) maps synonyms to a canonical verb. An object's own `verbs` entry wins; otherwise a mild default reply is used.
 6. Leading prepositions — "look out/through/in/under/behind the window" strip to the noun.
 7. Conversation — `ask <npc> about <topic>` matches keywords in the NPC's topic list; with one NPC present the name may be omitted. Unmatched topics get that NPC's own fallback line.
+8. Pleasantries — thanks/hello/goodbye/how are you/sorry/well-wishes route to the named NPC, or the only NPC present, and use that NPC's `SOCIAL` lines. Spoken lines are prefixed with the speaker's name.
 
 ## Failure Categories
 - Unknown verb: "you don't know how to do that" + nudge toward available verbs
