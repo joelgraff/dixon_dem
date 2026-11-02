@@ -13,3 +13,4 @@
 - Added a looked-at sidebar (per-scene, expandable notes of examined things)
 - Added a Settings panel: sidebar toggle and optional click-to-examine highlights, saved in localStorage
 - Leaving or re-entering a room now includes in-character farewells and greetings
+- Mobile layout: full-height flex layout on narrow screens, 16px input (no iOS zoom), safe-area padding, and a touch-only quick-command row (look, compass, up/down, examine/talk/ask prefixes, inventory)

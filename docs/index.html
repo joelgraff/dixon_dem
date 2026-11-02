@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16181a">
 <title>Dixon Parser</title>
 <style>
 body { font-family: Georgia, "Times New Roman", serif; background: #16181a; color: #d8d4c8; margin: 0; }
@@ -16,7 +17,23 @@ main { max-width: 64rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 #notes summary { cursor: pointer; color: #7ec8e3; text-transform: capitalize; }
 #notes details p { margin: 0.3rem 0 0.6rem; color: #b8b4a8; }
 #notes .empty { color: #6c685e; font-style: italic; }
-@media (max-width: 760px) { #layout { flex-direction: column; } #notes { width: auto; height: auto; max-height: 30vh; } }
+#quick { display: none; gap: 0.4rem; margin-top: 0.6rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+#quick button { flex: none; padding: 0.55rem 0.8rem; min-height: 2.5rem; }
+@media (pointer: coarse) { #quick { display: flex; } }
+@media (max-width: 760px) {
+  html, body { height: 100%; overscroll-behavior: none; }
+  body { -webkit-text-size-adjust: 100%; }
+  main { height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column; padding: 0.5rem 0.7rem calc(0.6rem + env(safe-area-inset-bottom)); padding-left: max(0.7rem, env(safe-area-inset-left)); padding-right: max(0.7rem, env(safe-area-inset-right)); }
+  h1 { margin: 0.3rem 0; }
+  #layout { flex: 1; min-height: 0; flex-direction: column; gap: 0.5rem; }
+  #play { flex: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; }
+  #output { flex: 1; height: auto; min-height: 0; padding: 0.4rem 0.2rem; font-size: 1rem; }
+  #notes { width: auto; height: auto; max-height: 20dvh; flex: none; }
+  #bar { margin-top: 0.5rem; }
+  #cmd { font-size: 16px; padding: 0.7rem; }
+  button { min-height: 2.75rem; }
+  #settings { max-height: 40dvh; overflow-y: auto; }
+}
 #head { display: flex; justify-content: space-between; align-items: center; }
 #gear { padding: 0.3rem 0.7rem; font-size: 0.9rem; }
 #settings { display: none; background: #202325; border: 1px solid #444; padding: 0.8rem 1rem; margin-bottom: 1rem; font-size: 0.95rem; }
@@ -47,8 +64,21 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
   <div id="play">
     <div id="output" aria-live="polite"></div>
     <div id="bar">
-      <input id="cmd" maxlength="40" autocomplete="off" spellcheck="false" placeholder="what do you do?" autofocus>
+      <input id="cmd" maxlength="40" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go" spellcheck="false" placeholder="what do you do?" autofocus>
       <button id="enter">Enter</button>
+    </div>
+    <div id="quick" aria-label="Quick commands">
+      <button data-run="look">look</button>
+      <button data-run="north">N</button>
+      <button data-run="south">S</button>
+      <button data-run="east">E</button>
+      <button data-run="west">W</button>
+      <button data-run="up">up</button>
+      <button data-run="down">down</button>
+      <button data-fill="examine ">examine</button>
+      <button data-fill="talk to ">talk</button>
+      <button data-fill="ask about ">ask</button>
+      <button data-run="inventory">inv</button>
     </div>
   </div>
   <aside id="notes" aria-label="Things you have looked at"></aside>
@@ -1179,6 +1209,13 @@ output.addEventListener && output.addEventListener("click", e => {
   if (settings.clicks && noun) { cmd.value = "examine " + noun; handle(); cmd.focus(); }
 });
 applySettings();
+const quick = document.getElementById("quick");
+if (quick && quick.addEventListener) quick.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.run) { cmd.value = b.dataset.run; handle(); }
+  else { cmd.value = b.dataset.fill; cmd.focus(); }
+});
 const enterButton = document.getElementById("enter");
 if (enterButton) enterButton.addEventListener("click", handle);
 
