@@ -1289,7 +1289,7 @@ if (gear && gear.addEventListener) gear.addEventListener("click", () => {
 });
 output.addEventListener && output.addEventListener("click", e => {
   const noun = e.target.dataset && e.target.dataset.noun;
-  if (settings.clicks && noun) { cmd.value = "examine " + noun; handle(); cmd.focus(); }
+  if (settings.clicks && noun) { cmd.value = (findExit(noun) && !findTarget(noun) ? "go " : "examine ") + noun; handle(); cmd.focus(); }
 });
 applySettings();
 const quick = document.getElementById("quick");
