@@ -32,8 +32,4 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - Things a player reads more than once (the guestbook) give a different small selection of entries each time and gain entries after the player has visited 1830.
 
 ## Reusable Elements and Future Hooks
-- Locked drawer in the museum desk: the Society's old county clerk desk has a middle drawer nobody has the key to. Reserved for a later discovery, possibly when the museum is empty or after a deeper historical change.
-- Guestbook: entries and the signature persist; later visits and later eras can add to them.
-- Pole shoe: found on the 1830 ferry and the object the museum's empty pedestal waits for.
-- Margaret: continuity character. Her knowledge changes as the museum changes.
-- Fog: the sign that history is near. Reusable at other river events.
+Ideas for later scenes, and details already planted in the demo, are kept in `future-hooks.md`. Whenever the user suggests something for later, or a scene plants a detail, add it there with where it lives now and what it could become.

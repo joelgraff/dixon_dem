@@ -43,6 +43,7 @@ When editing, propose the updated card in full and confirm before treating it as
 - Abandoned threads leave scars (world slightly colder later) rather than hard blocks.
 
 ## Resources
+- `references/future-hooks.md` — running ledger of planted details and ideas to reuse; update it whenever a hook is added
 - `references/interaction-design.md` — pacing, progressive discovery, natural verbs, conversation, future hooks
 - `references/lighthouse-scene.md` — active prototype scene card
 - `references/parser-rules.md` — full matching layers and failure categories

@@ -3,7 +3,7 @@
 Single fixed room used as the primary gauge for historical changes. Player starts and returns here for the full demo cycle. Empty displays and missing details cue unfinished threads. Contemporary town features provide secondary confirmation.
 
 ## Location
-Lee County Historical Society / Dixon Museum, present day.  
+Dixon Historic Center, 205 W 5th St (corner of 5th and Hennepin), Dixon, IL, present day.  
 Modest exhibit room focused on founding and early settlement. Fluorescent lights, glass cases, framed photos, one or more empty pedestals with faded outlines.
 
 ## Sensory
