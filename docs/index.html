@@ -183,7 +183,7 @@ const scenes = {
         desc: () => {
           if (!state.visited1830) return "A wall panel and a small case, titled THE FOUNDING OF DIXON. “John Dixon established a ferry and trading post on the Rock River in the early 1830s. The settlement that grew around it took his name.” The paragraph ends a line short, as though a sentence was left out.";
           if (state.hasLand && state.hasFerry) return "The panel has changed. A land-patent card is pinned beside it, and a new line notes that the ferry passed to a newcomer in 1830. The last glass case now holds a small brass token where there was only felt before.";
-          if (state.hasLand) return "The panel is the same, but a new land-patent card has been pinned beside it. It describes a sixty-acre ridge timber plot, claimant unknown.";
+          if (state.hasLand) return "The panel is the same, but a new land-patent card has been pinned beside it. It describes a thirty-two-acre ridge timber plot, claimant unknown.";
           if (state.hasFerry) return "The panel is the same, but a new line has been added: the ferry changed hands in 1830, to a newcomer whose name was not recorded.";
           return "The panel reads exactly as it did. If anything changed, it isn't here.";
         }
@@ -624,7 +624,7 @@ const scenes = {
           { keys: ["price", "ferry", "buy", "boat", "sell"], say: "Ogee says, “Three hundred dollars. Boat's sound. Rope's new last spring. Work it off if you want. Whiskey kegs to the settlement, twenty dollars a trip.”" },
           { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm. Wagon and mules in the barn.”" },
           { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
-          { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Set up across the river a few years back. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
+          { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Came up this spring and set up across the river. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
           { keys: ["land", "plot", "acre"], say: "Ogee says, “Land office is across the river, at Dixon's post. You'll want money.”" },
           { keys: ["fog", "mist", "east", "from", "where", "home"], say: "Ogee looks upriver for a long moment. “Comes and goes. Folks walk into it and don't always walk out the same.” He goes back to the plank." },
           { keys: ["river", "flood", "floods"], say: "“River does what it wants. Four times I've rebuilt this dock. Fifth time, I'll build it higher.”" },
@@ -688,10 +688,11 @@ const scenes = {
     npcs: {
       dixon: {
         name: "John Dixon", aliases: ["john"],
-        desc: "A tall man in a dark coat. A quiet trader who does fair business with the Sauk and Fox. He set up here a few years back.",
+        desc: "A tall man in a dark coat. A quiet trader who does fair business with the Sauk and Fox. He set up here this spring.",
         fallback: "Dixon considers. “Not my line. You might ask Ogee, or the clerk.”",
         topics: [
-          { keys: ["sauk", "treaty", "militia", "black hawk", "fort", "war", "1832", "lincoln"], say: "Dixon is quiet a moment. “Eighteen thirty-two. Black Hawk tried to come back east. Militia built Fort Dixon right here. Lincoln was a captain. Taylor had the regulars. Davis was a lieutenant. Never saw a battle. Just the aftermath.”" },
+          { keys: ["sauk", "treaty", "militia", "black hawk", "war", "saukenuk"], say: "Dixon is quiet a moment. “The Sauk and Fox winter west of the Mississippi and come back every spring to their corn at Saukenuk. The settlers there don't like it. The government says the old treaty sold the land, and Black Hawk says nobody sold it.” He looks at the river. “I'd rest easier if I thought that was finished.”" },
+          { keys: ["1832", "lincoln", "fort"], say: "Dixon gives you an odd look. “Eighteen thirty-two? That's two years off. I don't keep accounts that far ahead.”" },
           { keys: ["ogee", "ferry", "joseph"], say: "“Ogee had the ferry before I came. Good man. I'd buy it, if he'd sell.” He looks across the water. “He won't, yet.”" },
           { keys: ["land", "plot", "clerk", "acre"], say: "“Land's what I'd buy, if I were you. The clerk has the ridge plots. Go and see him.”" },
           { keys: ["trade", "pelts", "post", "whiskey"], say: "“Pelts, iron, cloth, and a little whiskey. People come a long way for the iron.”" },
@@ -704,18 +705,18 @@ const scenes = {
         reveals: ["map", "ledger"],
         fallback: "The clerk looks pained. “That isn't a land matter.”",
         topics: [
-          { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy"], say: "The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, sixty acres for forty dollars if you take it as-is. Land office fee is two more.”" },
-          { keys: ["map", "survey"], say: "The clerk taps it. “West ridge, sixty acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
+          { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy"], say: "The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, thirty-two acres for forty dollars at the government rate if you take it as-is. Land office fee is two more.”" },
+          { keys: ["map", "survey"], say: "The clerk taps it. “West ridge, thirty-two acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
           { keys: ["ledger", "name", "names"], say: "“Names and acreage. Most of it is paper and promises.”" }
         ]
       },
       settler: {
         name: "a young settler", aliases: ["eli", "boy", "young man"],
-        desc: "A nervous young man in patched homespun with an old percussion rifle across his knees. He glances at the river often.",
+        desc: "A nervous young man in patched homespun with an old flintlock rifle across his knees. He glances at the river often.",
         fallback: "Eli shrugs and looks at the river.",
         topics: [
-          { keys: ["stillman", "black hawk", "militia", "pa", "father", "war", "1832"], say: "Eli says, “My pa went with Stillman's men. Never came back from Sycamore Creek.” He looks at the rifle. “Dixon says to watch the river anyway.”" },
-          { keys: ["rifle", "gun"], say: "“Pa's old percussion piece. Shoots true, if you hold your breath.”" },
+          { keys: ["winnebago", "black hawk", "militia", "pa", "father", "war"], say: "Eli says, “My pa went out with the militia in '27, the Winnebago trouble. Took sick on the march and never came home.” He looks at the rifle. “Dixon says to watch the river anyway.”" },
+          { keys: ["rifle", "gun"], say: "“Pa's old flintlock. Shoots true, if you hold your breath.”" },
           { keys: ["river", "boats", "boat", "watch"], say: "“Dixon told me to watch for boats. Don't say nothing about people.”" }
         ]
       }
@@ -1215,10 +1216,12 @@ function run(input) {
   if ((m = input.match(/^(?:haul|load kegs?|deliver)(?:\s+(?:kegs?\s+)?(\d+|week))?$/))) {
     if (state.scene !== "ferry" && state.scene !== "farbank") return print("There's nothing here to haul.");
     const trips = m[1] === "week" ? 3 : Math.min(Math.max(parseInt(m[1] || "1", 10), 1), 6);
+    if (state.fog) return print("The fog is too thick to pole across. Ogee's hand stays on your sleeve.");
+    const boss = state.scene === "ferry" ? "Ogee" : "Dixon";
     const lines = [
-      "You load the kegs and pole across. Dixon counts them and marks the ledger.",
-      "Four kegs, a calm river, and a mule that does not want to board. Dixon marks the ledger.",
-      "The current is running high today. You pole hard, and Dixon marks the ledger without a word."
+      `You load the kegs and pole across. ${boss} counts them off and marks the tally.`,
+      `Four kegs, a calm river, and a mule that does not want to board. ${boss} marks the tally.`,
+      `The current is running high today. You pole hard, and ${boss} marks the tally without a word.`
     ];
     state.hauls = (state.hauls || 0) + trips;
     state.money += 20 * trips;

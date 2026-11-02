@@ -1,5 +1,8 @@
 # Changelog
 ## 2026-11-02
+- 1830 anachronisms removed (chapter stays in 1830, since the panel, marker and ferry sale all depend on it): Dixon now talks about the Sauk and Fox and Saukenuk, and treats 1832 as two years off; Eli's father died in the 1827 Winnebago trouble, and his rifle is a flintlock; Dixon "came up this spring".
+- Land price matches the government rate: thirty-two acres for forty dollars at $1.25 an acre.
+- Hauling names whoever is present (Ogee at his landing, Dixon on the far bank) and is blocked in the chapter-end fog.
 - Clicking a highlighted exit word ([path], [north], [south]) now walks that way instead of failing to examine it (only with click-to-examine on).
 - Playtest fixes: the empty museum case now matches the changed exhibit panel (brass ferry token) after the chapter; inventory shows 1830 money only while in 1830; `haul` has varied lines and accepts `haul week` / `haul N` (max 6); the ferry price message mentions hauling; `go water` gives a nudge during the fog build-up and after the planks appear. Re-entering 1830 after the ending stays allowed.
 ## 2026-11-01
