@@ -262,6 +262,12 @@ const scenes = {
           close: "You flip the cover shut, then open it again; it feels rude to hide it."
         }
       },
+      riverwalk: {
+        hidden: true,
+        aliases: ["river walk", "riverfront", "river", "walk"],
+        desc: "The riverfront walk Margaret mentioned, four blocks north up Hennepin. You can't see it from in here.",
+        verbs: { touch: "It's four blocks away." }
+      },
       window: {
         aliases: ["view", "pane"],
         desc: "A parking lot, the back of a neighbor's garage, and a power line with two crows on it. The light is going brown, and a thin haze sits low over the roofs.",
@@ -292,7 +298,7 @@ const scenes = {
         },
         fallback: "“Hm. I couldn't tell you. I'm afraid I couldn't say. You could try the front office on a weekday.”",
         topics: [
-          { keys: ["river", "walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], say: "“The riverwalk? It's the best of Dixon at this hour. Go up Hennepin, four blocks north. There's a marker there, Ogee's Ferry. Most people walk right past it.” She glances toward the window, though it only faces the parking lot. “The fog's been coming off the water all week. Odd, for the time of year.”" },
+          { keys: ["river", "walk", "riverwalk", "river walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], reveals: ["riverwalk"], say: "“The [riverwalk]? It's the best of Dixon at this hour. Go up Hennepin, four blocks north, past the courthouse. There's a marker there, Ogee's Ferry. Most people walk right past it.” She glances toward the window, though it only faces the parking lot. “The fog's been coming off the water all week. Odd, for the time of year.”" },
           { keys: ["ogee", "joseph"], say: "“Joseph Ogee. He ran a ferry here before anyone had heard of Dixon, by most accounts. Our panel gives him no line at all. The marker by the river does a little better.”" },
           { keys: ["dixon", "john", "founder", "founding", "exhibit", "panel", "ferry"], say: () => state.returned ? "“I'd have said that panel ended differently. Isn't that silly? Thirty-one years.”" : "“John Dixon, 1830. He took over the ferry, the panel says established, which is a tidy way to put it. If you want the untidy version, there's a marker on the river walk.”" },
           { keys: ["pedestal", "removed", "conservation", "card"], say: () => state.returned && state.hasLand && state.hasFerry ? "“That wasn't there this morning. It's an iron pole-shoe, off a flatboat. I couldn't tell you where it came from.” She doesn't sound as though she expects to be asked again." : "“Empty since before my time. Conservation, the card says. I've never once seen anyone conserve anything.” She smiles. “I've never known what stood there, either.”" },
@@ -302,7 +308,8 @@ const scenes = {
           { keys: ["guestbook", "book", "sign", "visitor"], say: "“Everyone signs, even the ones who say they won't. Some of them write the oddest things.”" },
           { keys: ["lincoln", "black hawk", "fort", "war", "militia", "1832"], say: "“Dixon's Ferry was the staging ground in 1832. Lincoln came through as a militia captain, and so did half the officers of the next war. They never fought a battle here. Just passed through.”" },
           { keys: ["label", "labels", "change", "changed", "different"], say: () => state.returned ? "She hesitates. “I'd rather not say it out loud. The labels have changed, and nobody's touched them. That's all.”" : "“Labels? I wouldn't think so. They've been the same since the nineties.”" },
-          { keys: ["margaret", "you", "yourself", "volunteer", "museum", "society"], say: "“Thirty-one years on Saturdays. Someone has to know where the stapler is.”" }
+          { keys: ["museum", "center", "centre", "historic center", "building", "hours", "collection", "place"], say: "“The Historic Center? It's small, but it's ours. The founding exhibit is what most people come for, and the cases hold what the county collected over the years. The photographs are mostly parades and floods. We're open Saturdays, and weekdays when someone can be spared.” She smiles. “If you want the rest of Dixon, the best of it is outside. Take the [riverwalk].”", reveals: ["riverwalk"] },
+          { keys: ["margaret", "you", "yourself", "volunteer"], say: "“Thirty-one years on Saturdays. Someone has to know where the stapler is.”" }
         ]
       }
     },
