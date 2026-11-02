@@ -63,6 +63,28 @@ function phoneText() {
   return "Battery at 61 percent, full signal. Nothing new.";
 }
 
+function guestEntries() {
+  const entries = [
+    "“Lovely little museum! — D. & S., Rockford.”",
+    "“Came for the Reagan boyhood home, stayed for the ferry. — Peoria.”",
+    "“My great-grandfather is in the 1912 photo, third from left. — K. Novak.”",
+    "“Cold in here. Good coffee, though.”",
+    "“Ohio sends its regards.”",
+    "“The little boy in the flood picture is my grandpa!”",
+    "“Where is the thing that goes on the pedestal?”",
+    "A child's drawing of a boat, signed with a crayon.",
+    "“Fog again today.” No name, just the date in pencil."
+  ];
+  if (state.visited1830) {
+    entries.push(
+      "In a hurried hand: “The river is not where it was.” It has been crossed out.",
+      "“Does anyone else hear knocking down by the water?”",
+      "“Ask Margaret about the labels.” Nobody has signed it."
+    );
+  }
+  return entries;
+}
+
 const scenes = {
   museum: {
     name: "Lee County Historical Society",
@@ -77,8 +99,7 @@ const scenes = {
     listen: "The lights hum. Somewhere in the back a clock ticks a little behind the others.",
     extras: {
       guestbook: "A [guestbook] lies open on the desk.",
-      emptycase: "At the end of the row, one [emptycase] has been dusted and left bare.",
-      mats: "Two frames at the end of the row hold only sun-bleached [mats].",
+      drawer: "The desk has a [drawer] with a small brass lock.",
       card: "A small typed [card] is propped against the pedestal."
     },
     objects: {
@@ -94,19 +115,14 @@ const scenes = {
       },
       cases: {
         aliases: ["case", "glass", "glass cases", "display case"],
-        desc: "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. Toward the end of the row, one case looks different from the others.",
+        desc: "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. The last case in the row is an [empty case], the felt brushed and the glass wiped.",
         reveals: ["emptycase"],
         verbs: { open: "The cases are locked. The little brass keyholes are clean, as if someone opens them often." }
       },
       emptycase: {
         hidden: true,
-        aliases: ["empty case", "bare case", "last case"],
-        desc: "The felt has been brushed and the glass wiped, but there is nothing on it and no card. Whatever belonged here has not come back."
-      },
-      mats: {
-        hidden: true,
-        aliases: ["mat", "bleached mats", "empty frames", "blank frames", "frames"],
-        desc: "Plain frames with a clean pale rectangle in each where a print used to hang. The hooks are still in the wall."
+        aliases: ["empty case", "bare case", "last case", "empty"],
+        desc: "A case like the others, with a card holder and nothing in it. The card holder is empty too. Somebody dusts it regularly, all the same."
       },
       card: {
         hidden: true,
@@ -116,12 +132,11 @@ const scenes = {
       photos: {
         aliases: ["photo", "photographs", "pictures", "frames", "wall of photos"],
         desc: () => {
-          let text = "Mostly the twentieth century: a parade on Galena Avenue, the theatre marquee lit at night, a flooded riverbank with men in rowboats. The last two frames in the row look wrong in a way you can't place from here.";
-          if (state.returned && state.hasFerry) text += " One of them is no longer empty. A faded print shows a flatboat and a figure at its pole. The label says: Ferry operator, 1830s, name unknown.";
-          else if (state.returned && state.hasLand) text += " One of them is no longer empty. A survey plat of a ridge lot, labeled Unknown claimant.";
+          let text = "Mostly the twentieth century: a parade on Galena Avenue, the theatre marquee lit at night, a flooded riverbank with men in rowboats. The last two frames in the row are empty, just bare mats.";
+          if (state.returned && state.hasFerry) text = text.replace("The last two frames in the row are empty, just bare mats.", "One of the last two frames, empty before, now holds a faded print of a flatboat and a figure at its pole. The label says: Ferry operator, 1830s, name unknown.");
+          else if (state.returned && state.hasLand) text = text.replace("The last two frames in the row are empty, just bare mats.", "One of the last two frames, empty before, now holds a survey plat of a ridge lot, labeled Unknown claimant.");
           return text;
-        },
-        reveals: ["mats"]
+        }
       },
       pedestal: {
         aliases: ["empty", "stand", "plinth"],
@@ -137,21 +152,30 @@ const scenes = {
       },
       desk: {
         aliases: ["volunteer desk", "table", "chair"],
-        desc: () => "A tidy desk: a lanyard, a roll of mints, a cold cup of coffee with a lipstick ring on the lid" + (state.returned ? ", and a hand-lettered sign reading ASK ABOUT THE LATEST LABELS" : "") + ". A [guestbook] lies open at the corner nearest the door.",
-        reveals: ["guestbook"],
+        desc: () => "A tidy desk, older than everything around it: a lanyard, a roll of mints, a cold cup of coffee with a lipstick ring on the lid" + (state.returned ? ", and a hand-lettered sign reading ASK ABOUT THE LATEST LABELS" : "") + ". A [guestbook] lies open at the corner nearest the door, and below the blotter the middle [drawer] has a small brass lock.",
+        reveals: ["guestbook", "drawer"],
         verbs: { sit: "You glance at the chair. Margaret looks at you over her glasses and you think better of it." }
+      },
+      drawer: {
+        hidden: true,
+        aliases: ["middle drawer", "lock", "keyhole"],
+        desc: "A shallow middle drawer with a small brass lock, much older than the rest of the desk's hardware. The keyhole is worn bright.",
+        verbs: {
+          open: "Locked. The other drawers slide out easily, full of staples and brochures, but not this one.",
+          push: "It doesn't budge.",
+          search: "The other drawers hold staples, brochures, and a stapler. This one is locked."
+        }
       },
       guestbook: {
         hidden: true,
         aliases: ["book", "register", "guest book", "log"],
         desc: () => {
-          let text = state.visited1830
-            ? "The newest entries are in a hurried hand. Someone has written “the river is not where it was,” then crossed it out. Other visitors are from Rockford, Peoria, and Ohio."
-            : "Visitors from Rockford, Peoria, and Ohio. The last line, in pencil, has only a date and the words “fog again today.”";
+          const pool = guestEntries();
+          const picks = pool.sort(() => Math.random() - 0.5).slice(0, 3);
+          let text = "You page back through the recent entries. " + picks.join(" ");
           if (state.signed) text += " Your own name is there, in your own hand, under the date.";
-          return text + " A [pen] on a bead chain hangs beside it.";
+          return text + " A pen on a bead chain hangs beside it, for anyone who wants to leave their name.";
         },
-        reveals: ["pen"],
         verbs: {
           sign: () => {
             if (state.signed) return "You've already signed. Your name sits there, a little smaller than you remembered writing it.";
@@ -162,15 +186,9 @@ const scenes = {
           close: "You flip the cover shut, then open it again; it feels rude to hide it."
         }
       },
-      pen: {
-        hidden: true,
-        aliases: ["chain", "bead chain", "ballpoint"],
-        desc: "A cheap ballpoint chained to the desk so it can't wander. The chain is the old bead kind.",
-        verbs: { take: "The chain is only so long. It's not going anywhere, and neither is the pen.", use: () => scenes.museum.objects.guestbook.verbs.sign() }
-      },
       window: {
         aliases: ["view", "pane"],
-        desc: "Past the lot and a row of rooftops, the river is a pewter strip. A low mist lies on it, though the afternoon is warm and nothing else out there is hazy. A footpath threads along the bank below the lot, the kind people walk dogs on.",
+        desc: "A parking lot, the back of the tire shop, and a power line with two crows on it. The light is going brown, and a thin haze sits low over the roofs.",
         verbs: {
           open: "It's painted shut. The sash hasn't moved in decades.",
           touch: "The glass is cool and faintly damp on the outside.",
@@ -200,10 +218,11 @@ const scenes = {
           { keys: ["river", "walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], say: "“The riverwalk? It's the best of Dixon at this hour. Down the hill past the tire shop. There's a marker there, Ogee's Ferry. Most people walk right past it.” She looks at the window. “The fog's been coming off the water all week. Odd, for the time of year.”" },
           { keys: ["ogee", "joseph"], say: "“Joseph Ogee. He ran a ferry here before anyone had heard of Dixon, by most accounts. Our panel gives him no line at all. The marker by the river does a little better.”" },
           { keys: ["dixon", "john", "founder", "founding", "exhibit", "panel", "ferry"], say: () => state.returned ? "“I'd have said that panel ended differently. Isn't that silly? Thirty-one years.”" : "“John Dixon, 1830. He took over the ferry, the panel says established, which is a tidy way to put it. If you want the untidy version, there's a marker on the river walk.”" },
-          { keys: ["pedestal", "removed", "conservation", "card"], say: () => state.returned && state.hasLand && state.hasFerry ? "“That wasn't there this morning. It's an iron pole-shoe, off a flatboat. I couldn't tell you where it came from.” She doesn't sound as though she expects to be asked again." : "“Empty since before my time. Conservation, the card says. I've never once seen anyone conserve anything.” She lowers her voice. “Between us, I've never known what stood there.”" },
+          { keys: ["pedestal", "removed", "conservation", "card"], say: () => state.returned && state.hasLand && state.hasFerry ? "“That wasn't there this morning. It's an iron pole-shoe, off a flatboat. I couldn't tell you where it came from.” She doesn't sound as though she expects to be asked again." : "“Empty since before my time. Conservation, the card says. I've never once seen anyone conserve anything.” She smiles. “I've never known what stood there, either.”" },
           { keys: ["photo", "frames", "mats", "frame", "picture"], say: () => state.returned && (state.hasLand || state.hasFerry) ? "“One of the empty frames has something in it now. Nobody told me.”" : "“Those last two came back from the framer's in 'ninety-eight with nothing in them. Nobody ever filled them in.”" },
-          { keys: ["case", "cases", "arrowhead", "locked", "key"], say: "“Locked, since 1998. The key's with the board. The empty one at the end I dust every Saturday, out of habit.”" },
-          { keys: ["guestbook", "book", "sign", "visitor"], say: "“Everyone signs, even the ones who say they won't. Some write the oddest things.”" },
+          { keys: ["desk", "drawer", "lock", "key"], reveals: ["drawer"], say: "“That desk came out of the old county clerk's office when they cleared it in the seventies. It's the nicest thing in the building and nobody will admit to wanting it. The middle drawer's been locked as long as I've been here. If there was ever a key, it went missing before I did.”" },
+          { keys: ["case", "cases", "arrowhead", "locked"], say: "“Locked, since 1998. The key's with the board. The empty one at the end I dust every Saturday, out of habit.”" },
+          { keys: ["guestbook", "book", "sign", "visitor"], say: "“Everyone signs, even the ones who say they won't. Some of them write the oddest things.”" },
           { keys: ["lincoln", "black hawk", "fort", "war", "militia", "1832"], say: "“Dixon's Ferry was the staging ground in 1832. Lincoln came through as a militia captain, and so did half the officers of the next war. They never fought a battle here. Just passed through.”" },
           { keys: ["label", "labels", "change", "changed", "different"], say: () => state.returned ? "She hesitates. “I'd rather not say it out loud. The labels have changed, and nobody's touched them. That's all.”" : "“Labels? I wouldn't think so. They've been the same since the nineties.”" },
           { keys: ["margaret", "you", "yourself", "volunteer", "museum", "society"], say: "“Thirty-one years on Saturdays. Someone has to know where the stapler is.”" }

@@ -8,6 +8,11 @@ Verb optionally followed by a noun phrase. Core verbs: look, examine, go, take, 
 2. Fuzzy matching with confidence bands — exact matches resolve immediately. A unique match one edit away resolves silently; a tie asks which object the player means. Names two edits away offer the two closest candidates. Short names under four characters are not fuzzy-matched.
 3. Verb softening — get/grab/pick up → take; check/inspect/study → examine. Small synonym table per verb.
 
+4. Discovery gating — objects marked `hidden` are not valid targets until another object's `reveals` list (or an NPC topic) exposes them.
+5. Object verbs — a verb table (sign, read, sit, touch, push, open, close, climb, smell, taste, search, drink, board, call, use, take) maps synonyms to a canonical verb. An object's own `verbs` entry wins; otherwise a mild default reply is used.
+6. Leading prepositions — "look out/through/in/under/behind the window" strip to the noun.
+7. Conversation — `ask <npc> about <topic>` matches keywords in the NPC's topic list; with one NPC present the name may be omitted. Unmatched topics get that NPC's own fallback line.
+
 ## Failure Categories
 - Unknown verb: "you don't know how to do that" + nudge toward available verbs
 - Unknown noun in known verb context: "you don't see that here"

@@ -7,7 +7,15 @@ Lee County Historical Society / Dixon Museum, present day.
 Modest exhibit room focused on founding and early settlement. Fluorescent lights, glass cases, framed photos, one or more empty pedestals with faded outlines.
 
 ## Sensory
-Quiet. Old paper and floor wax. Volunteer desk empty on first visit. Window view of the river if looked for. Full phone signal (safe present-day space; phone checks here do not drain historical battery).
+Quiet. Old paper and floor wax, the hum of fluorescent tubes. A volunteer (Margaret) works a crossword at the desk. The window shows only the parking lot, rooftops and wires; the river is not visible from inside. Full phone signal (safe present-day space; phone checks here do not drain historical battery).
+
+## Discoverable Details (demo)
+Examining reveals further nouns; none are listed up front.
+- Desk → guestbook (random entries each read, more after 1830, the player can sign it; the pen is part of its description) and a locked middle drawer (future hook: the key is not available yet).
+- Cases → the dusted empty case at the end of the row.
+- Pedestal → the typed card ("temporarily removed for conservation", with a half-erased "ask Margaret").
+- Photos → the last two frames are empty; Margaret explains them. After the return one frame is filled.
+- Margaret answers `ask about` topics (river walk, Ogee, Dixon and the founding, pedestal, cases, guestbook, desk, Lincoln and 1832). Asking about the exhibit or the river is what nudges the player toward the river walk.
 
 ## Objects / Interactives
 - **Founding exhibit** (wall panel + small case)  
@@ -52,7 +60,7 @@ Light, non-overt advantages possible later (knowledge of modern sources, local c
 
 ## Demo Cycle (minimal)
 1. Start in museum. Examine founding exhibit (generic) and note empties.  
-2. Leave, reach river fog, shift into 1830 ferry scene.  
+2. Leave the museum, walk down to the river walk, then the water's edge. Fog thickens over several turns; a voice calls from the water and the ferry landing opens.  
 3. Complete or abandon 1–2 non-trivial actions (name the town, buy land, buy ferry, or leave Dixon’s fate altered).  
 4. Fog offers exit on its schedule.  
 5. Return to museum. Exhibit and/or pedestals reflect the result. Optional secondary check in town.  
