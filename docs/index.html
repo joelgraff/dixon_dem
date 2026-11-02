@@ -823,7 +823,9 @@ function clarify(found) {
 const DIRS = { n: "north", s: "south", e: "east", w: "west", u: "up", d: "down" };
 
 function findExit(name) {
-  name = name.toLowerCase().trim().replace(/^(the|to|toward|towards|into|through)\s+/, "");
+  name = name.toLowerCase().trim();
+  let prev;
+  do { prev = name; name = name.replace(/^(?:the|to|toward|towards|into|through|down|up|along|onto|on|over|across|back to|back)\s+/, ""); } while (name !== prev && name);
   name = DIRS[name] || name;
   return scene().exits.find(e => e.names.includes(name));
 }
@@ -1115,7 +1117,7 @@ function run(input) {
     return state.scene === "riverbank" && state.turnsHere >= 6 ? act("call", "voice") : print(VERB_DEFAULT.call);
   }
   if ((m = input.match(/^ask\s+(.+)$/))) return ask(m[1]);
-  if ((m = input.match(/^(?:go|walk|head|enter|move)(?: to| toward| towards| into| through)?\s+(?:the\s+)?(.+)$/))) {
+  if ((m = input.match(/^(?:go|walk|head|enter|move|descend|ascend|climb down|climb up|run|step)(?: to| toward| towards| into| through)?\s+(?:the\s+)?(.+)$/))) {
     const exit = findExit(m[1]);
     return exit ? move(exit) : print("You can't go that way.");
   }
