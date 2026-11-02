@@ -1,5 +1,7 @@
 # Changelog
 ## 2026-11-02
+- Broken-present premise implemented: the opening town is "Ogee's Ferry" (museum name, panel, marker and Reagan plaque change to Dixon once fixed); Margaret's crossword (seven down: "Founder of the ferry town") is her tell and mission; she points you to the river.
+- 1830 reworked: Dixon has $260 but a downriver speculator pushed Ogee's price to $360, so Dixon is $100 short. Earn it by hauling and `give Dixon $N` (or `give Dixon all`); buying the ferry yourself ($360) is the failed fix, which leaves the present worse and rewinds 1830 on the next visit. The ridge claim is optional (Dixon warns once before the deal ends the chapter). No deadline, no timer.
 - Design docs only (no game changes yet): broken-present premise, Margaret as mission-giver, fog as the only travel mechanism, wrongness ledger. Updated `story-spine.md` and `references/future-hooks.md`.
 - History alignment: the land office clerk is now a surveyor laying out the Galena road who writes up claims (no government land sales until the 1830s migration); the museum shows a surveyor's claim receipt; Eli is a young teamster bound for the Galena diggings; added lead wagons at Ogee's landing, an Ogee's Ferry mail pouch at Dixon's post, and a topic on Dixon's family of seven; NPC prompts use display names.
 - Ogee, Dixon, the clerk and `price` now acknowledge what you have already bought (ferry or ridge plot) instead of repeating the sales pitch.
