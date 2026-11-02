@@ -360,6 +360,11 @@ const scenes = {
     name: "Riverside walk",
     look: () => "The riverfront is a broad public space of pale paving and limestone walls, running along the south bank between Peoria Avenue and Galena Avenue, the kind of place that fills up for the farmers market and the Petunia Festival concerts, though tonight it is nearly empty. A green iron [railing] follows the curve of the wall above the water, and a stone [pavilion] stands a little way along, with a [bench] facing the river. A bronze [statue] of a man on a horse rises from the plaza nearby, and between them a green historical [marker] stands on a post. The [river] is wide and brown and slow, and a long raft of mist lies on it. At the far end of the railing, a wide [stairway] of worn steps leads down to the bank. Behind you, Hennepin [street] runs south through downtown, back toward the Historic Center.",
     listen: "Water against stone. A halyard clinking, though there are no boats.",
+    onTick: () => {
+      const t = state.turnsHere;
+      if (t === 3) print("The mist on the water has crept toward the wall. Somewhere below the railing, the river laps at the lowest steps, a sound you didn't notice a minute ago.");
+      if (t === 6) print("The evening has gone very quiet. Even the fountains seem to have stopped, and the only thing still moving is the river, slowly, past the foot of the stairs.");
+    },
     objects: {
       marker: {
         aliases: ["sign", "historical marker", "post"],
@@ -419,12 +424,12 @@ const scenes = {
       },
       river: {
         aliases: ["water", "rock river", "mist"],
-        desc: "Broad, brown, and slow. The mist lies in a single bank on the water as if it were being kept there. The far shore has no buildings that you can see. A [stairway] goes down to the water's edge.",
+        desc: "Broad, brown, and slow. The mist lies in a single bank on the water as if it were being kept there. The far shore has no buildings that you can see, only mist. The [stairway] goes down to the water's edge, and the marker says the old ferry crossed at about this spot.",
         verbs: { touch: "You can't reach it from the walk.", drink: "You'd rather not.", smell: "Mud, iron, cut grass. Something older underneath." }
       },
       stairway: {
         aliases: ["stairs", "steps", "stair"],
-        desc: "Concrete steps, worn in the middle, going down to a gravel shelf by the water.",
+        desc: "Wide concrete steps, worn in the middle, curving down to a gravel shelf by the water. The lowest few vanish into the mist.",
         verbs: { climb: "You'd have to go down, not up.", touch: "Damp concrete, worn smooth in the middle by a lot of feet." }
       }
     },
