@@ -429,7 +429,7 @@ const scenes = {
       },
       stairway: {
         aliases: ["stairs", "steps", "stair"],
-        desc: "Wide concrete steps, worn in the middle, curving down to a gravel shelf by the water. The lowest few vanish into the mist.",
+        desc: "Wide concrete steps, worn in the middle, curving down to the lower walkway beside the water. The lowest few vanish into the mist.",
         verbs: { climb: "You'd have to go down, not up.", touch: "Damp concrete, worn smooth in the middle by a lot of feet." }
       }
     },
@@ -451,11 +451,11 @@ const scenes = {
       const stage = state.turnsHere;
       if (stage >= 6) return "The mist has swallowed everything. There is no stairway behind you that you can see, no city sound at all; only the lap of water and a dull, rhythmic knock out in the white. Something like a [voice] carries across the river. The [water] is just in front of you, and the way [back] is lost in the grey.";
       if (stage >= 4) return "The mist is up around your knees and rising. The traffic noise from the street has gone. Out on the river, a long way off, wood knocks against wood, steady as a slow pulse.";
-      if (stage >= 2) return "The mist has thickened. The far bank is gone, and the walk above you is only a pale line. The gravel is dark with wet.";
-      return "A gravel shelf at the foot of the steps, strewn with [driftwood] and a sodden cigarette pack. The [water] is a few feet away, moving slowly. Mist hangs low over it, and the [stairway] you came down is behind you.";
+      if (stage >= 2) return "The mist has thickened. The far bank is gone, and the walk above you is only a pale line. The concrete is dark with wet.";
+      return "A broad concrete walkway runs along the water at the foot of the steps, hemmed in by a curved limestone [wall] on one side and a low green [seawall] railing on the other. Upstream, a bridge crosses the river, and a steel [tower] carries power lines over the bank. A little [driftwood] has washed up in the corners. The [water] slides past a few feet away, mist hanging low over it, and the [stairway] you came down is behind you.";
     },
     extras: {
-      ridges: "Two shallow [ridges] run through the gravel, from the water toward the steps."
+      ridges: "Two shallow [ridges] run through the silt on the lowest step, from the water toward the walk."
     },
     listen: "Water. Nothing else, and then, for a moment, something else.",
     onTick: () => {
@@ -466,26 +466,41 @@ const scenes = {
     },
     objects: {
       water: {
-        aliases: ["river", "mist", "fog", "shelf", "gravel"],
+        aliases: ["river", "mist", "fog", "bank", "shore"],
         desc: () => state.turnsHere >= 4
           ? "The river looks the same and wrong at once. The current runs a little faster than it should, and the far side is just a pale wall."
-          : "Brown water slides past. The gravel at your feet is combed into shallow [ridges], as though something has recently been dragged across it.",
+          : "Brown water slides past. At the end of the walkway the lowest broad step runs into the water, and the silt left on it is combed into shallow [ridges], as though something has recently been dragged across it.",
         reveals: ["ridges"],
         verbs: {
           touch: () => state.turnsHere >= 4 ? "The water is colder than it should be on a warm evening, and it pulls at your fingers." : "Cold, and slow. It leaves your fingers smelling of iron.",
           drink: "You'd rather not. It looks like the Rock River in any century.",
           smell: "Mud, iron, and under it something like woodsmoke.",
-          search: () => { reveal(["ridges"]); return "You walk the edge of the gravel. The only marks are the two parallel [ridges] running up toward the steps."; }
+          search: () => { reveal(["ridges"]); return "You walk the length of the lower walk. The only marks are the two parallel [ridges] in the silt on the lowest step."; }
         }
       },
       ridges: {
         hidden: true,
         aliases: ["ridge", "grooves", "marks", "drag marks"],
-        desc: "Two parallel grooves, a boat's width apart, pressed into the gravel from the waterline up to the first step. They look recent. They look old. You can't make them settle on either."
+        desc: "Two parallel grooves, a boat's width apart, pressed into the silt from the waterline up to the walk. They look recent. They look old. You can't make them settle on either."
+      },
+      wall: {
+        aliases: ["limestone", "limestone wall", "stone", "stonework"],
+        desc: "Rough-cut limestone in warm tan and grey, laid in courses and curving up to the railing of the riverfront above. The upper walk overhangs it like a shelf. The stone is cool, and a little damp.",
+        verbs: { touch: "Cool, rough stone, beaded with damp.", climb: "There's nothing to hold on to." }
+      },
+      seawall: {
+        aliases: ["railing", "rail", "fence", "concrete wall"],
+        desc: "A low concrete wall with a green iron railing along its top, between the walk and the water. Beyond it the river is only a few feet down.",
+        verbs: { touch: "Cold, damp iron.", climb: "The river's a long way to fall into, and you don't need to." }
+      },
+      tower: {
+        aliases: ["pylon", "power lines", "lines", "bridge", "transmission tower"],
+        desc: "A lattice steel tower stands on the bank, carrying power lines across the water. Beyond it the bridge is a low grey line in the mist.",
+        verbs: { climb: "No." }
       },
       driftwood: {
-        aliases: ["wood", "cigarette pack", "pack", "bottle"],
-        desc: "Silver driftwood, a plastic bottle, a pack of cigarettes soaked through. Nothing you'd want.",
+        aliases: ["wood", "bottle", "litter"],
+        desc: "Silver driftwood and a plastic bottle, washed into the corner of the wall by the last high water. Nothing you'd want.",
         verbs: { search: "You turn over a few pieces. Nothing you'd want.", take: "None of it is worth carrying." }
       },
       stairway: {
@@ -506,7 +521,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["stairway", "stairs", "steps", "stair", "back", "up", "walk", "street", "hennepin", "riverfront", "plaza", "statue", "path"], to: "riverpath", text: "You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces." },
-      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.turnsHere >= 6, blocked: "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it.", text: "You step forward onto the gravel, and the gravel becomes planking. The knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
+      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.turnsHere >= 6, blocked: "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it.", text: "You step forward to the edge of the water, and the concrete under your feet becomes planking. The knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
     ]
   },
 
@@ -592,7 +607,7 @@ const scenes = {
       { names: ["west", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
       { names: ["south"], blocked: "The gravel shelf gives way to dense forest. There's no path that way, and no reason to push into it yet." },
       { names: ["east"], blocked: "The bank bends away beneath limestone bluffs. Too steep to follow from here." },
-      { names: ["fog", "mist", "back", "return"], to: "riverbank", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to gravel.", onArrive: () => { state.returned = true; } }
+      { names: ["fog", "mist", "back", "return"], to: "riverbank", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to concrete.", onArrive: () => { state.returned = true; } }
     ]
   },
 
