@@ -354,6 +354,10 @@ const scenes = {
         aliases: ["brass plate", "inscription"],
         desc: "FOR HARRY, WHO KNEW THE RIVER. 1931–2009. Below it someone has scratched, with a key or a nail: it remembers."
       },
+      street: {
+        aliases: ["hennepin", "hennepin street", "road", "downtown"],
+        desc: "Hennepin Street runs south from the riverfront through downtown, past the courthouse, toward the Historic Center. Four blocks, an easy walk."
+      },
       railing: {
         aliases: ["rail", "fence"],
         desc: "Painted iron, cold and a little wet. Past it the bank drops away to riprap and the water. Down at the base of the wall, an old iron [ringbolt] is set into the stone.",
@@ -384,7 +388,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["street", "hennepin", "back", "up", "uphill", "south"], to: "street", text: "You climb back up to the street." },
+      { names: ["street", "hennepin", "back", "up", "uphill", "south"], to: "street", text: "You walk back south along Hennepin, through downtown and past the courthouse, to the Historic Center's block." },
       { names: ["stairway", "stairs", "steps", "stair", "bank", "down", "water", "river"], to: "riverbank", text: "You go down the worn steps, one hand on the cold rail.", reset: true }
     ]
   },
