@@ -935,7 +935,7 @@ function chapterEnd() {
 function followOgee() {
   if (!state.fog) return print("There's nobody to follow right now.");
   state.returned = true; state.shift = 0; state.fog = false;
-  arrive("riverbank", "You take Ogee's arm and walk blind through the white, step by step. His hand lets go of your sleeve somewhere along the way. The planks give way to concrete, the knocking fades, and the city sounds come back one by one.");
+  arrive("riverbank", "You take Ogee's arm and walk blind through the white, step by step. His hand lets go of your sleeve somewhere along the way. The planks give way to concrete, the knocking fades, and the city sounds come back one by one. The museum is a short walk; Margaret will want to hear about it. (Say “go to museum”.)");
 }
 
 function arrive(id, text, onArrive) {
@@ -1211,6 +1211,10 @@ function ask(rest) {
 
 function run(input) {
   let m;
+  if (state.returned && !state.fog && !state.shift && (state.scene === "riverbank" || state.scene === "riverpath")
+      && /^(?:(?:go|walk|head|return|run|get|come)\s+)?(?:(?:back\s+)?to\s+)?(?:the\s+)?(?:museum|historic center|center|margaret)$/.test(input)) {
+    return arrive("museum", "You make your way back to the Historic Center, the river walk and Hennepin passing in a blur of ordinary evening. Margaret glances up from her desk.");
+  }
   if (/^(look|l)( around)?$/.test(input)) return look();
   if ((m = input.match(/^(?:pick up|take|get|grab)\s+(.+)$/))) return act("take", m[1]);
   if ((m = input.match(/^(?:look at|examine|x|inspect|check|study|look in|look under|look behind)\s+(.+)$/))) return examine(m[1]);

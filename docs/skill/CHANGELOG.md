@@ -1,5 +1,6 @@
 # Changelog
 ## 2026-11-02
+- After the first return from 1830, "go to museum" (also "back to the museum", "museum") takes you straight back from the water's edge or the riverfront; the return text mentions it.
 - Revisiting 1830 after Dixon buys the ferry: Ogee is gone, a hired hand runs the landing, the landing is renamed Dixon's, the ferry is no longer for sale; `give Dixon` without an amount prompts; `listen` accepts state-dependent text.
 - Broken-present premise implemented: the opening town is "Ogee's Ferry" (museum name, panel, marker and Reagan plaque change to Dixon once fixed); Margaret's crossword (seven down: "Founder of the ferry town") is her tell and mission; she points you to the river.
 - 1830 reworked: Dixon has $260 but a downriver speculator pushed Ogee's price to $360, so Dixon is $100 short. Earn it by hauling and `give Dixon $N` (or `give Dixon all`); buying the ferry yourself ($360) is the failed fix, which leaves the present worse and rewinds 1830 on the next visit. The ridge claim is optional (Dixon warns once before the deal ends the chapter). No deadline, no timer.
