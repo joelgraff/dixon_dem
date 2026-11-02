@@ -628,8 +628,7 @@ const scenes = {
       { names: ["north", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
       { names: ["west", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
       { names: ["south"], blocked: "The gravel shelf gives way to dense forest. There's no path that way, and no reason to push into it yet." },
-      { names: ["east"], blocked: "The bank bends away beneath limestone bluffs. Too steep to follow from here." },
-      { names: ["fog", "mist", "back", "return"], to: "riverbank", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to concrete.", onArrive: () => { state.returned = true; state.shift = 0; } }
+      { names: ["east", "fog", "mist", "back", "return"], to: "riverbank", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to concrete.", onArrive: () => { state.returned = true; state.shift = 0; } }
     ]
   },
 
