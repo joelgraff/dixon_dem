@@ -134,8 +134,8 @@ const scenes = {
     look: () => {
       let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit.\n\n";
       text += state.returned
-        ? "A [volunteer] in a cardigan sits at the [desk] by the entrance, frowning across the room at the exhibit panel. "
-        : "A [volunteer] in a cardigan sits at the [desk] by the entrance, a pencil moving slowly over a crossword. ";
+        ? "A [volunteer] in a cardigan sits behind the [desk] by the entrance, frowning across the room at the exhibit panel. "
+        : "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a pencil moving slowly over a crossword. ";
       text += "Late light comes through the [window] the color of weak tea, and the glass door to the street has been propped open.";
       return text;
     },
@@ -232,7 +232,7 @@ const scenes = {
       },
       window: {
         aliases: ["view", "pane"],
-        desc: "A parking lot, the back of the tire shop, and a power line with two crows on it. The light is going brown, and a thin haze sits low over the roofs.",
+        desc: "A parking lot, the back of a barbershop, and a power line with two crows on it. The light is going brown, and a thin haze sits low over the roofs.",
         verbs: {
           open: "It's painted shut. The sash hasn't moved in decades.",
           touch: "The glass is cool and faintly damp on the outside.",
@@ -246,7 +246,7 @@ const scenes = {
         aliases: ["docent", "woman", "lady", "margaret"],
         desc: () => state.returned
           ? "Margaret, by her name tag: sixty or so, reading glasses pushed up into grey hair. She is looking at the exhibit panel with her head tilted, the way you look at a picture hung slightly crooked."
-          : "A woman in a cardigan, sixty or so, reading glasses pushed up into grey hair. Her name tag says MARGARET. She fills in the crossword with the patience of long habit.",
+          : "A woman in a cardigan, sixty or so, reading glasses pushed up into grey hair. Her name tag says MARGARET. She sits at the [desk] working the crossword with the patience of long habit.",
         talk: () => {
           if (state.returned) {
             return state.volunteerSpoke === "back"
@@ -255,11 +255,12 @@ const scenes = {
           }
           if (state.volunteerSpoke) return "Margaret glances up from the crossword and smiles. “Mm?”";
           state.volunteerSpoke = true;
-          return "“Hello there. Margaret. Saturdays, and whenever the board forgets to find someone else.” She tips her head at the guestbook, then at the window, where the light has gone soft and brown. “Shame to be indoors on an evening like this, really.”";
+          reveal(["guestbook"]);
+          return "“Oh, hello! I'm Margaret. I'm here Saturdays, mostly.” She sets down her pencil. “Feel free to look around. And if you like, sign the [guestbook] before you go. We like to know who's been in.”";
         },
-        fallback: "“Hm. I couldn't tell you. The board might know, but they're only in on Tuesdays.”",
+        fallback: "“Hm. I couldn't tell you. I'm afraid I couldn't say. You could try the front office on a weekday.”",
         topics: [
-          { keys: ["river", "walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], say: "“The riverwalk? It's the best of Dixon at this hour. Down the hill past the tire shop. There's a marker there, Ogee's Ferry. Most people walk right past it.” She looks at the window. “The fog's been coming off the water all week. Odd, for the time of year.”" },
+          { keys: ["river", "walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], say: "“The riverwalk? It's the best of Dixon at this hour. Go up Hennepin, four blocks north. There's a marker there, Ogee's Ferry. Most people walk right past it.” She glances toward the window, though it only faces the parking lot. “The fog's been coming off the water all week. Odd, for the time of year.”" },
           { keys: ["ogee", "joseph"], say: "“Joseph Ogee. He ran a ferry here before anyone had heard of Dixon, by most accounts. Our panel gives him no line at all. The marker by the river does a little better.”" },
           { keys: ["dixon", "john", "founder", "founding", "exhibit", "panel", "ferry"], say: () => state.returned ? "“I'd have said that panel ended differently. Isn't that silly? Thirty-one years.”" : "“John Dixon, 1830. He took over the ferry, the panel says established, which is a tidy way to put it. If you want the untidy version, there's a marker on the river walk.”" },
           { keys: ["pedestal", "removed", "conservation", "card"], say: () => state.returned && state.hasLand && state.hasFerry ? "“That wasn't there this morning. It's an iron pole-shoe, off a flatboat. I couldn't tell you where it came from.” She doesn't sound as though she expects to be asked again." : "“Empty since before my time. Conservation, the card says. I've never once seen anyone conserve anything.” She smiles. “I've never known what stood there, either.”" },
@@ -280,12 +281,12 @@ const scenes = {
 
   street: {
     name: "West Fifth Street at Hennepin",
-    look: () => "The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner], and further along a [sign] for a tire shop flickers on. The [museum] door stands behind you. Downhill, between the buildings, a strip of [river] shows silver, and there is a [path] there where the pavement turns to riverside walk.",
+    look: () => "The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner], and further along a [sign] for a barbershop flickers on. The [museum] door stands behind you. Hennepin runs north, and four blocks up, past the last of the buildings, is the [river], with a [path] along it where the pavement turns to riverside walk.",
     listen: "A truck downshifts somewhere. Under it, very faintly, the sound of moving water.",
     objects: {
       sign: {
-        aliases: ["tire shop", "shop"],
-        desc: "A tire shop sign, half its letters lit. It has been flickering that way a long time.",
+        aliases: ["barbershop", "shop"],
+        desc: "A barbershop sign, half its letters lit. It has been flickering that way a long time.",
         verbs: { touch: "It's well out of reach, and you wouldn't want to." }
       },
       pickup: {
@@ -306,8 +307,8 @@ const scenes = {
       },
       river: {
         aliases: ["strip", "water", "silver"],
-        desc: "Between the buildings, a sliver of silver that is the Rock River. You can't tell from here whether it's moving. The walkway runs along it.",
-        verbs: { touch: "It's too far away to touch." }
+        desc: "You can't see it from here. The Rock River is four blocks north, at the end of Hennepin, and the riverside walk runs along it.",
+        verbs: { touch: "It's four blocks away." }
       }
     },
     extras: {
@@ -316,7 +317,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["museum", "door", "back", "inside", "in"], to: "museum", text: "You step back into the cool, bright room. Margaret glances up from her desk and gives you a small smile." },
-      { names: ["path", "river", "downhill", "riverfront", "walk"], to: "riverpath", text: "You follow the pavement down to where it gives out into the riverside walk." }
+      { names: ["path", "river", "north", "uphill", "riverfront", "walk"], to: "riverpath", text: "You walk north up Hennepin, four blocks, until the pavement gives out into the riverside walk." }
     ]
   },
 
