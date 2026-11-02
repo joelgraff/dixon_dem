@@ -505,7 +505,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["stairway", "stairs", "steps", "stair", "back", "up", "walk"], to: "riverpath", text: "You climb the steps. The traffic sound comes back in pieces." },
+      { names: ["stairway", "stairs", "steps", "stair", "back", "up", "walk", "street", "hennepin", "riverfront", "plaza", "statue", "path"], to: "riverpath", text: "You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces." },
       { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.turnsHere >= 6, blocked: "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it.", text: "You step forward onto the gravel, and the gravel becomes planking. The knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
     ]
   },
