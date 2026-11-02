@@ -79,6 +79,9 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
       <button data-fill="talk to ">talk</button>
       <button data-fill="ask about ">ask</button>
       <button data-run="inventory">inv</button>
+      <button data-run="wait">wait</button>
+      <button data-run="listen">listen</button>
+      <button data-run="help">help</button>
     </div>
   </div>
   <aside id="notes" aria-label="Things you have looked at"></aside>
@@ -482,7 +485,7 @@ const scenes = {
     extras: {
       ridges: () => state.shift ? "" : "Two shallow [ridges] run through the silt on the lowest step, from the water toward the walk."
     },
-    listen: "Water. Nothing else, and then, for a moment, something else.",
+    listen: () => state.shift >= 1 ? (state.shift = 2, "Wood knocks against wood out in the white, and a hoarse voice calls across the water: “You lookin' for work?”") : "Water. Nothing else, and then, for a moment, something else.",
     onTick: () => {
       const t = state.turnsHere;
       if (state.shift) return;
@@ -493,7 +496,8 @@ const scenes = {
       water: {
         aliases: ["river", "mist", "fog", "bank", "shore"],
         desc: () => {
-          if (state.shift >= 1) return "Brown water slides past, the same river and not. Nothing crosses it now, and the far bank is nothing but dark trees.";
+          if (state.shift === 1) return scene().look();
+          if (state.shift >= 2) return "Brown water slides past, the same river and not. Nothing crosses it now, and the far bank is nothing but dark trees. Out in the white, the knocking goes on, and the voice is waiting.";
           if (state.turnsHere >= 4) {
             state.shift = 1;
             return "You watch the current slide past, brown and smooth, a single leaf turning in it, and for a moment you lose track of everything else. When you look down, the concrete under your feet is gone. You are standing on rough-hewn wooden planks, grey with age and wet with mist.";
@@ -564,7 +568,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["stairway", "stairs", "steps", "stair", "back", "up", "south", "walk", "street", "hennepin", "riverfront", "plaza", "statue", "path"], to: "riverpath", when: () => !state.shift, blocked: "You turn, but there are no steps behind you now; only planks, and the mist.", text: "You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces." },
-      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.shift >= 2, blocked: () => state.shift === 1 ? "You can't make out where the planks lead. Take a look around first." : "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it." + (state.turnsHere >= 4 ? " Still, it is hard to stop watching." : ""), text: "You call back, and walk out along the planks toward the sound. The mist parts, and the knocking is suddenly very close.", onArrive: () => {
+      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.shift >= 2, blocked: () => state.shift === 1 ? "You can't make out where the planks lead. Take a look around, or listen." : "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it." + (state.turnsHere >= 4 ? " Still, it is hard to stop watching." : ""), text: "You call back, and walk out along the planks toward the sound. The mist parts, and the knocking is suddenly very close.", onArrive: () => {
         state.visited1830 = true;
         if (state.hasFerry && !state.dixonOwns) {
           state.hasFerry = false; state.money = 0; state.dixonCash = 260; state.warnedClaim = false; state.rewound = true;
@@ -653,7 +657,7 @@ const scenes = {
         fallback: "Ogee shrugs. “Can't say. Ask me about work, or the boat.”",
         topics: [
           { keys: ["price", "ferry", "buy", "boat", "sell"], say: () => state.hasFerry ? "Ogee says, “She's yours. Keep the seams tarred, and don't pole her out when the river's running high.”" : "Ogee says, “Three hundred sixty. A man from downriver offered it flat, and I can't sell for less than I'm offered. Dixon has been over twice with less than that. I'd sooner sell to a neighbor.” He shrugs. “The money decides it.”" },
-          { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm. Wagon and mules in the barn.”" },
+          { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm.” (Type “haul” or “haul week”.)" },
           { keys: ["lead", "galena", "wagon", "wagons", "teams", "mines", "traffic", "teamsters"], say: "Ogee says, “Lead out of the Galena mines, bound downriver. Some days I've five, ten teams waiting. It's the only crossing for fifty miles, so they wait.”" },
           { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
           { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Came up this spring and set up across the river. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
@@ -731,7 +735,7 @@ const scenes = {
         topics: [
           { keys: ["sauk", "treaty", "militia", "black hawk", "war", "saukenuk"], say: "Dixon is quiet a moment. “From what I hear, the Sauk and Fox winter west of the Mississippi and come back every spring to their corn at Saukenuk. The settlers there don't like it. The government says an old treaty sold the land, and Black Hawk says nobody sold it.” He looks at the river. “I'd rest easier if I thought that was finished.”" },
           { keys: ["1832", "lincoln", "fort"], say: "Dixon gives you an odd look. “Eighteen thirty-two? That's two years off. I don't keep accounts that far ahead.”" },
-          { keys: ["ogee", "ferry", "joseph", "money", "price", "buy", "short", "speculator", "downriver", "offer"], say: () => state.dixonOwns ? "“It's mine. Thank you for that.”" : state.dixonCash >= FERRY_PRICE ? "“I have it all.”" : `“I have $${state.dixonCash}, and Ogee won't take less than $${FERRY_PRICE}. A speculator came up from downriver and offered it flat. I'm $${FERRY_PRICE - state.dixonCash} short.” He looks across the water. “If you could lend me the difference, I'd see you right. Say \"give Dixon $${FERRY_PRICE - state.dixonCash}\".”` },
+          { keys: ["ogee", "ferry", "joseph", "money", "price", "buy", "short", "speculator", "downriver", "offer", "help", "need", "want", "himself", "yourself", "problem", "trouble"], say: () => state.dixonOwns ? "“It's mine. Thank you for that.”" : state.dixonCash >= FERRY_PRICE ? "“I have it all.”" : `“I have $${state.dixonCash}, and Ogee won't take less than $${FERRY_PRICE}. A speculator came up from downriver and offered it flat. I'm $${FERRY_PRICE - state.dixonCash} short.” He looks across the water. “If you could lend me the difference, I'd see you right. Say \"give Dixon $${FERRY_PRICE - state.dixonCash}\".”` },
           { keys: ["land", "plot", "clerk", "surveyor", "claim", "acre"], say: () => state.hasLand ? "“You took the ridge claim, I hear. Good timber. Keep that receipt safe; it's all the law there is out here.”" : "“Land's what I'd buy, if I were you. The surveyor writes up claims on the ridge. Go and see him.”" },
           { keys: ["family", "wife", "children", "kids", "cabin", "seven"], say: "“My wife and the children are up the bank. Seven of us all told, so you'll forgive me if I notice a stranger. We came the eleventh of April and took over Ogee's claim.”" },
           { keys: ["trade", "pelts", "post", "whiskey"], say: "“Pelts, iron, cloth, and a little whiskey. People come a long way for the iron.”" },
@@ -827,13 +831,28 @@ const scenes = {
 };
 
 const npcTalk = {
-  ogee: "Ogee wipes his hands on his shirt. “Name's Ogee. Joseph Ogee. This is my place. You looking to settle, or just passing through?”",
-  dixon: "Dixon steps forward, hand out. “John Dixon.” His handshake is firm. “Ogee send you?”",
+  ogee: "Ogee wipes his hands on his shirt. “Name's Ogee. Joseph Ogee. This is my place. You looking for work, or just passing through? Kegs go to the settlement, twenty dollars a trip.” (Type “haul” for one trip, or “haul week” for three.)",
+  dixon: "Dixon steps forward, hand out. “John Dixon.” His handshake is firm. “Ogee send you? I'll be plain: I'm trying to buy his ferry, and I'm short of the price. If you've a strong back, kegs pay twenty dollars a trip, and I'd make it right with anyone who helped me.” (Try “haul week”, then “give Dixon 100”.)",
   clerk: "The surveyor looks up from his field book. “Claims near the river are spoken for. There's timber on the west ridge, if you take it as it stands. Mind, I only enter the bounds; the claim is between you and your neighbors.”",
   settler: "The young man shifts the rifle. “Waiting on the second wagon. Uncle says we'll make the diggings by the first frost. Name's Eli.”"
 };
 
 const VERBS = "look, examine, go, take, talk, ask, use, open, wait, listen";
+
+function hint() {
+  let h;
+  if (state.fog && PAST.includes(state.scene)) h = "The fog has you. Ogee has hold of your sleeve; try “follow Ogee”.";
+  else if (state.scene === "riverbank" && state.shift === 1) h = "The air has changed. Take a look around, or listen.";
+  else if (state.scene === "riverbank" && state.shift >= 2) h = "Someone is calling from the water. Try “call”.";
+  else if (state.scene === "riverbank" && !state.returned) h = "The water is hard to stop watching. Wait a little, or look at the water, and see what happens.";
+  else if (PAST.includes(state.scene) && !state.dixonOwns && !state.hasFerry) {
+    const short = FERRY_PRICE - state.dixonCash;
+    h = state.dixonCash >= FERRY_PRICE ? "Dixon has what he needs." : `Dixon is $${short} short of Ogee's ferry. Earn money with “haul” or “haul week” (at the ferry landing or Dixon's post), then “give Dixon ${short}”. The surveyor's ridge claim is optional.`;
+  }
+  else if (state.returned) h = "Margaret may have noticed something new. “Go to museum”, and look at the exhibit and the crossword.";
+  else h = "Margaret keeps mentioning the river and the marker. Talk to her, look around, then walk north to the river.";
+  print(h + ` (${VERBS})`);
+}
 
 function scene() { return scenes[state.scene]; }
 
@@ -1215,6 +1234,8 @@ function run(input) {
       && /^(?:(?:go|walk|head|return|run|get|come)\s+)?(?:(?:back\s+)?to\s+)?(?:the\s+)?(?:museum|historic center|center|margaret)$/.test(input)) {
     return arrive("museum", "You make your way back to the Historic Center, the river walk and Hennepin passing in a blur of ordinary evening. Margaret glances up from her desk.");
   }
+  if (state.scene === "riverbank" && /^(?:swim|wade|jump in(?:to)?|dive in(?:to)?|go in(?:to)?|walk into|step into)(?:\s+(?:the\s+)?(?:water|river))?$/.test(input)) return run("go water");
+  if (/^(?:help|hint|hints|\?|what (?:now|next|do i do|should i do)|what can i do|i'm stuck|stuck)$/.test(input)) return hint();
   if (/^(look|l)( around)?$/.test(input)) return look();
   if ((m = input.match(/^(?:pick up|take|get|grab)\s+(.+)$/))) return act("take", m[1]);
   if ((m = input.match(/^(?:look at|examine|x|inspect|check|study|look in|look under|look behind)\s+(.+)$/))) return examine(m[1]);
@@ -1226,6 +1247,10 @@ function run(input) {
   if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|tell|chat with)\s+(.+?)\s+about\s+(.+)$/))) return ask(`${m[1]} about ${m[2]}`);
   if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|greet|chat with)\s+(.+)$/))) return talk(m[1]);
   if (state.fog && PAST.includes(state.scene) && /^(?:follow|take (?:his |ogee's )?arm|go with ogee|stay|stay close|trust ogee|walk with ogee|let ogee lead)(?:.*)?$/.test(input)) return followOgee();
+  if (/^(?:yes|yeah|sure|ok|okay|aye)$/.test(input)) {
+    if (state.scene === "riverbank" && state.shift >= 2) return act("call", "voice");
+    if (state.scene === "ferry" || state.scene === "farbank") return run("haul");
+  }
   if (/^(?:shout|call|yell|answer)(?: out| back)?$/.test(input)) {
     return state.scene === "riverbank" && state.shift >= 2 ? act("call", "voice") : print(VERB_DEFAULT.call);
   }
@@ -1233,6 +1258,11 @@ function run(input) {
   if ((m = input.match(/^(?:go|walk|head|enter|move|descend|ascend|climb down|climb up|run|step)(?: to| toward| towards| into| through)?\s+(?:the\s+)?(.+)$/))) {
     const exit = findExit(m[1]);
     return exit ? move(exit) : print("You can't go that way.");
+  }
+  const dirWord = DIRS[input] || input;
+  if (["north", "south", "east", "west", "up", "down"].includes(dirWord)) {
+    const dirExit = findExit(dirWord);
+    return dirExit ? move(dirExit) : print("You can't go that way.");
   }
   const bare = findExit(input);
   if (bare) return move(bare);
@@ -1259,7 +1289,7 @@ function run(input) {
     if (state.dixonOwns) bits.push("It feels, for a moment, like the first chapter is finished.");
     return print(bits.join(" "));
   }
-  if ((m = input.match(/^(?:haul|load kegs?|deliver)(?:\s+(?:kegs?\s+)?(\d+|week))?$/))) {
+  if ((m = input.match(/^(?:haul|load (?:the )?(?:kegs?|wagons?)|carry (?:the )?kegs?|deliver|work|take (?:the|a) (?:job|trip)|do (?:the|a) (?:job|trip)|earn money|make money)(?:\s+(?:kegs?\s+)?(\d+|week))?$/))) {
     if (state.scene !== "ferry" && state.scene !== "farbank") return print("There's nothing here to haul.");
     const trips = m[1] === "week" ? 3 : Math.min(Math.max(parseInt(m[1] || "1", 10), 1), 6);
     if (state.fog) return print("The fog is too thick to pole across. Ogee's hand stays on your sleeve.");
