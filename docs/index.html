@@ -574,9 +574,9 @@ const scenes = {
   },
 
   ferry: {
-    name: "Ogee's ferry landing, 1830",
+    get name() { return (state.dixonOwns ? "Dixon's" : "Ogee's") + " ferry landing, 1830"; },
     look: () => {
-      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel along the bank, a cracked [canoe] lies on its side. Two loaded [wagons] wait their turn at the head of the landing. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
+      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. " + (state.dixonOwns ? "The landing is Dixon's now; Ogee has gone, and a hired hand is tarring a seam. " : "A man in a buckskin shirt, [Ogee], is working on the boat. ") + "Half buried in the gravel along the bank, a cracked [canoe] lies on its side. Two loaded [wagons] wait their turn at the head of the landing. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
       text += state.fog
         ? "The [fog] has come in off the river, thick and white, and you can barely see the end of the dock."
         : "The afternoon is clear; the mist you came through has burned off.";
@@ -586,7 +586,7 @@ const scenes = {
       }
       return text;
     },
-    listen: "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
+    listen: () => state.dixonOwns ? "Water slapping the hull. A mallet somewhere up the path. Somebody is tarring a seam, and it isn't Ogee." : "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
     extras: {
       pole: "An iron-shod [pole] is stowed along the ferry's rail.",
       shoe: "The pole's [shoe] is worn bright and thin.",
@@ -646,6 +646,7 @@ const scenes = {
     },
     npcs: {
       ogee: {
+        visible: () => !state.dixonOwns,
         name: "Joseph Ogee",
         aliases: ["joseph", "ferryman", "man"],
         desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town.",
@@ -665,7 +666,7 @@ const scenes = {
     },
     exits: [
       { names: ["south", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
-      { names: ["north", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
+      { names: ["north", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: () => (state.dixonOwns ? "A hired hand poles you across." : "Ogee poles you across.") + " The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
       { names: ["east", "west"], blocked: "The bank runs on in both directions, thick with brush and willow. There is no path that way, and no reason to push into it yet." },
       { names: ["fog", "mist", "back", "return"], blocked: "There is nothing there but the clear afternoon and the river. Whatever brought you here has gone for now, and you still have things to settle in 1830." }
     ]
@@ -673,7 +674,7 @@ const scenes = {
 
   farbank: {
     name: "The far bank, 1830",
-    look: () => "The ferry rocks against a smaller dock on the north bank. A rough log [post] stands above the landing, its door open on the dim interior. A tall man in a dark coat, [Dixon], stands on the path watching the river. Through a side door, a thin man at a plank table, the [surveyor], is writing in a field book. A young teamster with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [south] across the water, Ogee's landing.",
+    look: () => "The ferry rocks against a smaller dock on the north bank. A rough log [post] stands above the landing, its door open on the dim interior. A tall man in a dark coat, [Dixon], stands on the path watching the river. Through a side door, a thin man at a plank table, the [surveyor], is writing in a field book. A young teamster with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [south] across the water, " + (state.dixonOwns ? "the ferry landing." : "Ogee's landing."),
     listen: "Rope creaking, a murmur of voices from inside the post, and farther up the bank the clatter of someone stacking wood.",
     objects: {
       post: {
@@ -761,7 +762,7 @@ const scenes = {
       }
     },
     exits: [
-      { names: ["south", "back", "across", "ferry", "river"], to: "ferry", text: "You cross back. Ogee is on the dock, coiling rope." },
+      { names: ["south", "back", "across", "ferry", "river"], to: "ferry", text: () => state.dixonOwns ? "You cross back. A hired hand is coiling rope on the dock." : "You cross back. Ogee is on the dock, coiling rope." },
       { names: ["north", "path", "settlement"], blocked: "The path north leads toward the settlement, but it's a long walk and the afternoon is going. Not today." }
     ]
   },
@@ -958,7 +959,7 @@ function move(exit) {
   if (exit.when && !exit.when()) { print(blocked || "You can't go that way."); return true; }
   if (!exit.to) { print(blocked || "You can't go that way."); return true; }
   farewell(exit);
-  arrive(exit.to, exit.text, exit.onArrive);
+  arrive(exit.to, typeof exit.text === "function" ? exit.text() : exit.text, exit.onArrive);
   return true;
 }
 
@@ -1237,7 +1238,7 @@ function run(input) {
   }
   if (/^(wait|z|rest)$/.test(input)) return print("You wait. Time passes, slowly.");
   if (pleasantry(input) !== false) return;
-  if (/^listen$/.test(input)) return print(scene().listen || "You listen. Nothing stands out.");
+  if (/^listen$/.test(input)) { const l = scene().listen; return print((typeof l === "function" ? l() : l) || "You listen. Nothing stands out."); }
   if (/^(i|inv|inventory)$/.test(input)) {
     const carried = ["your phone"];
     if (state.hasAxe) carried.push("an axe");
@@ -1258,7 +1259,7 @@ function run(input) {
     if (state.scene !== "ferry" && state.scene !== "farbank") return print("There's nothing here to haul.");
     const trips = m[1] === "week" ? 3 : Math.min(Math.max(parseInt(m[1] || "1", 10), 1), 6);
     if (state.fog) return print("The fog is too thick to pole across. Ogee's hand stays on your sleeve.");
-    const boss = state.scene === "ferry" ? "Ogee" : "Dixon";
+    const boss = state.scene === "ferry" && !state.dixonOwns ? "Ogee" : "Dixon";
     const lines = [
       `You load the kegs and pole across. ${boss} counts them off and marks the tally.`,
       `Four kegs, a calm river, and a team of oxen that does not want to board. ${boss} marks the tally.`,
@@ -1292,6 +1293,7 @@ function run(input) {
   }
   if (/^(buy|purchase) (ferry|boat)/.test(input)) {
     if (state.scene !== "ferry") return print("Ogee isn't here.");
+    if (state.dixonOwns) return print("The ferry isn't for sale. It's Dixon's now.");
     if (state.hasFerry) return print("You already own the ferry.");
     if (state.money < FERRY_PRICE) return print(`You don't have enough money. Ogee wants $${FERRY_PRICE}. (Dixon is the one who wants this ferry; you could help him with it.)`);
     state.money -= FERRY_PRICE;
@@ -1301,6 +1303,7 @@ function run(input) {
     chapterEnd();
     return;
   }
+  if (/^(?:give|lend|pay|hand)(?:\s+(?:dixon|john|him))?$/.test(input)) return print("Give how much? (give Dixon 50)");
   if ((m = input.match(/^(?:give|lend|pay|hand)\s+(?:(?:dixon|john|him)\s+)?\$?(\d+|all|the rest|the difference)(?:\s*(?:dollars?|bucks))?(?:\s+to\s+(?:dixon|john|him))?$/))) {
     if (state.scene !== "farbank") return print("Dixon isn't here.");
     if (state.dixonOwns) return print("Dixon has what he needs.");
@@ -1328,7 +1331,7 @@ function run(input) {
     return;
   }
   if (/^price/.test(input)) {
-    return print(state.scene === "ferry" ? (state.hasFerry ? "The ferry is yours; there's nothing left to buy." : `Ogee says, “Three hundred sixty. Boat's sound. Rope's new last spring.”`) : "Nothing here is for sale.");
+    return print(state.scene === "ferry" ? (state.dixonOwns ? "The ferry is Dixon's now." : state.hasFerry ? "The ferry is yours; there's nothing left to buy." : `Ogee says, “Three hundred sixty. Boat's sound. Rope's new last spring.”`) : "Nothing here is for sale.");
   }
   print(`You can't think how to do that. (${VERBS})`);
 }
