@@ -6,6 +6,7 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - No screen clearing. Every scene and response appends to a scrollable log; a scene heading marks each arrival.
 - Rooms are described in prose. There is no "You see:" or "Exits:" list. Examinable nouns are highlighted inline and exits are woven into the description.
 - No explicit instructions to the player ("Type look around", "Try haul"). Next steps are exposed through curiosity, never stated.
+- Use real geography. The river is four blocks north of the Center, past the courthouse and downtown, and is never visible from the museum or its street. Check any new place detail against the real town.
 - Transitions are gradual. The museum to 1830 shift takes four scenes (museum, street, river walk, water's edge) and the fog builds over turns spent at the water's edge. No scene jumps, no dropdown. `?scene=<id>` in the URL starts in any scene for testing.
 
 ## Progressive Discovery

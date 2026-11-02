@@ -9,6 +9,7 @@
 - Added lighthouse prototype scene card, parser rules, design principles, and Dixon scene spine as references
 - Spoken lines are attributed to the speaker; added pleasantries (thanks, hello, goodbye, how are you, sorry)
 - Museum renamed Dixon Historic Center (205 W 5th St); added `references/future-hooks.md`
+- Real geography: residential street, courthouse and police station, three downtown blocks, river four blocks north; Margaret introduces herself naturally and suggests signing the guestbook
 - Added a looked-at sidebar (per-scene, expandable notes of examined things)
 - Added a Settings panel: sidebar toggle and optional click-to-examine highlights, saved in localStorage
 - Leaving or re-entering a room now includes in-character farewells and greetings

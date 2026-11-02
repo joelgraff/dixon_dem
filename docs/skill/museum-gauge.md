@@ -39,7 +39,7 @@ Examining reveals further nouns; none are listed up front.
   Light comments on “recent label changes” or missing items. Soft confirmation without explaining the mechanism.
 
 ## Exits
-- Outside / street (present-day Dixon map)  
+- Outside / street (present-day Dixon map). Geography: the Center sits in a residential district. The police station and courthouse are at the end of the next block to the north on Hennepin; downtown fills the remaining three blocks. The Rock River is four blocks north of the Center and is not visible from it or from the street. Keep this consistent in every scene.  
 - Path toward riverbank (fog transition point lives at the river, not inside the museum)
 
 ## Planted Hook

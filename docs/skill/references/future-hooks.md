@@ -5,6 +5,7 @@ A running ledger of ideas and planted details to reuse as new scenes and the pre
 ## From user suggestions
 - **Locked middle drawer in the museum desk** (Dixon Historic Center, 205 W 5th St). The desk came from the old county clerk's office. Margaret mentions it only in passing, as the one drawer that doesn't open, and says she's always wondered what's in it. User idea: something hidden in it, to be found later when no one is around. Candidates: a key that fits the empty case or another lock, a clerk's record that reflects the player's changes, a document that only exists after a certain era is altered. Needs a key or another way in, and a time when Margaret isn't at the desk.
 - **Guestbook**: random entries on each read, more after 1830. Later: entries that change between visits, entries from people the player met in the past (bloodlines), the player's own signature persisting and being referenced by Margaret or later scenes.
+- **Local geography** (fixed): residential blocks around the Center, then police station and courthouse at the end of the next block north, then three blocks of downtown, then the river four blocks north. Downtown storefronts, the courthouse and the police station are available for later present-day scenes and for era changes.
 - **Window** is deliberately dull. Do not use it to show the river. It may later show the street changing if historical changes alter the town.
 
 ## Planted in the museum (present day)
