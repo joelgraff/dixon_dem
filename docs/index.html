@@ -141,6 +141,7 @@ function phoneText() {
   }
   if (fog >= 4) return "The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.";
   if (fog >= 2) return "The signal is down to one bar and flickering. The mist has beaded on the glass.";
+  if (done()) return "Battery at 58 percent, full signal. The clock reads 4:21 and, while you watch, turns to 4:22.";
   return "Battery at 61 percent, full signal. Nothing new.";
 }
 
@@ -175,14 +176,14 @@ const scenes = {
   museum: {
     get name() { return townName() + " Historic Center"; },
     look: () => {
-      let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit.\n\n";
+      let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit. A schoolhouse [clock] hangs by the back door.\n\n";
       text += state.returned
         ? "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a [guestbook] open at her elbow, frowning across the room at the exhibit panel. "
         : "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a [guestbook] open at her elbow and a pencil moving slowly over a [crossword]. ";
       text += "Late light comes through the [window] the color of weak tea, and the glass door to the street has been propped open.";
       return text;
     },
-    listen: "The lights hum. Somewhere in the back a clock ticks a little behind the others.",
+    listen: () => done() ? "The lights hum. In the back a clock ticks, a little behind the others, as though it had never stopped." : "The lights hum. In the back, one clock is silent.",
     extras: {
       drawer: "The desk has a [drawer] with a small brass lock.",
       card: "A small typed [card] is propped against the pedestal."
@@ -195,6 +196,13 @@ const scenes = {
           if (wrongFix()) return "The panel is worse. THE FOUNDING OF OGEE'S FERRY, and then a few lines that trail off. A new sentence has been added: the ferry passed to a newcomer in 1830, whose name was not recorded. After that the settlement simply stops.";
           return "A wall panel and a small case, titled THE FOUNDING OF OGEE'S FERRY. “Joseph Ogee kept a ferry on the Rock River from about 1828. A post office and a few cabins grew up beside it.” The paragraph ends a line short, as though the story wasn't finished.";
         }
+      },
+      clock: {
+        aliases: ["schoolhouse clock", "back clock", "wall clock", "clocks"],
+        desc: () => done()
+          ? "The schoolhouse clock by the back door is running. Its hands stand a few minutes past four, and it ticks a little behind the others. The strip of masking tape on the case, DO NOT WIND, has come loose."
+          : "A schoolhouse clock by the back door, stopped at 4:17. Every other clock in the building runs a little fast or slow, but this one has stopped dead. A strip of masking tape on the case reads DO NOT WIND, in someone's careful hand.",
+        verbs: { touch: "The case is cool and slightly dusty.", take: "It's bolted to the wall.", open: "You'd have to wind it, and the tape says not to." }
       },
       crossword: {
         aliases: ["puzzle", "grid", "clue", "clues", "seven down", "crosswords", "newspaper"],
