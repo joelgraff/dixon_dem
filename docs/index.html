@@ -17,6 +17,14 @@ main { max-width: 64rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 #notes details p { margin: 0.3rem 0 0.6rem; color: #b8b4a8; }
 #notes .empty { color: #6c685e; font-style: italic; }
 @media (max-width: 760px) { #layout { flex-direction: column; } #notes { width: auto; height: auto; max-height: 30vh; } }
+#head { display: flex; justify-content: space-between; align-items: center; }
+#gear { padding: 0.3rem 0.7rem; font-size: 0.9rem; }
+#settings { display: none; background: #202325; border: 1px solid #444; padding: 0.8rem 1rem; margin-bottom: 1rem; font-size: 0.95rem; }
+#settings.open { display: block; }
+#settings label { display: block; margin: 0.4rem 0; cursor: pointer; }
+#settings small { display: block; color: #8a867a; margin-left: 1.5rem; }
+body.clicks .interactive { cursor: pointer; text-decoration: underline dotted; }
+body.nosidebar #notes { display: none; }
 h1 { font-weight: normal; letter-spacing: 0.15em; font-size: 1.1rem; color: #8a867a; text-transform: uppercase; }
 #output { height: 62vh; overflow-y: auto; padding: 0.5rem 1rem; border-top: 1px solid #333; border-bottom: 1px solid #333; line-height: 1.55; font-size: 1.05rem; }
 #output p { margin: 0 0 0.9rem; }
@@ -30,7 +38,11 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
 </head>
 <body>
 <main>
-<h1>Dixon</h1>
+<div id="head"><h1>Dixon</h1><button id="gear" aria-expanded="false">Settings</button></div>
+<div id="settings">
+  <label><input type="checkbox" id="opt-sidebar"> Looked-at sidebar<small>Keeps a list of what you've examined, by scene.</small></label>
+  <label><input type="checkbox" id="opt-clicks"> Clickable highlighted words<small>Click a highlighted word to examine it. Off by default; typing is the point.</small></label>
+</div>
 <div id="layout">
   <div id="play">
     <div id="output" aria-live="polite"></div>
@@ -45,6 +57,19 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
 <script>
 const output = document.getElementById('output');
 const cmd = document.getElementById('cmd');
+
+const settings = { sidebar: true, clicks: false };
+try { Object.assign(settings, JSON.parse(localStorage.getItem("dixonSettings") || "{}")); } catch (e) {}
+
+function applySettings() {
+  if (typeof document.body === "undefined" || !document.body) return;
+  document.body.classList.toggle("nosidebar", !settings.sidebar);
+  document.body.classList.toggle("clicks", settings.clicks);
+  const sb = document.getElementById("opt-sidebar"), ck = document.getElementById("opt-clicks");
+  if (sb) sb.checked = settings.sidebar;
+  if (ck) ck.checked = settings.clicks;
+  try { localStorage.setItem("dixonSettings", JSON.stringify(settings)); } catch (e) {}
+}
 
 const state = {
   scene: "museum",
@@ -63,7 +88,7 @@ const state = {
 };
 
 const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const fmt = t => esc(t).replace(/\[([^\]]+)\]/g, '<span class="interactive">$1</span>').replace(/\n/g, "<br>");
+const fmt = t => esc(t).replace(/\[([^\]]+)\]/g, '<span class="interactive" data-noun="$1">$1</span>').replace(/\n/g, "<br>");
 
 function print(text, cls) {
   output.innerHTML += `<p${cls ? ` class="${cls}"` : ""}>${fmt(text)}</p>`;
@@ -1083,6 +1108,20 @@ function handle() {
 
 cmd.maxLength = 40;
 cmd.addEventListener("keydown", e => { if (e.key === "Enter") handle(); });
+const wire = (id, fn) => { const el = document.getElementById(id); if (el && el.addEventListener) el.addEventListener("change", fn); };
+wire("opt-sidebar", e => { settings.sidebar = e.target.checked; applySettings(); });
+wire("opt-clicks", e => { settings.clicks = e.target.checked; applySettings(); });
+const gear = document.getElementById("gear");
+if (gear && gear.addEventListener) gear.addEventListener("click", () => {
+  const panel = document.getElementById("settings");
+  const open = panel.classList.toggle("open");
+  gear.setAttribute("aria-expanded", open);
+});
+output.addEventListener && output.addEventListener("click", e => {
+  const noun = e.target.dataset && e.target.dataset.noun;
+  if (settings.clicks && noun) { cmd.value = "examine " + noun; handle(); cmd.focus(); }
+});
+applySettings();
 const enterButton = document.getElementById("enter");
 if (enterButton) enterButton.addEventListener("click", handle);
 

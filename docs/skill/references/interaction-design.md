@@ -21,6 +21,10 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - Notes persist when the player leaves and re-enters a scene. Items an examined object revealed appear in the prose of the room, not in the sidebar, until examined.
 - On narrow screens the sidebar moves below the play area.
 
+## Settings
+- A Settings panel (button at the top right) holds optional play aids, saved in the browser's localStorage. Current options: the looked-at sidebar (on by default) and clickable highlighted words (off by default).
+- Design stance: typing is the game. Click-to-examine would turn play into clicking highlights and skimming the prose, so it stays opt-in. Future aids (text size, reduced motion, hints) belong here, and default to the immersive setting.
+
 ## Natural Verbs
 - Objects respond to the verbs a real person would try: sign, read, sit, touch, push, open, climb, smell, search, board, call. Each object may supply its own reply; unhandled verbs get a mild default.
 - `look out/through/in/under/behind <thing>` examines the thing.
