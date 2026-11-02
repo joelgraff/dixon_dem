@@ -232,7 +232,7 @@ const scenes = {
       },
       window: {
         aliases: ["view", "pane"],
-        desc: "A parking lot, the back of a barbershop, and a power line with two crows on it. The light is going brown, and a thin haze sits low over the roofs.",
+        desc: "A parking lot, the back of a neighbor's garage, and a power line with two crows on it. The light is going brown, and a thin haze sits low over the roofs.",
         verbs: {
           open: "It's painted shut. The sash hasn't moved in decades.",
           touch: "The glass is cool and faintly damp on the outside.",
@@ -281,13 +281,13 @@ const scenes = {
 
   street: {
     name: "West Fifth Street at Hennepin",
-    look: () => "The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner], and further along a [sign] for a barbershop flickers on. The [museum] door stands behind you. Hennepin runs north, and four blocks up, past the last of the buildings, is the [river], with a [path] along it where the pavement turns to riverside walk.",
+    look: () => "The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner], and a house porch light clicks on across the way. The [museum] door stands behind you. This is a quiet residential block of old frame houses and big maples. Hennepin runs north; at the end of the next block you can make out the police station and the [courthouse], and beyond them the downtown blocks run on toward the [river], where a [path] follows the water.",
     listen: "A truck downshifts somewhere. Under it, very faintly, the sound of moving water.",
     objects: {
-      sign: {
-        aliases: ["barbershop", "shop"],
-        desc: "A barbershop sign, half its letters lit. It has been flickering that way a long time.",
-        verbs: { touch: "It's well out of reach, and you wouldn't want to." }
+      courthouse: {
+        aliases: ["police station", "police", "station"],
+        desc: "At the end of the next block, the courthouse and the police station sit side by side, stone and brick. Past them the buildings get taller and closer together: downtown.",
+        verbs: { touch: "It's a block away." }
       },
       pickup: {
         aliases: ["truck"],
@@ -307,7 +307,7 @@ const scenes = {
       },
       river: {
         aliases: ["strip", "water", "silver"],
-        desc: "You can't see it from here. The Rock River is four blocks north, at the end of Hennepin, and the riverside walk runs along it.",
+        desc: "You can't see it from here. The Rock River is four blocks north, past the courthouse and through downtown, and the riverside walk runs along it.",
         verbs: { touch: "It's four blocks away." }
       }
     },
@@ -317,7 +317,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["museum", "door", "back", "inside", "in"], to: "museum", text: "You step back into the cool, bright room. Margaret glances up from her desk and gives you a small smile." },
-      { names: ["path", "river", "north", "uphill", "riverfront", "walk"], to: "riverpath", text: "You walk north up Hennepin, four blocks, until the pavement gives out into the riverside walk." }
+      { names: ["path", "river", "north", "uphill", "riverfront", "walk"], to: "riverpath", text: "You walk north up Hennepin, past the police station and the courthouse, then through three blocks of downtown storefronts, until the pavement gives out into the riverside walk." }
     ]
   },
 
