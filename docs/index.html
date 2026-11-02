@@ -359,7 +359,7 @@ const scenes = {
 
   riverpath: {
     name: "Riverside walk",
-    look: () => "The riverfront is a broad public space of pale paving and limestone walls, running along the south bank between Peoria Avenue and Galena Avenue, the kind of place that fills up for the farmers market and the Petunia Festival concerts, though tonight it is nearly empty. A green iron [railing] follows the curve of the wall above the water, and a stone [pavilion] stands a little way along, with a [bench] facing the river. A bronze [statue] of a man on a horse rises from the plaza nearby, and between them a green historical [marker] stands on a post. The [river] is wide and brown and slow, and a long raft of mist lies on it. At the far end of the railing, a wide [stairway] of worn steps leads down to the bank. Behind you, Hennepin [street] runs south through downtown, back toward the Historic Center.",
+    look: () => "The riverfront is a broad public space of pale paving and limestone walls, running along the south bank between Peoria Avenue and Galena Avenue, the kind of place that fills up for the farmers market and the Petunia Festival concerts, though tonight it is nearly empty. A green iron [railing] follows the curve of the wall above the water, and a stone [pavilion] stands a little way along, with a [bench] facing the river. A bronze [statue] of a man on a horse rises from the plaza nearby, and between them a green historical [marker] stands on a post. The [river] is wide and brown and slow, and a long raft of mist lies on it. At the far end of the railing, a wide [stairway] of worn steps leads north, down to the water. Behind you, Hennepin [street] runs south through downtown, back toward the Historic Center.",
     listen: "Water against stone. A halyard clinking, though there are no boats.",
     onTick: () => {
       const t = state.turnsHere;
@@ -442,7 +442,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["street", "hennepin", "back", "up", "uphill", "south"], to: "street", text: "You walk back south along Hennepin, through downtown and past the courthouse, to the Historic Center's block." },
-      { names: ["stairway", "stairs", "steps", "stair", "bank", "down", "water", "river"], to: "riverbank", text: "You go down the worn steps, one hand on the cold rail.", reset: true }
+      { names: ["stairway", "stairs", "steps", "stair", "bank", "down", "north", "water", "river"], to: "riverbank", text: "You go down the worn steps, one hand on the cold rail.", reset: true }
     ]
   },
 
@@ -542,7 +542,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["stairway", "stairs", "steps", "stair", "back", "up", "walk", "street", "hennepin", "riverfront", "plaza", "statue", "path"], to: "riverpath", when: () => !state.shift, blocked: "You turn, but there are no steps behind you now; only planks, and the mist.", text: "You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces." },
+      { names: ["stairway", "stairs", "steps", "stair", "back", "up", "south", "walk", "street", "hennepin", "riverfront", "plaza", "statue", "path"], to: "riverpath", when: () => !state.shift, blocked: "You turn, but there are no steps behind you now; only planks, and the mist.", text: "You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces." },
       { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.shift >= 2, blocked: "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it.", text: "You call back, and walk out along the planks toward the sound. The mist parts, and the knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
     ]
   },
@@ -551,7 +551,9 @@ const scenes = {
     name: "Ogee's ferry landing, 1830",
     look: () => {
       let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel to the south, a cracked [canoe] lies on its side. A worn [path] climbs north toward woodsmoke; the river opens [west] to a far bank where a few buildings stand. ";
-      text += "Along the shore to the east the [fog] still clings thick to the water.";
+      text += state.hasLand && state.hasFerry
+        ? "Along the shore to the east the [fog] has come back, thick and white, lying on the water where you first arrived."
+        : "The shore to the east is clear in the afternoon light; the mist you came through has burned off.";
       return text;
     },
     listen: "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
@@ -602,7 +604,7 @@ const scenes = {
       },
       fog: {
         aliases: ["mist"],
-        desc: "A low wall of mist, hanging along the east shore as though it had been left there. It is the only direction that looks like home, and the only one that sounds like traffic.",
+        desc: () => !(state.hasLand && state.hasFerry) ? "Nothing there but clear air and gravel, where the mist was when you arrived." : "A low wall of mist, hanging along the east shore as though it had been left there. It is the only direction that looks like home, and the only one that sounds like traffic.",
         verbs: { touch: "Cold, damp, and a little electric. Through it, very faintly, you hear a car door.", smell: "Diesel and cut grass, from somewhere that isn't here." }
       }
     },
@@ -628,7 +630,7 @@ const scenes = {
       { names: ["north", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
       { names: ["west", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
       { names: ["south"], blocked: "The gravel shelf gives way to dense forest. There's no path that way, and no reason to push into it yet." },
-      { names: ["east", "fog", "mist", "back", "return"], to: "riverbank", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to concrete.", onArrive: () => { state.returned = true; state.shift = 0; } }
+      { names: ["east", "fog", "mist", "back", "return"], to: "riverbank", when: () => state.hasLand && state.hasFerry, blocked: "The shore to the east is bare gravel in clear light. Whatever brought you here has gone for now, and there is no way back until it returns. You still have things to settle in 1830.", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to concrete.", onArrive: () => { state.returned = true; state.shift = 0; } }
     ]
   },
 
@@ -872,6 +874,11 @@ function look() {
   const extras = Object.entries(s.extras || {}).filter(([k]) => isFound(k)).map(([, t]) => typeof t === "function" ? t() : t).filter(Boolean);
   if (extras.length) text += " " + extras.join(" ");
   print(text);
+}
+
+function chapterEnd() {
+  if (state.hasLand && state.hasFerry && state.scene === "ferry")
+    print("Along the east shore, something is changing. A low white fog is gathering on the water again, exactly where you first arrived.");
 }
 
 function arrive(id, text, onArrive) {
@@ -1208,6 +1215,7 @@ function run(input) {
     state.hasLand = true;
     print("You count out forty-two dollars. The clerk stamps the paper. The ridge-line timber plot is yours. Get it surveyed before you build.");
     print(`You now have $${state.money}.`);
+    chapterEnd();
     return;
   }
   if (/^(buy|purchase) (ferry|boat)/.test(input)) {
@@ -1218,6 +1226,7 @@ function run(input) {
     state.hasFerry = true;
     print("You count out three hundred dollars. Ogee hands you the rope and the pole. The ferry is yours.");
     print(`You now have $${state.money}.`);
+    chapterEnd();
     return;
   }
   if (/^price/.test(input)) {
