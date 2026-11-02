@@ -262,7 +262,6 @@ const scenes = {
         verbs: { sit: "You glance at the chair. Margaret looks at you over her glasses and you think better of it." }
       },
       drawer: {
-        hidden: true,
         aliases: ["middle drawer", "lock", "keyhole"],
         desc: "A shallow middle drawer with a small brass lock, much older than the rest of the desk's hardware. The keyhole is worn bright.",
         verbs: {
@@ -387,7 +386,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["museum", "door", "back", "inside", "in", "south"], to: "museum", text: "You step back into the cool, bright room. Margaret glances up from her desk and gives you a small smile." },
-      { names: ["path", "river", "north", "uphill", "riverfront", "walk"], to: "riverpath", text: "You walk north up Hennepin, past the police station and the courthouse, then through three blocks of downtown storefronts, until the pavement gives out into the riverside walk." }
+      { names: ["path", "river", "north", "uphill", "riverfront", "walk"], peek: "Hennepin runs north, past the police station and the courthouse and through three blocks of downtown, to the riverfront path.", to: "riverpath", text: "You walk north up Hennepin, past the police station and the courthouse, then through three blocks of downtown storefronts, until the pavement gives out into the riverside walk." }
     ]
   },
 
@@ -679,8 +678,8 @@ const scenes = {
       }
     },
     exits: [
-      { names: ["south", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
-      { names: ["north", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: () => (state.dixonOwns ? "A hired hand poles you across." : "Ogee poles you across.") + " The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
+      { names: ["south", "path", "cabins", "smoke"], peek: "A worn path climbs south, away from the water, toward woodsmoke and the cabins.", to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
+      { names: ["north", "far bank", "across", "river"], peek: "Across the water, on the north bank, a log trading post stands above a small dock.", noFarewell: true, to: "farbank", text: () => (state.dixonOwns ? "A hired hand poles you across." : "Ogee poles you across.") + " The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
       { names: ["east", "west"], blocked: "The bank runs on in both directions, thick with brush and willow. There is no path that way, and no reason to push into it yet." },
       { names: ["fog", "mist", "back", "return"], blocked: "There is nothing there but the clear afternoon and the river. Whatever brought you here has gone for now, and you still have things to settle in 1830." }
     ]
@@ -776,7 +775,7 @@ const scenes = {
       }
     },
     exits: [
-      { names: ["south", "back", "across", "ferry", "river"], to: "ferry", text: () => state.dixonOwns ? "You cross back. A hired hand is coiling rope on the dock." : "You cross back. Ogee is on the dock, coiling rope." },
+      { names: ["south", "back", "across", "ferry", "river"], peek: "Back across the water is the ferry landing, and the path to the cabins beyond it.", to: "ferry", text: () => state.dixonOwns ? "You cross back. A hired hand is coiling rope on the dock." : "You cross back. Ogee is on the dock, coiling rope." },
       { names: ["north", "path", "settlement"], blocked: "The path north leads toward the settlement, but it's a long walk and the afternoon is going. Not today." }
     ]
   },
@@ -835,7 +834,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["north", "back", "river", "ferry", "landing"], to: "ferry", text: "You head back down the path to the dock." }
+      { names: ["north", "back", "river", "ferry", "landing"], peek: "The path runs back north, down to the river and the ferry landing.", to: "ferry", text: "You head back down the path to the dock." }
     ]
   }
 };
@@ -1018,7 +1017,11 @@ function farewell(exit) {
 
 function examine(name) {
   const found = findTarget(name);
-  if (!found) return print("You don't see that here.");
+  if (!found) {
+    const exit = findExit(name);
+    if (exit && !(exit.when && !exit.when())) return print(exit.peek || `That way leads on. (Try “go ${name}”.)`);
+    return print("You don't see that here.");
+  }
   if (found.type === "ambiguous" || found.type === "suggestions") return clarify(found);
   const text = describe(found.entry);
   print(text);
