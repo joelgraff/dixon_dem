@@ -69,8 +69,8 @@ const scenes = {
     look: () => {
       let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit.\n\n";
       text += state.returned
-        ? "A [volunteer] in a cardigan has taken the [desk] by the entrance. "
-        : "A [desk] stands near the entrance, but nobody sits behind it. ";
+        ? "A [volunteer] in a cardigan sits at the [desk] by the entrance, frowning across the room at the exhibit panel. "
+        : "A [volunteer] in a cardigan sits at the [desk] by the entrance, a pencil moving slowly over a crossword. ";
       text += "Late light comes through the [window] the color of weak tea, and the glass door to the street has been propped open.";
       return text;
     },
@@ -137,11 +137,9 @@ const scenes = {
       },
       desk: {
         aliases: ["volunteer desk", "table", "chair"],
-        desc: () => state.returned
-          ? "A tidy desk now. A lanyard, a roll of mints, and a hand-lettered sign: ASK ABOUT THE LATEST LABELS. A [guestbook] lies open at her elbow."
-          : "An empty chair and a cold cup of coffee with a lipstick ring on the lid. A [guestbook] lies open beside it. The volunteer is evidently somewhere else.",
+        desc: () => "A tidy desk: a lanyard, a roll of mints, a cold cup of coffee with a lipstick ring on the lid" + (state.returned ? ", and a hand-lettered sign reading ASK ABOUT THE LATEST LABELS" : "") + ". A [guestbook] lies open at the corner nearest the door.",
         reveals: ["guestbook"],
-        verbs: { sit: "You settle into the volunteer's chair. The seat is still warm, which is odd. You get up again before anyone sees." }
+        verbs: { sit: "You glance at the chair. Margaret looks at you over her glasses and you think better of it." }
       },
       guestbook: {
         hidden: true,
@@ -172,7 +170,7 @@ const scenes = {
       },
       window: {
         aliases: ["view", "pane"],
-        desc: "Past the lot and a row of rooftops, the river is a pewter strip. A low mist lies on it, though the afternoon is warm and nothing else out there is hazy.",
+        desc: "Past the lot and a row of rooftops, the river is a pewter strip. A low mist lies on it, though the afternoon is warm and nothing else out there is hazy. A footpath threads along the bank below the lot, the kind people walk dogs on.",
         verbs: {
           open: "It's painted shut. The sash hasn't moved in decades.",
           touch: "The glass is cool and faintly damp on the outside.",
@@ -183,13 +181,33 @@ const scenes = {
     npcs: {
       volunteer: {
         name: "the volunteer",
-        aliases: ["docent", "woman", "lady"],
-        visible: () => state.returned,
-        desc: "A woman in a cardigan, sixty or so, with reading glasses pushed up into her hair. She is looking at the exhibit panel with her head tilted, the way you look at a picture hung slightly crooked.",
+        aliases: ["docent", "woman", "lady", "margaret"],
+        desc: () => state.returned
+          ? "Margaret, by her name tag: sixty or so, reading glasses pushed up into grey hair. She is looking at the exhibit panel with her head tilted, the way you look at a picture hung slightly crooked."
+          : "A woman in a cardigan, sixty or so, reading glasses pushed up into grey hair. Her name tag says MARGARET. She fills in the crossword with the patience of long habit.",
         talk: () => {
+          if (state.returned) {
+            return state.volunteerSpoke === "back"
+              ? "“Mm?” Margaret glances up. “Sorry. Still thinking about the labels.”"
+              : (state.volunteerSpoke = "back", "“Oh, hello again. You were in earlier, weren't you?” She frowns at the wall. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She laughs, not quite convincingly.");
+          }
+          if (state.volunteerSpoke) return "Margaret glances up from the crossword and smiles. “Mm?”";
           state.volunteerSpoke = true;
-          return "“Oh, hello. You were in earlier, weren't you?” She frowns at the wall. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She laughs, not quite convincingly. “Well. Take your time.”";
-        }
+          return "“Hello there. Margaret. Saturdays, and whenever the board forgets to find someone else.” She tips her head at the guestbook, then at the window, where the light has gone soft and brown. “Shame to be indoors on an evening like this, really.”";
+        },
+        fallback: "“Hm. I couldn't tell you. The board might know, but they're only in on Tuesdays.”",
+        topics: [
+          { keys: ["river", "walk", "fog", "mist", "outside", "bank", "evening", "stroll", "path"], say: "“The riverwalk? It's the best of Dixon at this hour. Down the hill past the tire shop. There's a marker there, Ogee's Ferry. Most people walk right past it.” She looks at the window. “The fog's been coming off the water all week. Odd, for the time of year.”" },
+          { keys: ["ogee", "joseph"], say: "“Joseph Ogee. He ran a ferry here before anyone had heard of Dixon, by most accounts. Our panel gives him no line at all. The marker by the river does a little better.”" },
+          { keys: ["dixon", "john", "founder", "founding", "exhibit", "panel", "ferry"], say: () => state.returned ? "“I'd have said that panel ended differently. Isn't that silly? Thirty-one years.”" : "“John Dixon, 1830. He took over the ferry, the panel says established, which is a tidy way to put it. If you want the untidy version, there's a marker on the river walk.”" },
+          { keys: ["pedestal", "removed", "conservation", "card"], say: () => state.returned && state.hasLand && state.hasFerry ? "“That wasn't there this morning. It's an iron pole-shoe, off a flatboat. I couldn't tell you where it came from.” She doesn't sound as though she expects to be asked again." : "“Empty since before my time. Conservation, the card says. I've never once seen anyone conserve anything.” She lowers her voice. “Between us, I've never known what stood there.”" },
+          { keys: ["photo", "frames", "mats", "frame", "picture"], say: () => state.returned && (state.hasLand || state.hasFerry) ? "“One of the empty frames has something in it now. Nobody told me.”" : "“Those last two came back from the framer's in 'ninety-eight with nothing in them. Nobody ever filled them in.”" },
+          { keys: ["case", "cases", "arrowhead", "locked", "key"], say: "“Locked, since 1998. The key's with the board. The empty one at the end I dust every Saturday, out of habit.”" },
+          { keys: ["guestbook", "book", "sign", "visitor"], say: "“Everyone signs, even the ones who say they won't. Some write the oddest things.”" },
+          { keys: ["lincoln", "black hawk", "fort", "war", "militia", "1832"], say: "“Dixon's Ferry was the staging ground in 1832. Lincoln came through as a militia captain, and so did half the officers of the next war. They never fought a battle here. Just passed through.”" },
+          { keys: ["label", "labels", "change", "changed", "different"], say: () => state.returned ? "She hesitates. “I'd rather not say it out loud. The labels have changed, and nobody's touched them. That's all.”" : "“Labels? I wouldn't think so. They've been the same since the nineties.”" },
+          { keys: ["margaret", "you", "yourself", "volunteer", "museum", "society"], say: "“Thirty-one years on Saturdays. Someone has to know where the stapler is.”" }
+        ]
       }
     },
     exits: [
@@ -199,17 +217,38 @@ const scenes = {
 
   street: {
     name: "The street outside",
-    look: () => "The sidewalk is warm and nearly empty. A pickup idles at the corner, and further along a tire shop's sign flickers on. The [museum] door stands behind you. Downhill, between the buildings, a strip of the river shows silver, and there is a [path] there where the pavement turns to riverside walk.",
+    look: () => "The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner], and further along a [sign] for a tire shop flickers on. The [museum] door stands behind you. Downhill, between the buildings, a strip of [river] shows silver, and there is a [path] there where the pavement turns to riverside walk.",
     listen: "A truck downshifts somewhere. Under it, very faintly, the sound of moving water.",
     objects: {
       sign: {
         aliases: ["tire shop", "shop"],
-        desc: "A tire shop sign, half its letters lit. It has been flickering that way a long time."
+        desc: "A tire shop sign, half its letters lit. It has been flickering that way a long time.",
+        verbs: { touch: "It's well out of reach, and you wouldn't want to." }
       },
       pickup: {
         aliases: ["truck"],
-        desc: "A dusty pickup with an Illinois plate and a bumper sticker for a high school booster club. Nobody is in it."
+        desc: "A dusty pickup with an Illinois plate. A faded [sticker] curls on the bumper. Nobody is in it.",
+        reveals: ["sticker"],
+        verbs: { open: "Locked.", touch: "The hood is warm. Whoever left it here hasn't been gone long." }
+      },
+      sticker: {
+        hidden: true,
+        aliases: ["bumper sticker", "bumper"],
+        desc: "RIVER DAYS COMMITTEE, with a cartoon ferry. The corner has peeled, and underneath there's a second, older sticker you can't read."
+      },
+      corner: {
+        aliases: ["intersection"],
+        desc: "A crosswalk, a bus bench with no bus. Nothing worth a second look.",
+        verbs: { sit: "The bench is warm from the sun, and no bus is coming. You sit anyway for a moment, then get up." }
+      },
+      river: {
+        aliases: ["strip", "water", "silver"],
+        desc: "Between the buildings, a sliver of silver that is the Rock River. You can't tell from here whether it's moving. The walkway runs along it.",
+        verbs: { touch: "It's too far away to touch." }
       }
+    },
+    extras: {
+      sticker: "A faded [sticker] curls on the pickup's bumper."
     },
     npcs: {},
     exits: [
@@ -220,7 +259,7 @@ const scenes = {
 
   riverpath: {
     name: "Riverside walk",
-    look: () => "A paved walk follows the bank above the water, with a [railing] on the river side and a [bench] facing it. Between them a green historical [marker] stands on a post. The [river] is wide and brown and slow below you, and a long raft of mist lies on the water. A [stairway] of worn concrete steps leads down to the bank. Back up the hill is the [street].",
+    look: () => "A paved walk follows the bank above the water, with a [railing] on the river side and a [bench] facing it. Between them a green historical [marker] stands on a post. The [river] is wide and brown and slow below you, and a long raft of mist lies on the water. At the far end of the railing, a [stairway] of worn concrete steps leads down to the bank. Back up the hill is the [street].",
     listen: "Water against stone. A halyard clinking, though there are no boats.",
     objects: {
       marker: {
@@ -237,22 +276,42 @@ const scenes = {
       },
       bench: {
         aliases: ["seat"],
-        desc: "A slatted bench with a brass plate for someone who loved this view. The slats are damp, though it hasn't rained.",
+        desc: "A slatted bench with a [plate] screwed to the back. The slats are damp, though it hasn't rained.",
+        reveals: ["plate"],
         verbs: { sit: "You sit for a while. The mist on the water doesn't move, and neither, you notice, does anything else. The city sounds seem a little farther away than when you sat down." }
+      },
+      plate: {
+        hidden: true,
+        aliases: ["brass plate", "inscription"],
+        desc: "FOR HARRY, WHO KNEW THE RIVER. 1931–2009. Below it someone has scratched, with a key or a nail: it remembers."
       },
       railing: {
         aliases: ["rail", "fence"],
-        desc: "Painted iron, cold and a little wet. Past it the bank drops away to riprap and the water.",
+        desc: "Painted iron, cold and a little wet. Past it the bank drops away to riprap and the water. Down at the base of the wall, an old iron [ringbolt] is set into the stone.",
+        reveals: ["ringbolt"],
         verbs: { climb: "Not a good idea, with that drop behind it.", touch: "Cold, wet iron. Someone has scratched initials in the paint." }
+      },
+      ringbolt: {
+        hidden: true,
+        aliases: ["ring", "bolt", "iron ring"],
+        desc: "A rusted iron ring set into the stone, worn bright on one side where rope used to run. It's older than the railing, older than the walk.",
+        verbs: { touch: "Rough and cold. You can feel the groove the rope wore.", push: "It doesn't move, and you can't reach it from here.", climb: "You can't reach it from here." }
       },
       river: {
         aliases: ["water", "rock river", "mist"],
-        desc: "Broad, brown, and slow. The mist lies in a single bank on the water as if it were being kept there. The far shore has no buildings that you can see."
+        desc: "Broad, brown, and slow. The mist lies in a single bank on the water as if it were being kept there. The far shore has no buildings that you can see. A [stairway] goes down to the water's edge.",
+        verbs: { touch: "You can't reach it from the walk.", drink: "You'd rather not.", smell: "Mud, iron, cut grass. Something older underneath." }
       },
       stairway: {
         aliases: ["stairs", "steps", "stair"],
-        desc: "Concrete steps, worn in the middle, going down to a gravel shelf by the water."
+        desc: "Concrete steps, worn in the middle, going down to a gravel shelf by the water.",
+        verbs: { climb: "You'd have to go down, not up.", touch: "Damp concrete, worn smooth in the middle by a lot of feet." }
       }
+    },
+    extras: {
+      plate: "A brass [plate] is screwed to the back of the bench.",
+      ringbolt: "At the base of the wall, below the railing, an old [ringbolt] is set into the stone.",
+      sanded: "A line of the marker's text has been [sanded] away."
     },
     npcs: {},
     exits: [
@@ -268,7 +327,10 @@ const scenes = {
       if (stage >= 6) return "The mist has swallowed everything. There is no stairway behind you that you can see, no city sound at all; only the lap of water and a dull, rhythmic knock out in the white. Something like a [voice] carries across the river. The [water] is just in front of you, and the way [back] is lost in the grey.";
       if (stage >= 4) return "The mist is up around your knees and rising. The traffic noise from the street has gone. Out on the river, a long way off, wood knocks against wood, steady as a slow pulse.";
       if (stage >= 2) return "The mist has thickened. The far bank is gone, and the walk above you is only a pale line. The gravel is dark with wet.";
-      return "A gravel shelf at the foot of the steps, strewn with driftwood and a sodden cigarette pack. The [water] is a few feet away, moving slowly. Mist hangs low over it, and the [stairway] you came down is behind you.";
+      return "A gravel shelf at the foot of the steps, strewn with [driftwood] and a sodden cigarette pack. The [water] is a few feet away, moving slowly. Mist hangs low over it, and the [stairway] you came down is behind you.";
+    },
+    extras: {
+      ridges: "Two shallow [ridges] run through the gravel, from the water toward the steps."
     },
     listen: "Water. Nothing else, and then, for a moment, something else.",
     onTick: () => {
@@ -282,20 +344,38 @@ const scenes = {
         aliases: ["river", "mist", "fog", "shelf", "gravel"],
         desc: () => state.turnsHere >= 4
           ? "The river looks the same and wrong at once. The current runs a little faster than it should, and the far side is just a pale wall."
-          : "Brown water slides past. The gravel at your feet is combed into little ridges, as though something has recently been dragged across it."
+          : "Brown water slides past. The gravel at your feet is combed into shallow [ridges], as though something has recently been dragged across it.",
+        reveals: ["ridges"],
+        verbs: {
+          touch: () => state.turnsHere >= 4 ? "The water is colder than it should be on a warm evening, and it pulls at your fingers." : "Cold, and slow. It leaves your fingers smelling of iron.",
+          drink: "You'd rather not. It looks like the Rock River in any century.",
+          smell: "Mud, iron, and under it something like woodsmoke.",
+          search: () => { reveal(["ridges"]); return "You walk the edge of the gravel. The only marks are the two parallel [ridges] running up toward the steps."; }
+        }
+      },
+      ridges: {
+        hidden: true,
+        aliases: ["ridge", "grooves", "marks", "drag marks"],
+        desc: "Two parallel grooves, a boat's width apart, pressed into the gravel from the waterline up to the first step. They look recent. They look old. You can't make them settle on either."
       },
       driftwood: {
-        aliases: ["wood", "cigarette pack", "pack"],
-        desc: "Silver driftwood, a plastic bottle, a pack of cigarettes soaked through. Nothing you'd want."
+        aliases: ["wood", "cigarette pack", "pack", "bottle"],
+        desc: "Silver driftwood, a plastic bottle, a pack of cigarettes soaked through. Nothing you'd want.",
+        verbs: { search: "You turn over a few pieces. Nothing you'd want.", take: "None of it is worth carrying." }
       },
       stairway: {
         aliases: ["stairs", "steps", "stair", "back"],
-        desc: () => state.turnsHere >= 6 ? "You can't see the steps any more, only grey." : "The concrete steps you came down, going back up to the walk."
+        desc: () => state.turnsHere >= 6 ? "You can't see the steps any more, only grey." : "The concrete steps you came down, going back up to the walk.",
+        verbs: { climb: () => { move(scene().exits[0]); return null; } }
       },
       voice: {
-        aliases: ["knocking", "sound", "calling"],
+        aliases: ["knocking", "sound", "calling", "man"],
         visible: () => state.turnsHere >= 6,
-        desc: "A man's voice, tired and practical. It sounds as if he's asked the question a hundred times."
+        desc: "A man's voice, tired and practical. It sounds as if he's asked the question a hundred times.",
+        verbs: {
+          call: () => { move(scene().exits[1]); return null; },
+          take: "You can't take a voice."
+        }
       }
     },
     npcs: {},
@@ -308,22 +388,78 @@ const scenes = {
   ferry: {
     name: "Ogee's ferry landing, 1830",
     look: () => {
-      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, rope and pole stowed along its side, and a heavy [dock] post holds a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel to the south, a cracked [canoe] lies on its side. A worn [path] climbs north toward woodsmoke; the river opens [west] to a far bank where a few buildings stand. ";
+      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. A man in a buckskin shirt, [Ogee], is working on the boat. Half buried in the gravel to the south, a cracked [canoe] lies on its side. A worn [path] climbs north toward woodsmoke; the river opens [west] to a far bank where a few buildings stand. ";
       text += "Along the shore to the east the [fog] still clings thick to the water.";
       return text;
     },
     listen: "Water slapping the hull. A mallet somewhere up the path. The knocking you heard is Ogee, patching a plank.",
+    extras: {
+      pole: "An iron-shod [pole] is stowed along the ferry's rail.",
+      shoe: "The pole's [shoe] is worn bright and thin.",
+      lines: "Under the dock, [lines] of green slime mark the water's height."
+    },
     objects: {
-      ferry: { aliases: ["boat", "flatboat"], desc: "Joseph Ogee's flatboat, rope and pole, sound and ready. It carries wagons as well as people across the Rock River." },
-      dock: { aliases: ["landing", "wharf", "post"], desc: "Rough planks and posts, half-submerged at the edges. The water has left a green line a hand above your boots." },
-      canoe: { aliases: ["dugout"], desc: "An old dugout canoe, cracked along the seam and half-buried in gravel south of the dock. No paddle." },
-      fog: { aliases: ["mist"], desc: "A low wall of mist, hanging along the east shore as though it had been left there. It is the only direction that looks like home, and the only one that sounds like traffic." }
+      ferry: {
+        aliases: ["boat", "flatboat", "raft"],
+        desc: "Joseph Ogee's flatboat, a rope strung bank to bank and an iron-shod [pole] stowed along the rail. It carries wagons as well as people across the Rock River.",
+        reveals: ["pole"],
+        verbs: {
+          board: () => { move(scene().exits[1]); return null; },
+          touch: "The planks are slick and warm in the sun. Fresh tar on one seam.",
+          climb: () => { move(scene().exits[1]); return null; }
+        }
+      },
+      pole: {
+        hidden: true,
+        aliases: ["setting pole", "iron pole"],
+        desc: "A long ash pole with an iron [shoe] on the end, worn bright and thin on the side that bears against the riverbed.",
+        reveals: ["shoe"],
+        verbs: { take: "It's Ogee's, and he'd notice.", push: "You lean on it. It's heavier than it looks and doesn't want to move." }
+      },
+      shoe: {
+        hidden: true,
+        aliases: ["pole shoe", "iron shoe", "iron"],
+        desc: "A cone of forged iron, dented on one side. The kind of object a museum would put on a velvet pedestal, if anyone had thought to save it.",
+        verbs: { take: "It's riveted to the pole." }
+      },
+      dock: {
+        aliases: ["landing", "wharf", "post"],
+        desc: "Rough planks and posts, half-submerged at the edges. The water has left a green line a hand above your boots, and under the planks the [lines] of other, higher floods are still visible.",
+        reveals: ["lines"],
+        verbs: { sit: "You sit on the edge of the dock with your boots over the water. The river is very close.", search: "You walk the length of the planks. There's a coil of line, some tar, a mallet. Ogee's, all of it." }
+      },
+      lines: {
+        hidden: true,
+        aliases: ["line", "flood lines", "slime", "high water"],
+        desc: "Four distinct green bands, one above another on the pilings. Whoever built this dock has been flooded out more than once, and rebuilt it each time in the same place."
+      },
+      canoe: {
+        aliases: ["dugout"],
+        desc: "An old dugout canoe, cracked along the seam and half-buried in gravel south of the dock. No paddle.",
+        verbs: { push: "It's stuck fast in the gravel.", climb: "You'd go straight through the crack.", search: "No paddle, no gear. Just gravel, and a long split down the hull." }
+      },
+      fog: {
+        aliases: ["mist"],
+        desc: "A low wall of mist, hanging along the east shore as though it had been left there. It is the only direction that looks like home, and the only one that sounds like traffic.",
+        verbs: { touch: "Cold, damp, and a little electric. Through it, very faintly, you hear a car door.", smell: "Diesel and cut grass, from somewhere that isn't here." }
+      }
     },
     npcs: {
       ogee: {
         name: "Joseph Ogee",
         aliases: ["joseph", "ferryman", "man"],
-        desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town."
+        desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town.",
+        fallback: "Ogee shrugs. “Can't say. Ask me about work, or the boat.”",
+        topics: [
+          { keys: ["price", "ferry", "buy", "boat", "sell"], say: "Ogee says, “Three hundred dollars. Boat's sound. Rope's new last spring. Work it off if you want. Whiskey kegs to the settlement, twenty dollars a trip.”" },
+          { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm. Wagon and mules in the barn.”" },
+          { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
+          { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Set up across the river a few years back. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
+          { keys: ["land", "plot", "acre"], say: "Ogee says, “Land office is across the river, at Dixon's post. You'll want money.”" },
+          { keys: ["fog", "mist", "east", "from", "where", "home"], say: "Ogee looks east for a long moment. “Comes and goes. Folks walk into it and don't always walk out the same.” He goes back to the plank." },
+          { keys: ["river", "flood", "floods"], say: "“River does what it wants. Four times I've rebuilt this dock. Fifth time, I'll build it higher.”" },
+          { keys: ["pole", "shoe"], say: "“Ash pole, iron shoe. I had the smith make that. It'll outlast me.”" }
+        ]
       }
     },
     exits: [
@@ -337,16 +473,83 @@ const scenes = {
 
   farbank: {
     name: "The far bank, 1830",
-    look: () => "The ferry rocks against a smaller dock on the west bank. A rough log [post] stands above the landing, its door open on barrels and pelts. A tall man in a dark coat, [Dixon], stands on the path watching the river. Inside, a thin man behind a counter, the [clerk], has a large map on the wall and a ledger open. A young man with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [east] across the water, Ogee's landing.",
+    look: () => "The ferry rocks against a smaller dock on the west bank. A rough log [post] stands above the landing, its door open on the dim interior. A tall man in a dark coat, [Dixon], stands on the path watching the river. Through a side door, a thin man behind a counter, the [clerk], is writing in a book. A young man with a rifle across his knees, [Eli], sits near the door. The [dock] is smaller than Ogee's. Back [east] across the water, Ogee's landing.",
     listen: "Rope creaking, a murmur of voices from inside the post, and farther up the bank the clatter of someone stacking wood.",
     objects: {
-      post: { aliases: ["trading post", "store"], desc: "Dixon's trading post: a single room of logs and plank, shelves of goods, a ledger on the counter." },
-      dock: { aliases: ["landing"], desc: "The west-bank dock, smaller than Ogee's, with a hitching post nearby." }
+      post: {
+        aliases: ["trading post", "store", "door"],
+        desc: "Dixon's trading post: a single room of logs and plank, its door open on shelves of goods, stacked [barrels] and bundled [pelts].",
+        reveals: ["barrels", "pelts"],
+        verbs: { open: "The door is already open. Inside it's dim and smells of tallow.", climb: "You'd rather use the door." }
+      },
+      barrels: {
+        hidden: true,
+        aliases: ["barrel", "kegs", "keg"],
+        desc: "Oak barrels branded with a trader's mark, stacked three high. Some are lighter than others.",
+        verbs: { push: "They don't budge. They're heavier than they look.", open: "They're sealed with wax. That's someone's whiskey." }
+      },
+      pelts: {
+        hidden: true,
+        aliases: ["pelt", "furs", "fur", "hides"],
+        desc: "Beaver, muskrat, a few deer hides, bundled and tied with rawhide. The Sauk and Fox trade them here for iron and cloth.",
+        verbs: { touch: "Thick and a little greasy. They smell of smoke and woodlands.", smell: "Smoke, tallow, wet fur." }
+      },
+      dock: {
+        aliases: ["landing"],
+        desc: "The west-bank dock, smaller than Ogee's, with a hitching post nearby.",
+        verbs: { sit: "You sit on the edge of the dock and watch the river go by. A fish rises." }
+      },
+      map: {
+        hidden: true,
+        aliases: ["wall map", "survey"],
+        desc: "A hand-drawn survey, the river a thick blue line. A band of ridge land to the west is shaded in and labelled in a small clerk's hand. Across the river, at Ogee's landing, someone has pencilled a question mark.",
+        verbs: { touch: "The paper is soft and a little brittle at the edges." }
+      },
+      ledger: {
+        hidden: true,
+        aliases: ["book", "accounts", "register"],
+        desc: "The clerk's ledger, columns of acreage and names. Most lines are crossed out. The last unfilled line is dated for a day that hasn't come yet in this century.",
+        verbs: { touch: "The clerk shifts it out of reach without looking up." }
+      }
+    },
+    extras: {
+      map: "A large survey [map] hangs behind the clerk.",
+      ledger: "The clerk's [ledger] lies open on the counter."
     },
     npcs: {
-      dixon: { name: "John Dixon", aliases: ["john"], desc: "A tall man in a dark coat. A quiet trader who does fair business with the Sauk and Fox. He set up here a few years back." },
-      clerk: { name: "the land office clerk", aliases: ["land clerk", "office"], desc: "A thin man at a counter in a side room of the post, a large map on the wall behind him and a ledger open. He handles government land sales at a dollar twenty-five an acre." },
-      settler: { name: "a young settler", aliases: ["eli", "boy", "young man"], desc: "A nervous young man in patched homespun with an old percussion rifle across his knees. He glances at the river often." }
+      dixon: {
+        name: "John Dixon", aliases: ["john"],
+        desc: "A tall man in a dark coat. A quiet trader who does fair business with the Sauk and Fox. He set up here a few years back.",
+        fallback: "Dixon considers. “Not my line. You might ask Ogee, or the clerk.”",
+        topics: [
+          { keys: ["sauk", "treaty", "militia", "black hawk", "fort", "war", "1832", "lincoln"], say: "Dixon is quiet a moment. “Eighteen thirty-two. Black Hawk tried to come back east. Militia built Fort Dixon right here. Lincoln was a captain. Taylor had the regulars. Davis was a lieutenant. Never saw a battle. Just the aftermath.”" },
+          { keys: ["ogee", "ferry", "joseph"], say: "“Ogee had the ferry before I came. Good man. I'd buy it, if he'd sell.” He looks across the water. “He won't, yet.”" },
+          { keys: ["land", "plot", "clerk", "acre"], say: "“Land's what I'd buy, if I were you. The clerk has the ridge plots. Go and see him.”" },
+          { keys: ["trade", "pelts", "post", "whiskey"], say: "“Pelts, iron, cloth, and a little whiskey. People come a long way for the iron.”" },
+          { keys: ["fog", "mist", "east"], say: "“The mist? It's been odd this year.” He doesn't say more." }
+        ]
+      },
+      clerk: {
+        name: "the land office clerk", aliases: ["land clerk", "office"],
+        desc: "A thin man at a counter in a side room of the post. He handles government land sales at a dollar twenty-five an acre. A large [map] hangs behind him and his [ledger] is open on the counter.",
+        reveals: ["map", "ledger"],
+        fallback: "The clerk looks pained. “That isn't a land matter.”",
+        topics: [
+          { keys: ["land", "plot", "timber", "acre", "ridge", "price", "buy"], say: "The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, sixty acres for forty dollars if you take it as-is. Land office fee is two more.”" },
+          { keys: ["map", "survey"], say: "He taps it. “West ridge, sixty acres. East, nothing to speak of. Across the river, Ogee's. Not for sale, and not on my map.”" },
+          { keys: ["ledger", "name", "names"], say: "“Names and acreage. Most of it is paper and promises.”" }
+        ]
+      },
+      settler: {
+        name: "a young settler", aliases: ["eli", "boy", "young man"],
+        desc: "A nervous young man in patched homespun with an old percussion rifle across his knees. He glances at the river often.",
+        fallback: "Eli shrugs and looks at the river.",
+        topics: [
+          { keys: ["stillman", "black hawk", "militia", "pa", "father", "war", "1832"], say: "Eli says, “My pa went with Stillman's men. Never came back from Sycamore Creek.” He looks at the rifle. “Dixon says to watch the river anyway.”" },
+          { keys: ["rifle", "gun"], say: "“Pa's old percussion piece. Shoots true, if you hold your breath.”" },
+          { keys: ["river", "boats", "boat", "watch"], say: "“Dixon told me to watch for boats. Don't say nothing about people.”" }
+        ]
+      }
     },
     exits: [
       { names: ["east", "back", "across", "ferry", "river"], to: "ferry", text: "You cross back. Ogee is on the dock, coiling rope." },
@@ -357,25 +560,56 @@ const scenes = {
   cabins: {
     name: "Ogee's cabins, 1830",
     look: () => {
-      let text = "Three log cabins stand in a clearing, smoke rising from the middle one. A worn [cabin] door hangs half open. ";
-      if (!state.hasAxe) text += "An [axe] leans against a chopping block beside a stack of split oak. ";
-      else text += "A chopping block stands beside a stack of split oak. ";
+      let text = "Three log [cabin]s stand in a clearing, smoke rising from the middle one. ";
+      text += !state.hasAxe ? "An [axe] leans against a chopping [block] beside a stack of split oak. " : "A chopping [block] stands beside a stack of split oak. ";
       text += "The path back [south] to the river is plain from here.";
       return text;
     },
     listen: "A woodpecker. Water through the trees. Wind in the cabin chinking.",
+    extras: {
+      chest: "A [chest] sits at the foot of the loft.",
+      mattress: "A straw [mattress] lies in the loft."
+    },
     objects: {
-      cabin: { aliases: ["middle cabin", "loft", "door"], desc: "The middle cabin. A loft with a straw mattress and a chest at its foot. Blankets inside." },
+      cabin: {
+        aliases: ["middle cabin", "door", "cabins"],
+        desc: "The middle cabin: one room, a stone hearth gone cold, a [loft] reached by a ladder. Blankets, a tin cup, and the smell of old smoke.",
+        reveals: ["loft"],
+        verbs: { open: "The door is already ajar.", smell: "Cold ash, tallow, and old wool.", sit: "There's nothing to sit on but the floor." }
+      },
+      loft: {
+        hidden: true,
+        aliases: ["ladder", "bed"],
+        desc: "A low loft with a straw [mattress] and a [chest] at its foot. It's been slept in recently.",
+        reveals: ["chest", "mattress"],
+        verbs: { climb: "You climb up and look around. A straw mattress, a chest. You come back down.", sit: "You sit on the edge of the loft and look at the room." }
+      },
+      mattress: {
+        hidden: true,
+        aliases: ["straw", "straw mattress"],
+        desc: "Straw in ticking, still holding the shape of whoever slept on it. A single grey hair on the pillow.",
+        verbs: { sit: "It crackles and smells of dust. You stand up again.", touch: "Dry straw. Not recently turned." }
+      },
+      chest: {
+        hidden: true,
+        aliases: ["trunk", "box"],
+        desc: "A plain wooden chest with a rope handle at each end. It isn't locked.",
+        verbs: { open: "You lift the lid. A razor, a pewter cup, a folded blanket. Nothing you'd want.", push: "It's heavier than it looks." }
+      },
+      block: {
+        aliases: ["chopping block", "oak", "stack", "wood", "split oak"],
+        desc: "A stump worn smooth at the top by years of axes. A stack of split white oak sits beside it, enough for the winter. The sawmill downriver would take it.",
+        verbs: { sit: "You sit on the block for a moment, then stand again.", climb: "You step onto the block and back down.", touch: "Dry, hard wood. The oak is well seasoned." }
+      },
       axe: {
         aliases: ["hatchet"],
         visible: () => !state.hasAxe,
         desc: "A worn axe leaning against the block. Good for splitting or timber work.",
-        take: () => { state.hasAxe = true; return "You take the axe. It's heavier than it looks."; }
+        take: () => { state.hasAxe = true; return "You take the axe. It's heavier than it looks."; },
+        verbs: { touch: "The edge is sharp enough to catch a thumbnail." }
       }
     },
-    npcs: {
-      ogee: { name: "Joseph Ogee", aliases: ["joseph", "man"], visible: () => false, desc: "" }
-    },
+    npcs: {},
     exits: [
       { names: ["south", "back", "river", "ferry", "landing"], to: "ferry", text: "You head back down the path to the dock." }
     ]
@@ -508,10 +742,13 @@ const VERB_CANON = {
   climb: "climb", "climb on": "climb",
   search: "search", rummage: "search", "look through": "search", "dig through": "search",
   drink: "drink", sip: "drink", ring: "push", lean: "touch", "lean on": "touch",
-  use: "use", take: "take", get: "take", grab: "take"
+  use: "use", take: "take", get: "take", grab: "take",
+  board: "board", ride: "board", shout: "call", call: "call", yell: "call", answer: "call", "call out": "call", "shout back": "call"
 };
 
 const VERB_DEFAULT = {
+  board: "There's nothing here to board.",
+  call: "Your voice goes flat in the damp air. Nothing answers.",
   sign: "There's nothing here to sign.",
   read: "There's nothing to read on it.",
   sit: "You'd rather not sit on that.",
@@ -535,7 +772,11 @@ function act(verb, name) {
   const e = found.entry;
   if (verb === "use" && found.key === "phone") return print(phoneText());
   const custom = e.verbs && e.verbs[verb];
-  if (custom) return print(typeof custom === "function" ? custom() : custom);
+  if (custom) {
+    const result = typeof custom === "function" ? custom() : custom;
+    if (result) print(result);
+    return;
+  }
   if (verb === "take" && e.take) return print(e.take());
   if (verb === "take" && found.type === "item") return print("It's already with you.");
   if (verb === "read" || verb === "search") return examine(name);
@@ -555,23 +796,40 @@ function talk(name) {
   print(npcTalk[found.key] || `${npc.name} looks at you but says nothing yet.`);
 }
 
+function npcsHere() {
+  return candidates().filter(c => c.type === "npc");
+}
+
 function ask(rest) {
-  const s = state.scene;
-  const topic = rest.replace(/^(.+?) about /, "").replace(/^about /, "");
-  const has = (...words) => words.some(w => topic.includes(w));
-  if (s === "ferry" || s === "cabins") {
-    if (has("price", "ferry", "buy", "boat")) return print('Ogee says, “Three hundred dollars. Boat\'s sound. Rope\'s new last spring. Work it off if you want — whiskey kegs to the settlement, twenty dollars a trip.”');
-    if (has("work", "haul", "keg", "freight", "job")) return print('Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river\'s calm. Wagon and mules in the barn.”');
-    if (has("timber", "axe", "wood")) return print('Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”');
-    if (has("dixon")) return print('Ogee says, “John Dixon. Trader. Set up across the river a few years back. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”');
-    if (has("land", "plot", "acre")) return print('Ogee says, “Land office is across the river, at Dixon\'s post. You\'ll want money.”');
+  const m = rest.match(/^(.+?)\s+(?:about|for|if)\s+(.+)$/);
+  let npcName = m ? m[1] : null;
+  let topic = m ? m[2] : rest.replace(/^(?:about|for)\s+/, "");
+  let target = null;
+  if (npcName) {
+    const found = findTarget(npcName);
+    if (found && (found.type === "ambiguous" || found.type === "suggestions")) return clarify(found);
+    target = found;
+  } else {
+    const sole = npcsHere();
+    if (sole.length === 1) target = sole[0];
+    else if (!sole.length) return print("There's no one here to ask.");
+    else {
+      const guess = findTarget(rest);
+      if (guess && guess.type === "npc") return talk(rest);
+      return print(`Ask whom? ${sole.map(n => n.key).join(" or ")}?`);
+    }
   }
-  if (s === "farbank") {
-    if (has("land", "plot", "timber", "acre")) return print('The clerk nods. “Plots near the ferry road go first. Ridge line west is thicker timber, sixty acres for forty dollars if you take it as-is. Land office fee is two more.”');
-    if (has("sauk", "treaty", "militia", "black hawk", "eli", "fort")) return print('Dixon is quiet a moment. “Eighteen thirty-two. Black Hawk tried to come back east. Militia built Fort Dixon right here. Lincoln was a captain. Taylor had the regulars. Davis was a lieutenant. Never saw a battle. Just the aftermath.” Eli adds that his pa died at Stillman\'s Run.');
+  if (!target || target.type !== "npc") {
+    const sole = npcsHere();
+    if (sole.length === 1 && !npcName) target = sole[0];
+    else return print("There's no one by that name here.");
   }
-  if (s === "museum" && state.returned) return print("“I just do the desk on Sundays,” the volunteer says. “You'd have to ask the board.”");
-  print("There's nobody here who seems to have much to say about that.");
+  const npc = target.entry;
+  topic = cleanName(topic);
+  const hit = (npc.topics || []).find(t => t.keys.some(k => topic.includes(k)));
+  if (!hit) return print(npc.fallback || `${npc.name} has nothing to say about that.`);
+  print(typeof hit.say === "function" ? hit.say() : hit.say);
+  reveal(hit.reveals);
 }
 
 function run(input) {
@@ -584,7 +842,11 @@ function run(input) {
     if (exit) return print(exit.peek || `You look ${m[1]}, but see nothing you hadn't already seen.`);
     return examine(m[1]);
   }
-  if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|greet)\s+(.+)$/))) return talk(m[1]);
+  if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|tell|chat with)\s+(.+?)\s+about\s+(.+)$/))) return ask(`${m[1]} about ${m[2]}`);
+  if ((m = input.match(/^(?:talk to|talk with|speak to|speak with|greet|chat with)\s+(.+)$/))) return talk(m[1]);
+  if (/^(?:shout|call|yell|answer)(?: out| back)?$/.test(input)) {
+    return state.scene === "riverbank" && state.turnsHere >= 6 ? act("call", "voice") : print(VERB_DEFAULT.call);
+  }
   if ((m = input.match(/^ask\s+(.+)$/))) return ask(m[1]);
   if ((m = input.match(/^(?:go|walk|head|enter|move)(?: to| toward| towards| into| through)?\s+(?:the\s+)?(.+)$/))) {
     const exit = findExit(m[1]);
