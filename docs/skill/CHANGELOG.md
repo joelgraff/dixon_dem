@@ -11,3 +11,4 @@
 - Museum renamed Dixon Historic Center (205 W 5th St); added `references/future-hooks.md`
 - Added a looked-at sidebar (per-scene, expandable notes of examined things)
 - Added a Settings panel: sidebar toggle and optional click-to-examine highlights, saved in localStorage
+- Leaving or re-entering a room now includes in-character farewells and greetings

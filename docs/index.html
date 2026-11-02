@@ -83,6 +83,7 @@ const state = {
   volunteerSpoke: false,
   signed: false,
   found: {},
+  parted: {},
   notes: {},
   visitedScenes: []
 };
@@ -314,7 +315,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["museum", "door", "back", "inside", "in"], to: "museum", text: "You step back into the cool, bright room." },
+      { names: ["museum", "door", "back", "inside", "in"], to: "museum", text: "You step back into the cool, bright room. Margaret glances up from her desk and gives you a small smile." },
       { names: ["path", "river", "downhill", "riverfront", "walk"], to: "riverpath", text: "You follow the pavement down to where it gives out into the riverside walk." }
     ]
   },
@@ -526,7 +527,7 @@ const scenes = {
     },
     exits: [
       { names: ["north", "path", "cabins", "smoke"], to: "cabins", text: "You walk up the path. Three cabins sit in a clearing, smoke coming from the middle one." },
-      { names: ["west", "far bank", "across", "river"], to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
+      { names: ["west", "far bank", "across", "river"], noFarewell: true, to: "farbank", text: "Ogee poles you across. The rope hums against the hull, the current grabs mid-river, then eases. On the far bank a tall man in a dark coat watches you come in." },
       { names: ["south"], blocked: "The gravel shelf gives way to dense forest. There's no path that way, and no reason to push into it yet." },
       { names: ["east"], blocked: "The bank bends away beneath limestone bluffs. Too steep to follow from here." },
       { names: ["fog", "mist", "back", "return"], to: "riverbank", text: "You walk into the mist. It closes behind you, and the knocking recedes. The planks give way to gravel.", onArrive: () => { state.returned = true; } }
@@ -773,6 +774,7 @@ function look() {
 function arrive(id, text, onArrive) {
   state.scene = id;
   state.turnsHere = 0;
+  state.parted = {};
   if (!state.visitedScenes.includes(id)) state.visitedScenes.push(id);
   if (onArrive) onArrive();
   if (text) print(text);
@@ -784,8 +786,32 @@ function arrive(id, text, onArrive) {
 function move(exit) {
   if (exit.when && !exit.when()) { print(exit.blocked || "You can't go that way."); return true; }
   if (!exit.to) { print(exit.blocked || "You can't go that way."); return true; }
+  farewell(exit);
   arrive(exit.to, exit.text, exit.onArrive);
   return true;
+}
+
+const PARTING = {
+  volunteer: () => state.returned
+    ? "You nod to Margaret on your way out. “Take care out there,” she says, still watching the panel."
+    : "You thank Margaret and say you'll be back. “Do come again,” she says, pencil already moving. “And mind the fog, it comes up quick.”",
+  ogee: "You nod to Ogee. He lifts his chin without looking up from the plank.",
+  dixon: "You nod to Dixon, and he touches two fingers to his hat brim.",
+  clerk: "You nod to the clerk, who does not look up from the ledger.",
+  settler: "You nod to Eli, and he nods back, watching the river."
+};
+
+function farewell(exit) {
+  if (exit.noFarewell) return;
+  const here = npcsHere().filter(n => PARTING[n.key]);
+  const unsaid = here.filter(n => !state.parted[n.key]);
+  if (!unsaid.length) return;
+  if (here.length === 1) {
+    const p = PARTING[here[0].key];
+    print(typeof p === "function" ? p() : p);
+  } else {
+    print("You nod to the others and take your leave.");
+  }
 }
 
 function examine(name) {
@@ -955,6 +981,7 @@ function social(kind, name) {
     state.greeted = true;
     return speak(target.key, "“Oh, hello again.” She glances at the panel and back. “Were you down by the river?”");
   }
+  if (kind === "bye") state.parted[target.key] = true;
   speak(target.key, (lines && lines[kind]) || `${target.entry.name} acknowledges you with a nod.`);
 }
 

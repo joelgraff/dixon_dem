@@ -16,6 +16,11 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - Do not invent views that real places would not give. The museum window shows a parking lot and wires, not the river. Place-appropriate dullness is fine; the hint to go outside comes from people.
 - When something is intriguing, end the description on the intriguing detail (the exhibit panel that ends one line short). Do not explain it.
 
+## Social Flow of Actions
+- Scene changes should read like real life. Leaving a room with people in it produces a courteous parting first (a thanks, a nod), then the move. If the player has already said goodbye this visit, it is skipped. With several people present, a general "you nod to the others".
+- Re-entering a room acknowledges the people there. Crossing the river with Ogee is part of the crossing text and has no separate farewell (`noFarewell` on the exit).
+- Parting lines are per NPC and can depend on state (`PARTING`).
+
 ## Looked-At Sidebar
 - A sidebar lists what the player has examined, grouped by scene with the current scene first. Entries expand on click to show the description as last read. It only records things the player has examined, so it never gives away unexamined nouns, and it stands in for scrolling back up or retyping `look`.
 - Notes persist when the player leaves and re-enters a scene. Items an examined object revealed appear in the prose of the room, not in the sidebar, until examined.
