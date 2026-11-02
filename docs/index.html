@@ -321,7 +321,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["museum", "door", "back", "inside", "in"], to: "museum", text: "You step back into the cool, bright room. Margaret glances up from her desk and gives you a small smile." },
+      { names: ["museum", "door", "back", "inside", "in", "south"], to: "museum", text: "You step back into the cool, bright room. Margaret glances up from her desk and gives you a small smile." },
       { names: ["path", "river", "north", "uphill", "riverfront", "walk"], to: "riverpath", text: "You walk north up Hennepin, past the police station and the courthouse, then through three blocks of downtown storefronts, until the pavement gives out into the riverside walk." }
     ]
   },
@@ -384,7 +384,7 @@ const scenes = {
     },
     npcs: {},
     exits: [
-      { names: ["street", "back", "up", "uphill"], to: "street", text: "You climb back up to the street." },
+      { names: ["street", "back", "up", "uphill", "south"], to: "street", text: "You climb back up to the street." },
       { names: ["stairway", "stairs", "steps", "stair", "bank", "down", "water", "river"], to: "riverbank", text: "You go down the worn steps, one hand on the cold rail.", reset: true }
     ]
   },
@@ -764,8 +764,11 @@ function clarify(found) {
   print(found.type === "ambiguous" ? `Which do you mean: ${names}?` : `I don't see that exactly. Did you mean ${names}?`);
 }
 
+const DIRS = { n: "north", s: "south", e: "east", w: "west", u: "up", d: "down" };
+
 function findExit(name) {
   name = name.toLowerCase().trim().replace(/^(the|to|toward|towards|into|through)\s+/, "");
+  name = DIRS[name] || name;
   return scene().exits.find(e => e.names.includes(name));
 }
 
