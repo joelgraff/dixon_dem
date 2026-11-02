@@ -47,7 +47,9 @@ h1 { font-weight: normal; letter-spacing: 0.15em; font-size: 1.1rem; color: #8a8
 #output p { margin: 0 0 0.9rem; }
 #output p.echo { color: #8a867a; font-family: monospace; margin-bottom: 0.4rem; }
 #output p.heading { color: #8a867a; font-variant: small-caps; letter-spacing: 0.1em; margin-top: 1.6rem; }
-.interactive { color: #7ec8e3; }
+body.hl-key .interactive.key, body.hl-all .interactive.key { color: #7ec8e3; }
+body.hl-all .interactive.minor { color: #b7a77a; }
+#notes .badge { color: #7ec8e3; font-size: 0.75em; margin-left: 0.3em; }
 #bar { display: flex; gap: 0.5rem; margin-top: 1rem; }
 #cmd { flex: 1; background: #202325; color: #e8e4d8; border: 1px solid #444; padding: 0.6rem; font-family: monospace; font-size: 1rem; }
 button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0.6rem 1rem; font-family: monospace; cursor: pointer; }
@@ -58,6 +60,14 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
 <div id="head"><h1>Dixon</h1><button id="gear" aria-expanded="false">Settings</button></div>
 <div id="settings">
   <label><input type="checkbox" id="opt-sidebar"> Looked-at sidebar<small>Keeps a list of what you've examined, by scene.</small></label>
+  <label>Highlighted words
+    <select id="opt-hl">
+      <option value="key">Key items only</option>
+      <option value="all">All (key and minor, two colors)</option>
+      <option value="off">Off</option>
+    </select>
+    <small>Key items (blue) are what move the story along. Minor items (tan) are just there to be looked at.</small>
+  </label>
   <label><input type="checkbox" id="opt-clicks"> Clickable highlighted words<small>Click a highlighted word to examine it. Off by default; typing is the point.</small></label>
 </div>
 <div id="layout">
@@ -91,13 +101,17 @@ button { background: #2a2e30; color: #d8d4c8; border: 1px solid #444; padding: 0
 const output = document.getElementById('output');
 const cmd = document.getElementById('cmd');
 
-const settings = { sidebar: true, clicks: false };
+const settings = { sidebar: true, clicks: false, highlight: "key" };
 try { Object.assign(settings, JSON.parse(localStorage.getItem("dixonSettings") || "{}")); } catch (e) {}
 
 function applySettings() {
   if (typeof document.body === "undefined" || !document.body) return;
   document.body.classList.toggle("nosidebar", !settings.sidebar);
   document.body.classList.toggle("clicks", settings.clicks);
+  document.body.classList.remove("hl-key", "hl-all");
+  if (settings.highlight !== "off") document.body.classList.add("hl-" + settings.highlight);
+  const hl = document.getElementById("opt-hl");
+  if (hl) hl.value = settings.highlight;
   const sb = document.getElementById("opt-sidebar"), ck = document.getElementById("opt-clicks");
   if (sb) sb.checked = settings.sidebar;
   if (ck) ck.checked = settings.clicks;
@@ -127,7 +141,23 @@ const state = {
 };
 
 const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const fmt = t => esc(t).replace(/\[([^\]]+)\]/g, '<span class="interactive" data-noun="$1">$1</span>').replace(/\n/g, "<br>");
+function keyOf(type, entry) {
+  if (entry.key !== undefined) return entry.key;
+  return type === "npc" || !!(entry.reveals && entry.reveals.length);
+}
+
+function isKeyNoun(noun, sceneId) {
+  const sc = scenes[sceneId];
+  if (!sc) return false;
+  const n = noun.toLowerCase();
+  const hit = (key, e) => key === n || (e.aliases || []).includes(n) || (e.name && e.name.toLowerCase() === n);
+  for (const [k, o] of Object.entries(sc.objects)) if (hit(k, o) && keyOf("object", o)) return true;
+  for (const [k, o] of Object.entries(sc.npcs || {})) if (hit(k, o)) return true;
+  return sc.exits.some(e => e.names.includes(n));
+}
+
+const fmt = (t, sceneId) => esc(t).replace(/\[([^\]]+)\]/g, (m, noun) =>
+  `<span class="interactive ${isKeyNoun(noun, sceneId || state.scene) ? "key" : "minor"}" data-noun="${noun}">${noun}</span>`).replace(/\n/g, "<br>");
 
 function print(text, cls) {
   output.innerHTML += `<p${cls ? ` class="${cls}"` : ""}>${fmt(text)}</p>`;
@@ -190,6 +220,7 @@ const scenes = {
     },
     objects: {
       exhibit: {
+        key: true,
         aliases: ["panel", "founding", "display", "wall"],
         desc: () => {
           if (done()) return "The panel is whole. THE FOUNDING OF DIXON. It ends: “In April 1830 John Dixon bought the ferry from Joseph Ogee, and the settlement took his name.” The last glass case holds a small brass token where there was only felt before." + (state.hasLand ? " A surveyor's claim receipt is pinned beside the panel: a thirty-two-acre ridge timber claim, claimant unknown." : "");
@@ -205,6 +236,7 @@ const scenes = {
         verbs: { touch: "The case is cool and slightly dusty.", take: "It's bolted to the wall.", open: "You'd have to wind it, and the tape says not to." }
       },
       crossword: {
+        key: true,
         aliases: ["puzzle", "grid", "clue", "clues", "seven down", "crosswords", "newspaper"],
         desc: () => done()
           ? "The crossword is finished, every square in neat pencil. Seven down, five letters, “Founder of the ferry town”: DIXON. The letters cross cleanly. In the margin, rubbed nearly out: john, john, john."
@@ -214,6 +246,7 @@ const scenes = {
         verbs: { touch: "The paper is soft where the eraser has been. Margaret glances over, and you take your hand away.", take: "Margaret's hand covers it, politely." }
       },
       cases: {
+        key: false,
         aliases: ["case", "glass", "glass cases", "display case"],
         desc: () => "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. " + (done()
           ? "The last case in the row, empty before, now holds a brass [token]."
@@ -244,6 +277,7 @@ const scenes = {
         }
       },
       pedestal: {
+        key: false,
         aliases: ["empty", "stand", "plinth"],
         desc: () => {
           if (done()) return "On the velvet where there was only a faded ring, a corroded iron pole-shoe from a river flatboat. The card says: “Donor unknown.”";
@@ -256,6 +290,7 @@ const scenes = {
         }
       },
       desk: {
+        key: false,
         aliases: ["volunteer desk", "table", "chair"],
         desc: () => "A tidy desk, older than everything around it: a lanyard, a roll of mints, a cold cup of coffee with a lipstick ring on the lid" + (state.returned ? ", and a hand-lettered sign reading ASK ABOUT THE LATEST LABELS" : "") + ". A [guestbook] lies open at the corner nearest the door, and below the blotter the middle [drawer] has a small brass lock.",
         reveals: ["guestbook", "drawer"],
@@ -367,6 +402,7 @@ const scenes = {
         verbs: { touch: "It's a block away." }
       },
       pickup: {
+        key: false,
         aliases: ["truck"],
         desc: "A dusty pickup with an Illinois plate. A faded [sticker] curls on the bumper. Nobody is in it.",
         reveals: ["sticker"],
@@ -421,6 +457,7 @@ const scenes = {
         verbs: { touch: "Smooth as a pebble, and cooler than the paint around it." }
       },
       bench: {
+        key: false,
         aliases: ["seat"],
         desc: "A slatted bench with a [plate] screwed to the back. The slats are damp, though it hasn't rained.",
         reveals: ["plate"],
@@ -443,6 +480,7 @@ const scenes = {
         verbs: { sit: "You sit at one of the picnic tables for a minute. The wood is damp, and the city sounds seem a little far off.", climb: "The roof is well out of reach." }
       },
       statue: {
+        key: false,
         aliases: ["horse", "rider", "bronze", "monument", "pedestal", "plaza", "fountains", "fountain"],
         desc: "A bronze rider on a palomino, nine feet of it, high on a block of dark granite and framed by two flagpoles. A bronze [plaque] is set into the paving at its foot. Low fountains play in the plaza around it, and the flags hang limp in the damp air.",
         reveals: ["bronzeplaque"],
@@ -453,6 +491,7 @@ const scenes = {
         desc: "Hennepin Street runs south from the riverfront through downtown, past the courthouse, toward the Historic Center. Four blocks, an easy walk."
       },
       railing: {
+        key: false,
         aliases: ["rail", "fence"],
         desc: "Painted iron, cold and a little wet. Past it the bank drops away to riprap and the water. Down at the base of the wall, an old iron [ringbolt] is set into the stone.",
         reveals: ["ringbolt"],
@@ -630,6 +669,7 @@ const scenes = {
         verbs: { take: "Each pig weighs about seventy pounds. You leave them.", search: "Nothing in the wagons but lead, a water keg and a tattered quilt." }
       },
       pole: {
+        key: false,
         hidden: true,
         aliases: ["setting pole", "iron pole"],
         desc: "A long ash pole with an iron [shoe] on the end, worn bright and thin on the side that bears against the riverbed.",
@@ -643,6 +683,7 @@ const scenes = {
         verbs: { take: "It's riveted to the pole." }
       },
       dock: {
+        key: false,
         aliases: ["landing", "wharf", "post"],
         desc: "Rough planks and posts, half-submerged at the edges. The water has left a green line a hand above your boots, and under the planks the [lines] of other, higher floods are still visible.",
         reveals: ["lines"],
@@ -803,12 +844,14 @@ const scenes = {
     },
     objects: {
       cabin: {
+        key: false,
         aliases: ["middle cabin", "door", "cabins"],
         desc: "The middle cabin: one room, a stone hearth gone cold, a [loft] reached by a ladder. Blankets, a tin cup, and the smell of old smoke.",
         reveals: ["loft"],
         verbs: { open: "The door is already ajar.", smell: "Cold ash, tallow, and old wool.", sit: "There's nothing to sit on but the floor." }
       },
       loft: {
+        key: false,
         hidden: true,
         aliases: ["ladder", "bed"],
         desc: "A low loft with a straw [mattress] and a [chest] at its foot. It's been slept in recently.",
@@ -833,6 +876,7 @@ const scenes = {
         verbs: { sit: "You sit on the block for a moment, then stand again.", climb: "You step onto the block and back down.", touch: "Dry, hard wood. The oak is well seasoned." }
       },
       axe: {
+        key: true,
         aliases: ["hatchet"],
         visible: () => !state.hasAxe,
         desc: "A worn axe leaning against the block. Good for splitting or timber work.",
@@ -1042,7 +1086,7 @@ function recordNote(found, text) {
   const id = state.scene;
   state.notes[id] = state.notes[id] || {};
   const title = found.entry.title || (found.type === "npc" ? found.entry.name.replace(/^(the|a)\s+/, "") : found.key);
-  state.notes[id][found.key] = { title, text };
+  state.notes[id][found.key] = { title, text, key: found.type === "npc" || keyOf("object", found.entry) };
   renderNotes();
 }
 
@@ -1058,9 +1102,10 @@ function renderNotes() {
     if (!entries.length && !current) continue;
     html += `<h2${current ? ' class="current"' : ""}>${esc(scenes[id].name)}</h2>`;
     if (!entries.length) html += '<div class="empty">Nothing yet.</div>';
+    entries.sort((a, b) => (b[1].key ? 1 : 0) - (a[1].key ? 1 : 0));
     for (const [key, note] of entries) {
       const did = id + ":" + key;
-      html += `<details data-id="${did}"${open.has(did) ? " open" : ""}><summary>${esc(note.title)}</summary><p>${fmt(note.text)}</p></details>`;
+      html += `<details data-id="${did}"${open.has(did) ? " open" : ""}><summary>${esc(note.title)}${note.key ? '<span class="badge" title="Key item">★</span>' : ""}</summary><p>${fmt(note.text, id)}</p></details>`;
     }
   }
   panel.innerHTML = html;
@@ -1409,6 +1454,7 @@ cmd.maxLength = 40;
 cmd.addEventListener("keydown", e => { if (e.key === "Enter") handle(); });
 const wire = (id, fn) => { const el = document.getElementById(id); if (el && el.addEventListener) el.addEventListener("change", fn); };
 wire("opt-sidebar", e => { settings.sidebar = e.target.checked; applySettings(); });
+wire("opt-hl", e => { settings.highlight = e.target.value; applySettings(); });
 wire("opt-clicks", e => { settings.clicks = e.target.checked; applySettings(); });
 const gear = document.getElementById("gear");
 if (gear && gear.addEventListener) gear.addEventListener("click", () => {

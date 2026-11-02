@@ -53,3 +53,10 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 Ideas for later scenes, and details already planted in the demo, are kept in `future-hooks.md`. Whenever the user suggests something for later, or a scene plants a detail, add it there with where it lives now and what it could become.
 
 - River geography: the Rock River has a north and south bank, never an east or west one. The plaza and the 1830 ferry landing are on the south bank; the far bank is the north bank, and the cabins path climbs south, away from the water.
+
+## Highlighted words
+- A setting controls highlighting: Key items only (default), All (key in blue, minor in tan) or Off. Settings are saved in localStorage.
+- Key means it moves the story along: NPCs, things that lead somewhere (exits), objects that the player must act on, and things a character deliberately points at (the guestbook, the riverwalk). Set `key: true/false` on an object to override the automatic rule (NPC, or reveals another object).
+- Everything else examinable is minor. Minor things stay askable and examinable but are only highlighted in All mode.
+- The looked-at sidebar records everything examined, with key items listed first and marked with a star.
+- In NPC speech, only highlight a word when the speaker is steering the player to it.

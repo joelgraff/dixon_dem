@@ -34,3 +34,4 @@
 - Water's edge transition reworked: fog builds from examining, looking at the water shifts concrete to planks, the next look around shows 1830 and Ogee's voice, answering it crosses over
 - Return from 1830 is gated: the east fog only returns once both land and ferry are bought; stairs run north/south
 - 1830 geography fixed: ferry landing on the south bank, far bank is north, cabins path south. Chapter end (land and ferry bought) rolls fog in anywhere; moves are blocked and Ogee guides the player back
+- Highlight setting (Key only / All with two colors / Off); key items listed first with a star in the sidebar
