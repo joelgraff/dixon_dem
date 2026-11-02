@@ -1,5 +1,6 @@
 # Changelog
 ## 2026-11-02
+- Polish: the guestbook is always available (named in the room text, no need to examine the desk first); `think` shows money only in 1830; after the repair, Margaret closes the first chapter ("I've a feeling the next puzzle won't be so easy") and `help` says so.
 - New-player playtest fixes: Dixon and Ogee now state the goal and teach `haul` / `give` in their greetings; `work`, `carry kegs`, `take the job` and `yes` (at the landing) all haul; `look at water` and `listen` advance the fog sequence; `swim`/`wade` at the water's edge use the wade line; full direction words (north, down...) work and say "You can't go that way" when blocked; new contextual `help` / `hint` command; quick buttons gain wait, listen and help.
 - After the first return from 1830, "go to museum" (also "back to the museum", "museum") takes you straight back from the water's edge or the riverfront; the return text mentions it.
 - Revisiting 1830 after Dixon buys the ferry: Ogee is gone, a hired hand runs the landing, the landing is renamed Dixon's, the ferry is no longer for sale; `give Dixon` without an amount prompts; `listen` accepts state-dependent text.

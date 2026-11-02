@@ -177,14 +177,13 @@ const scenes = {
     look: () => {
       let text = "The front room is quiet and a little too brightly lit. Fluorescent tubes hum over a row of glass [cases] and a wall of framed [photos]. The founding [exhibit] takes up most of the far wall, and beside it a [pedestal] stands with a faded ring pressed into its velvet where something used to sit.\n\n";
       text += state.returned
-        ? "A [volunteer] in a cardigan sits behind the [desk] by the entrance, frowning across the room at the exhibit panel. "
-        : "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a pencil moving slowly over a [crossword]. ";
+        ? "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a [guestbook] open at her elbow, frowning across the room at the exhibit panel. "
+        : "A [volunteer] in a cardigan sits behind the [desk] by the entrance, a [guestbook] open at her elbow and a pencil moving slowly over a [crossword]. ";
       text += "Late light comes through the [window] the color of weak tea, and the glass door to the street has been propped open.";
       return text;
     },
     listen: "The lights hum. Somewhere in the back a clock ticks a little behind the others.",
     extras: {
-      guestbook: "A [guestbook] lies open on the desk.",
       drawer: "The desk has a [drawer] with a small brass lock.",
       card: "A small typed [card] is propped against the pedestal."
     },
@@ -265,7 +264,6 @@ const scenes = {
         }
       },
       guestbook: {
-        hidden: true,
         aliases: ["book", "register", "guest book", "log"],
         desc: () => {
           const pool = guestEntries();
@@ -303,9 +301,13 @@ const scenes = {
           : "A woman in a cardigan, sixty or so, reading glasses pushed up into grey hair. Her name tag says MARGARET. She sits at the [desk] working the crossword with the patience of long habit.",
         talk: () => {
           if (state.returned) {
-            return state.volunteerSpoke === "back"
-              ? "“Mm?” Margaret glances up. “Sorry. Still thinking about the labels.”"
-              : (state.volunteerSpoke = "back", "“Oh, hello again. You were in earlier, weren't you?” She frowns at the wall. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She laughs, not quite convincingly.");
+            if (state.volunteerSpoke === "back") return done()
+              ? "“Mm?” Margaret glances up. “Sorry. Still looking at seven down. Isn't it odd, finishing something and not knowing what it was?”"
+              : "“Mm?” Margaret glances up. “Sorry. Still thinking about the labels.”";
+            state.volunteerSpoke = "back";
+            return done()
+              ? "“Oh, hello again. You were in earlier, weren't you?” She frowns at the wall, then at the crossword, and something in her face settles. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She taps the finished grid. “Well. That's one done. Come by again, will you? I've a feeling the next puzzle won't be so easy.”"
+              : "“Oh, hello again. You were in earlier, weren't you?” She frowns at the wall. “Funny. I could swear the labels weren't like that this morning. Nobody's touched them.” She laughs, not quite convincingly.";
           }
           if (state.volunteerSpoke) return "Margaret glances up from the crossword and smiles. “Mm?”";
           state.volunteerSpoke = true;
@@ -849,6 +851,7 @@ function hint() {
     const short = FERRY_PRICE - state.dixonCash;
     h = state.dixonCash >= FERRY_PRICE ? "Dixon has what he needs." : `Dixon is $${short} short of Ogee's ferry. Earn money with “haul” or “haul week” (at the ferry landing or Dixon's post), then “give Dixon ${short}”. The surveyor's ridge claim is optional.`;
   }
+  else if (done()) h = "The first chapter is finished. Margaret's next puzzle may take longer to find. Look around the museum and the river while you wait, or “go to museum” and talk to her.";
   else if (state.returned) h = "Margaret may have noticed something new. “Go to museum”, and look at the exhibit and the crossword.";
   else h = "Margaret keeps mentioning the river and the marker. Talk to her, look around, then walk north to the river.";
   print(h + ` (${VERBS})`);
@@ -1281,7 +1284,7 @@ function run(input) {
   }
   if (/^(think|goals|recall)$/.test(input)) {
     if (!state.visited1830) return print("You think about the empty pedestal, and the line of the panel that ends too soon.");
-    const bits = [`You have $${state.money}.`];
+    const bits = PAST.includes(state.scene) ? [`You have $${state.money}.`] : [];
     if (state.hasLand) bits.push("The ridge claim is yours.");
     if (state.dixonOwns) bits.push("Dixon has his ferry.");
     else if (state.hasFerry) bits.push("The ferry is yours, which does not feel right.");
