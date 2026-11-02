@@ -1,4 +1,6 @@
 # Changelog
+## 2026-11-02
+- Playtest fixes: the empty museum case now matches the changed exhibit panel (brass ferry token) after the chapter; inventory shows 1830 money only while in 1830; `haul` has varied lines and accepts `haul week` / `haul N` (max 6); the ferry price message mentions hauling; `go water` gives a nudge during the fog build-up and after the planks appear. Re-entering 1830 after the ending stays allowed.
 ## 2026-11-01
 - Demo redesign: scrollback instead of clearing, prose rooms, gradual museum-to-1830 transition with fog, `?scene=` test param, lighthouse removed from the demo
 - Progressive discovery (`hidden`/`reveals`), per-object verbs, topic-based `ask` for every NPC, Margaret present from the start

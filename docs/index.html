@@ -182,7 +182,7 @@ const scenes = {
         aliases: ["panel", "founding", "display", "wall"],
         desc: () => {
           if (!state.visited1830) return "A wall panel and a small case, titled THE FOUNDING OF DIXON. “John Dixon established a ferry and trading post on the Rock River in the early 1830s. The settlement that grew around it took his name.” The paragraph ends a line short, as though a sentence was left out.";
-          if (state.hasLand && state.hasFerry) return "The panel has changed. A land-patent card is pinned beside it, and a new line notes that the ferry passed to a newcomer in 1830. The case now holds a small object where there was only felt before.";
+          if (state.hasLand && state.hasFerry) return "The panel has changed. A land-patent card is pinned beside it, and a new line notes that the ferry passed to a newcomer in 1830. The last glass case now holds a small brass token where there was only felt before.";
           if (state.hasLand) return "The panel is the same, but a new land-patent card has been pinned beside it. It describes a sixty-acre ridge timber plot, claimant unknown.";
           if (state.hasFerry) return "The panel is the same, but a new line has been added: the ferry changed hands in 1830, to a newcomer whose name was not recorded.";
           return "The panel reads exactly as it did. If anything changed, it isn't here.";
@@ -190,15 +190,19 @@ const scenes = {
       },
       cases: {
         aliases: ["case", "glass", "glass cases", "display case"],
-        desc: "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. The last case in the row is an [empty case], the felt brushed and the glass wiped.",
+        desc: () => "Arrowheads on cotton, a cracked clay pipe, a ledger page too faded to read. The cards under each are typed, not printed. " + (state.returned && state.hasLand && state.hasFerry
+          ? "The last case in the row, empty before, now holds a brass [token]."
+          : "The last case in the row is an [empty case], the felt brushed and the glass wiped."),
         reveals: ["emptycase"],
         verbs: { open: "The cases are locked. The little brass keyholes are clean, as if someone opens them often." }
       },
       emptycase: {
         hidden: true,
         title: "empty case",
-        aliases: ["empty case", "bare case", "last case", "empty"],
-        desc: "A case like the others, with a card holder and nothing in it. The card holder is empty too. Somebody dusts it regularly, all the same."
+        aliases: ["empty case", "bare case", "last case", "empty", "token", "brass token", "something"],
+        desc: () => state.returned && state.hasLand && state.hasFerry
+          ? "On the felt that was bare this morning, a worn brass token stamped with a flatboat and the initials J.O. The card holder now has a card: “Ferry token, c. 1830. Donor unknown.”"
+          : "A case like the others, with a card holder and nothing in it. The card holder is empty too. Somebody dusts it regularly, all the same."
       },
       card: {
         hidden: true,
@@ -544,7 +548,7 @@ const scenes = {
     npcs: {},
     exits: [
       { names: ["stairway", "stairs", "steps", "stair", "back", "up", "south", "walk", "street", "hennepin", "riverfront", "plaza", "statue", "path"], to: "riverpath", when: () => !state.shift, blocked: "You turn, but there are no steps behind you now; only planks, and the mist.", text: "You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces." },
-      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.shift >= 2, blocked: "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it.", text: "You call back, and walk out along the planks toward the sound. The mist parts, and the knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
+      { names: ["water", "river", "voice", "forward", "fog", "mist", "out"], to: "ferry", when: () => state.shift >= 2, blocked: () => state.shift === 1 ? "You can't make out where the planks lead. Take a look around first." : "The water is only water. The far bank is out there somewhere, and you'd have to be a fool to wade it." + (state.turnsHere >= 4 ? " Still, it is hard to stop watching." : ""), text: "You call back, and walk out along the planks toward the sound. The mist parts, and the knocking is suddenly very close.", onArrive: () => { state.visited1830 = true; } }
     ]
   },
 
@@ -910,8 +914,9 @@ function move(exit) {
     print("The fog is too thick to go anywhere. You take a step and lose all sense of direction, and Ogee's hand tightens on your sleeve. “Not that way. Follow me.”");
     return true;
   }
-  if (exit.when && !exit.when()) { print(exit.blocked || "You can't go that way."); return true; }
-  if (!exit.to) { print(exit.blocked || "You can't go that way."); return true; }
+  const blocked = typeof exit.blocked === "function" ? exit.blocked() : exit.blocked;
+  if (exit.when && !exit.when()) { print(blocked || "You can't go that way."); return true; }
+  if (!exit.to) { print(blocked || "You can't go that way."); return true; }
   farewell(exit);
   arrive(exit.to, exit.text, exit.onArrive);
   return true;
@@ -1196,7 +1201,7 @@ function run(input) {
   if (/^(i|inv|inventory)$/.test(input)) {
     const carried = ["your phone"];
     if (state.hasAxe) carried.push("an axe");
-    print(`You are carrying ${carried.join(" and ")}.` + (state.visited1830 ? ` There is $${state.money} in your pocket.` : ""));
+    print(`You are carrying ${carried.join(" and ")}.` + (PAST.includes(state.scene) ? ` There is $${state.money} in your pocket.` : ""));
     return;
   }
   if (/^(think|goals|recall)$/.test(input)) {
@@ -1207,12 +1212,18 @@ function run(input) {
     if (state.hasLand && state.hasFerry) bits.push("It feels, for a moment, like the first chapter is finished.");
     return print(bits.join(" "));
   }
-  if (/^(haul|load kegs?|deliver)$/.test(input) || /^(haul|load keg|deliver)/.test(input)) {
-    if (state.scene === "ferry" || state.scene === "farbank") {
-      state.money += 20;
-      print("You load the kegs and pole across. Dixon counts them and marks the ledger. Twenty dollars for the trip.");
-      print(`You now have $${state.money}.`);
-    } else print("There's nothing here to haul.");
+  if ((m = input.match(/^(?:haul|load kegs?|deliver)(?:\s+(?:kegs?\s+)?(\d+|week))?$/))) {
+    if (state.scene !== "ferry" && state.scene !== "farbank") return print("There's nothing here to haul.");
+    const trips = m[1] === "week" ? 3 : Math.min(Math.max(parseInt(m[1] || "1", 10), 1), 6);
+    const lines = [
+      "You load the kegs and pole across. Dixon counts them and marks the ledger.",
+      "Four kegs, a calm river, and a mule that does not want to board. Dixon marks the ledger.",
+      "The current is running high today. You pole hard, and Dixon marks the ledger without a word."
+    ];
+    state.hauls = (state.hauls || 0) + trips;
+    state.money += 20 * trips;
+    print(trips === 1 ? lines[state.hauls % lines.length] + " Twenty dollars for the trip." : `You work ${trips} trips, kegs across and empty boat back. Twenty dollars a trip: $${20 * trips}.`);
+    print(`You now have $${state.money}.`);
     return;
   }
   if (/^(chop|cut wood|timber|cut timber)/.test(input)) {
@@ -1238,7 +1249,7 @@ function run(input) {
   if (/^(buy|purchase) (ferry|boat)/.test(input)) {
     if (state.scene !== "ferry") return print("Ogee isn't here.");
     if (state.hasFerry) return print("You already own the ferry.");
-    if (state.money < 300) return print("You don't have enough money. The ferry is three hundred dollars.");
+    if (state.money < 300) return print("You don't have enough money. The ferry is three hundred dollars. (Hauling kegs pays twenty a trip; \"haul week\" works three.)");
     state.money -= 300;
     state.hasFerry = true;
     print("You count out three hundred dollars. Ogee hands you the rope and the pole. The ferry is yours.");
