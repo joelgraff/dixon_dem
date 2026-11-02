@@ -60,7 +60,7 @@ Light, non-overt advantages possible later (knowledge of modern sources, local c
 
 ## Demo Cycle (minimal)
 1. Start in museum. Examine founding exhibit (generic) and note empties.  
-2. Leave the museum, walk down to the river walk, then the water's edge. Fog thickens over several turns; a voice calls from the water and the ferry landing opens.  
+2. Leave the museum, walk down to the river walk, then the water's edge. Fog thickens as the player examines things; looking at the water turns the concrete underfoot to planks, and the next look around shows the 1830 bank and Ogee's voice. Answering it opens the ferry landing.  
 3. Complete or abandon 1–2 non-trivial actions (name the town, buy land, buy ferry, or leave Dixon’s fate altered).  
 4. Fog offers exit on its schedule.  
 5. Return to museum. Exhibit and/or pedestals reflect the result. Optional secondary check in town.  
