@@ -56,4 +56,6 @@ The starting present is a timeline where history went wrong. Open decisions are 
 - **Travel:** always the fog at the river. Each era needs its own entry cue. Margaret names the place and the object to look for, not the portal.
 - **Guestbook:** signing it is the leaper hook. Later entries from people met in the past (bloodlines) make repairs visible.
 - **Player's backstory:** deliberately unexplained (Quantum Leap).
+- **Walgreens (decided 2026-11-02, not built):** its own rupture, in the 1890s, separate from the 1830 fix. Charles Walgreen clerked at a Dixon drugstore (Horton's on West First Street, about $4 a week, steered there by a physician) before moving to Chicago in 1893; the break is that the physician's referral never happens, and the repair is one small nudge. Present-day clue: a **ghost sign** (faded painted advertisement, `...ORTON'S DRUG STORE`) on a downtown brick wall, with a stranger, newer layer showing through. Sources disagree on details; verify before using.
+- **Scope note:** for now, only the trip to 1830 and the return are built and polished. The rest are plans.
 
