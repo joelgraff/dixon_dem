@@ -328,11 +328,11 @@ const scenes = {
 
   riverpath: {
     name: "Riverside walk",
-    look: () => "The riverfront is a broad public space of pale paving and limestone walls, running along the south bank between Peoria Avenue and Galena Avenue. A green iron [railing] follows the curve of the wall above the water, and a stone [pavilion] stands a little way along, with a [bench] facing the river. A bronze [statue] of a man on a horse rises from a plaza nearby, and between them a green historical [marker] stands on a post. The [river] is wide and brown and slow, and a long raft of mist lies on it. At the far end of the railing, a wide [stairway] of worn steps leads down to the bank. Behind you, Hennepin [street] runs south through downtown, back toward the Historic Center.",
+    look: () => "The riverfront is a broad public space of pale paving and limestone walls, running along the south bank between Peoria Avenue and Galena Avenue. A green iron [railing] follows the curve of the wall above the water, and a stone [pavilion] stands a little way along, with a [bench] facing the river. A bronze [statue] of a man on a horse rises from the plaza nearby, and between them a green historical [marker] stands on a post. The [river] is wide and brown and slow, and a long raft of mist lies on it. At the far end of the railing, a wide [stairway] of worn steps leads down to the bank. Behind you, Hennepin [street] runs south through downtown, back toward the Historic Center.",
     listen: "Water against stone. A halyard clinking, though there are no boats.",
     objects: {
       marker: {
-        aliases: ["sign", "plaque", "historical marker", "post"],
+        aliases: ["sign", "historical marker", "post"],
         desc: "OGEE'S FERRY. “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. The settlement that grew on this bank took its name from John Dixon, who arrived in 1830.” Near the bottom, a line of smaller type has been [sanded] away, leaving a pale smooth patch.",
         reveals: ["sanded"],
         verbs: { touch: "The paint is gritty with old salt. You can feel where the sanding stopped." }
@@ -354,6 +354,12 @@ const scenes = {
         aliases: ["brass plate", "inscription"],
         desc: "FOR HARRY, WHO KNEW THE RIVER. 1931–2009. Below it someone has scratched, with a key or a nail: it remembers."
       },
+      bronzeplaque: {
+        hidden: true,
+        aliases: ["plaque", "statue plaque", "dedication", "begins the trail", "paving"],
+        desc: "BEGINS THE TRAIL. “It was in Dixon that I really found myself.” —Ronald Reagan. He lived in Dixon from 1920 to 1933 and always called it his hometown. In the summer of 1950 he came home to ride through the streets in the Injun Summer Days parade, on a palomino. Below, thirteen donors are listed, and at the bottom: Dedicated August 14, 2009. Sculpted by Donald L. Reed, it stands in Heritage Crossing Riverfront Plaza, on the shore where Reagan lifeguarded in the 1920s and is said to have saved 77 lives.",
+        verbs: { touch: "The raised letters are cool and slightly gritty." }
+      },
       pavilion: {
         aliases: ["gazebo", "shelter", "roof"],
         desc: "A square stone-pier pavilion with a dark shingled roof, a little cupola and a weathervane on top. Picnic tables and trash cans sit under it, and the benches are empty tonight. The weathervane doesn't turn.",
@@ -361,7 +367,8 @@ const scenes = {
       },
       statue: {
         aliases: ["horse", "rider", "bronze", "monument", "pedestal", "plaza", "fountains", "fountain"],
-        desc: "A bronze figure on horseback, high on a block of dark granite and framed by two flagpoles. Low fountains play in the plaza around it, and the flags hang limp in the damp air. A few empty benches face the river, and the plaza is quiet; it is the sort of place that fills up for the farmers market and the Petunia Festival concerts.",
+        desc: "A bronze rider on a palomino, nine feet of it, high on a block of dark granite and framed by two flagpoles. A bronze [plaque] is set into the paving at its foot. Low fountains play in the plaza around it, and the flags hang limp in the damp air. A few empty benches face the river, and the plaza is quiet; it is the sort of place that fills up for the farmers market and the Petunia Festival concerts.",
+        reveals: ["bronzeplaque"],
         verbs: { touch: "The granite is cold and beaded with damp.", climb: "It's a long way up, and it wouldn't be respectful." }
       },
       street: {
