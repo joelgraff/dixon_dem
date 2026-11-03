@@ -1230,8 +1230,11 @@ function talk(name) {
   }
   const npc = found.entry;
   if (npc.talk) return speak(found.key, npc.talk());
-  if (found.key === "ogee") state.ogeeIntroduced = true;
+  if (found.key === "ogee" && state.ogeeIntroduced) {
+    return speak(found.key, "He gives you a nod. “Back again. Anything else you wanted to know?”");
+  }
   speak(found.key, npcTalk[found.key] || `${npc.name} looks at you but says nothing yet.`);
+  if (found.key === "ogee") state.ogeeIntroduced = true;
 }
 
 function social(kind, name) {

@@ -1,5 +1,6 @@
 # Changelog
 ## 2026-11-03
+- Ogee now remembers the player's first conversation; speaking to him again acknowledges their return instead of repeating his introduction.
 - Ogee's landing prose no longer repeats "man"; unknown-topic replies no longer direct the player to parser categories, and his ferry-price answer is more conversational. Added NPC knowledge-depth and historical-accuracy design guidance.
 - Rephrased Ogee's work offer as conversational speech while keeping the freight, pay, and likely workload clear.
 - Removed parenthetical parser instructions from Ogee's and Dixon's dialogue; their work and ferry offer remain discoverable from the conversation, while explicit commands remain available through requested help.
