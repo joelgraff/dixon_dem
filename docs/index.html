@@ -553,7 +553,7 @@ const scenes = {
       const t = state.turnsHere;
       if (state.shift) return;
       if (t === 2) print("The mist off the water is thicker now. The far bank has gone altogether.");
-      if (t === 4) print("The sound of the street has dropped away. Your phone flickers in your pocket.");
+      if (t === 4) print("The sound of the street has faded into the heavy fog.");
     },
     objects: {
       water: {
@@ -579,7 +579,7 @@ const scenes = {
         visible: () => !state.shift,
         hidden: true,
         aliases: ["ridge", "grooves", "marks", "drag marks"],
-        desc: "Two parallel grooves, a boat's width apart, pressed into the silt from the waterline up to the walk. They look recent. They look old. You can't make them settle on either."
+        desc: "Two long grooves, about a boat's width apart, cut through the silt from the waterline up to the walk. They look old and weathered, as if they've been there for years, yet somehow freshly made. You can't really be sure."
       },
       wall: {
         visible: () => !state.shift,
