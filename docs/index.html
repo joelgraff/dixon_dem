@@ -453,14 +453,14 @@ const scenes = {
     objects: {
       marker: {
         aliases: ["sign", "historical marker", "post"],
-        desc: () => "OGEE'S FERRY. “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. " + (done() ? "The settlement that grew on this bank took its name from John Dixon, who arrived in 1830." : "The settlement that grew on this bank kept the ferryman's name.") + "” Near the bottom, a line of smaller type has been [sanded] away, leaving a pale smooth patch.",
+        desc: () => (done() ? "DIXON'S FERRY" : "OGEE'S FERRY") + ". “A ferry crossed the Rock River at about this spot by the late 1820s, kept by Joseph Ogee. " + (done() ? "The settlement that grew on this bank took its name from John Dixon, who arrived in 1830." : "The settlement that grew on this bank kept the ferryman's name.") + "”" + (done() ? " Near the bottom, a line of smaller type reads: “Dixon's Ferry: the crossing that named a town.”" : " Near the bottom, a line of smaller type has been [sanded] away, leaving a pale smooth patch."),
         reveals: ["sanded"],
-        verbs: { touch: "The paint is gritty with old salt. You can feel where the sanding stopped." }
+        verbs: { touch: () => done() ? "The paint is gritty with old salt, and unbroken all the way down." : "The paint is gritty with old salt. You can feel where the sanding stopped." }
       },
       sanded: {
         hidden: true,
         aliases: ["sanded line", "patch", "pale patch", "line", "smaller type", "small type", "type", "text", "lettering", "letters"],
-        desc: "A few letters survive at the edge of the patch: …ever re… Whatever it said, someone cared enough to take it off, and not enough to repaint.",
+        desc: () => done() ? "The line is whole: “Dixon's Ferry: the crossing that named a town.” You'd swear the type was never anything else." : "A few letters survive at the edge of the patch: …ever re… Whatever it said, someone cared enough to take it off, and not enough to repaint.",
         verbs: { touch: "Smooth as a pebble, and cooler than the paint around it." }
       },
       bench: {
@@ -524,7 +524,7 @@ const scenes = {
     extras: {
       plate: "A brass [plate] is screwed to the back of the bench.",
       ringbolt: "At the base of the wall, below the railing, an old [ringbolt] is set into the stone.",
-      sanded: "A line of the marker's text has been [sanded] away."
+      sanded: () => done() ? "" : "A line of the marker's text has been [sanded] away."
     },
     npcs: {},
     exits: [

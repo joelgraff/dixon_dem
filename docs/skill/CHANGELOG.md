@@ -1,5 +1,6 @@
 # Changelog
 ## 2026-11-02
+- Riverside marker: the sanded line is a repair clue. After Dixon buys the ferry the marker is headed DIXON'S FERRY and the line reads whole ("the crossing that named a town"); this also pays off Margaret's "the marker's missing a line". "smaller type" and similar words now resolve to the patch.
 - Pickup bumper sticker: the older sticker underneath (DIXON'S FERRY DAYS) can now be peeled back and read, so the hint is actionable; added the "noticed details" rule to interaction-design.md.
 - `examine path` / `north` / `south` on highlighted exit words now gives a short description of that way; the locked desk drawer is available from the start (`open drawer` works without examining the desk first).
 - 4:17 easter egg: a schoolhouse clock in the museum (stopped at 4:17 in the broken present, running after the repair) and a live phone clock after the repair.
