@@ -21,6 +21,7 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - When something is intriguing, end the description on the intriguing detail (the exhibit panel that ends one line short). Do not explain it.
 
 ## Social Flow of Actions
+- Conversation and interaction should follow what people commonly do in reality, even within the fantastic premise: greet people naturally, acknowledge them when appropriate, and say goodbye when leaving.
 - Scene changes should read like real life. Leaving a room with people in it produces a courteous parting first (a thanks, a nod), then the move. If the player has already said goodbye this visit, it is skipped. With several people present, a general "you nod to the others".
 - Re-entering a room acknowledges the people there. Crossing the river with Ogee is part of the crossing text and has no separate farewell (`noFarewell` on the exit).
 - Parting lines are per NPC and can depend on state (`PARTING`).
