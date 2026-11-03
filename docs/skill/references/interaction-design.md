@@ -14,6 +14,7 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - The top-level room description lists only what a visitor would notice first. Further detail is found by examining things.
 - Objects carry `reveals`: examining one makes new nouns visible. Revealed nouns are added to the room description (`extras`) and become valid targets. Until then they are "not here" to the parser.
 - Every prose cue must have a target or a natural reading. Do not tell the player something "looks wrong in a way you can't place". If a thing is not examinable, describe it plainly and let an NPC explain it (the empty photo frames are described by Margaret, not examined).
+- Reveal character names when the player learns them in the scene. Before an introduction or other in-world identification, describe an unfamiliar person by appearance or role rather than using a name the player cannot yet know.
 - Accessories are folded into their parent description rather than made separate nouns. The pen is described at the end of the guestbook entry, cueing `sign guestbook`; it is not an object.
 - Narration may include details outside the player's direct perception when they add atmosphere or meaning. But if a detail is meant to work as a visual cue, make sure the player can see it; an invisible phone flicker, for example, doesn't work as a visual cue.
 - Do not invent views that real places would not give. The museum window shows a parking lot and wires, not the river. Place-appropriate dullness is fine; the hint to go outside comes from people.

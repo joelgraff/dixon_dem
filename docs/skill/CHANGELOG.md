@@ -1,5 +1,6 @@
 # Changelog
 ## 2026-11-03
+- Ogee's first appearance now identifies him only as a man/the ferryman; his name becomes known through his introduction or first conversation.
 - Riverfront transition: the grooves are described as impressions pressed into the silt, with weathered edges but freshly disturbed earth; replaced the invisible phone flicker with an environmental sound cue. Narration can still describe offscreen details when they serve the scene.
 ## 2026-11-02
 - Riverside marker: the sanded line is a repair clue. After Dixon buys the ferry the marker is headed DIXON'S FERRY and the line reads whole ("the crossing that named a town"); this also pays off Margaret's "the marker's missing a line". "smaller type" and similar words now resolve to the patch.

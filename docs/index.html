@@ -129,6 +129,7 @@ const state = {
   warnedClaim: false,
   visited1830: false,
   returned: false,
+  ogeeIntroduced: false,
   turnsHere: 0,
   shift: 0,
   fog: false,
@@ -643,7 +644,7 @@ const scenes = {
   ferry: {
     get name() { return (state.dixonOwns ? "Dixon's" : "Ogee's") + " ferry landing, 1830"; },
     look: () => {
-      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. " + (state.dixonOwns ? "The landing is Dixon's now; Ogee has gone, and a hired hand is tarring a seam. " : "A man in a buckskin shirt, [Ogee], is working on the boat. ") + "Half buried in the gravel along the bank, a cracked [canoe] lies on its side. Two loaded [wagons] wait their turn at the head of the landing. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
+      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. " + (state.dixonOwns ? "The landing is Dixon's now; Ogee has gone, and a hired hand is tarring a seam. " : "A man in a buckskin shirt, [man], is working on the boat. ") + "Half buried in the gravel along the bank, a cracked [canoe] lies on its side. Two loaded [wagons] wait their turn at the head of the landing. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
       text += state.fog
         ? "The [fog] has come in off the river, thick and white, and you can barely see the end of the dock."
         : "The afternoon is clear; the mist you came through has burned off.";
@@ -716,7 +717,7 @@ const scenes = {
     npcs: {
       ogee: {
         visible: () => !state.dixonOwns,
-        name: "Joseph Ogee",
+        get name() { return state.ogeeIntroduced ? "Joseph Ogee" : "the ferryman"; },
         aliases: ["joseph", "ferryman", "man"],
         desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town.",
         fallback: "Ogee shrugs. “Can't say. Ask me about work, or the boat.”",
@@ -1181,7 +1182,7 @@ const SOCIAL = {
     sorry: "“Don't mention it.”"
   },
   ogee: {
-    hello: "Ogee nods without stopping what he's doing. “Mm.”",
+    hello: "“Mm.”",
     thanks: "Ogee grunts. “Don't thank me yet. River's not done with any of us.”",
     bye: "“Watch the water.”",
     how: "“Alive. Dock's still standing. That's a good week.”",
@@ -1211,6 +1212,10 @@ const SOCIAL = {
 };
 
 function speak(key, text) {
+  if (key === "ogee" && !state.ogeeIntroduced) {
+    state.ogeeIntroduced = true;
+    print("He wipes his hands on his shirt. “Name's Ogee. Joseph Ogee.”");
+  }
   const who = SPEAKER[key];
   if (who && text.startsWith("“")) text = `${who} says, ${text}`;
   print(text);
@@ -1228,6 +1233,7 @@ function talk(name) {
   }
   const npc = found.entry;
   if (npc.talk) return speak(found.key, npc.talk());
+  if (found.key === "ogee") state.ogeeIntroduced = true;
   speak(found.key, npcTalk[found.key] || `${npc.name} looks at you but says nothing yet.`);
 }
 
