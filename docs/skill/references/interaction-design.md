@@ -46,6 +46,9 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - Tone must match content. An NPC lowers her voice only for something conspiratorial; otherwise let her be dry or humorous.
 - NPCs are the primary source of nudges. Margaret mentions the river walk when asked about the exhibit or the river; the fog is an in-world reason to go out.
 
+## Noticed details
+- Don't conspicuously mention a hidden or covered detail unless the player can act on it and it pays off. If it's only set dressing, describe the surface (e.g. a bumper layered with old stickers). If it's a clue, give a clear way to reach it (e.g. peel the sticker back).
+
 ## Repeatable Reading
 - Things a player reads more than once (the guestbook) give a different small selection of entries each time and gain entries after the player has visited 1830.
 
