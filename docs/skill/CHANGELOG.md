@@ -1,6 +1,6 @@
 # Changelog
 ## 2026-11-03
-- Riverfront transition: the silt grooves are described as grooves in the silt with an uncertain age, and the turn-four fog cue is now an environmental sound change rather than an unseen phone flicker.
+- Riverfront transition: the grooves are described as impressions pressed into the silt, with weathered edges but freshly disturbed earth; the turn-four fog cue is an environmental sound change rather than a phone flicker.
 ## 2026-11-02
 - Riverside marker: the sanded line is a repair clue. After Dixon buys the ferry the marker is headed DIXON'S FERRY and the line reads whole ("the crossing that named a town"); this also pays off Margaret's "the marker's missing a line". "smaller type" and similar words now resolve to the patch.
 - Pickup bumper sticker: the older sticker underneath (DIXON'S FERRY DAYS) can now be peeled back and read, so the hint is actionable; added the "noticed details" rule to interaction-design.md.
