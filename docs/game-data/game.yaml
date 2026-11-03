@@ -1,0 +1,85 @@
+# Game-wide data: verbs, the narrator's default replies, meta commands.
+# Chapter and room files hold everything specific to a place.
+
+input_limit: 40            # SCI-era input buffer
+
+# Canonical verbs and the words that map to them. Multi-word synonyms are
+# matched before single words.
+verbs:
+  look:   [look at, examine, x, inspect, check, study, look in, look under, look behind, look through, look out, read]
+  take:   [take, get, grab, pick up]
+  touch:  [touch, feel, pat, rub, stroke, lean on, peel, lift]
+  push:   [push, pull, shove, move, turn, knock on, kick]
+  open:   [open]
+  close:  [close, shut]
+  sit:    [sit on, sit at, sit in, sit]
+  climb:  [climb, climb on, climb up]
+  smell:  [smell, sniff]
+  taste:  [taste, lick]
+  search: [search, rummage in, dig through]
+  sign:   [sign, write in, write on, autograph]
+  drink:  [drink, sip]
+  board:  [board, ride, get in, get on]
+  call:   [call, shout, yell, answer, reply, call out]
+  use:    [use]
+  give:   [give, hand, offer]
+  talk:   [talk to, talk with, speak to, speak with, greet, chat with]
+  ask:    [ask]
+
+# The narrator's replies when a noun has no reply of its own for a verb.
+# One is picked at random. Keep the voice dry, never cruel.
+defaults:
+  look:   ["You see nothing more than you saw a moment ago."]
+  take:   ["That isn't yours to take, and you suspect someone would notice.", "You consider it. It stays where it is."]
+  touch:  ["You touch it. It continues to be what it was.", "It feels about how it looks."]
+  push:   ["It doesn't budge, and you feel slightly foolish.", "You push. The world declines to rearrange itself."]
+  open:   ["It doesn't open, or if it does, it isn't telling you how."]
+  close:  ["It isn't open."]
+  sit:    ["You'd rather not sit on that.", "Not even a tired tourist would sit there."]
+  climb:  ["You weigh the climb against your dignity, and dignity wins."]
+  smell:  ["It smells like exactly what it is."]
+  taste:  ["Absolutely not."]
+  search: ["You search it thoroughly and find nothing you didn't expect."]
+  sign:   ["There's nothing here that wants your signature."]
+  drink:  ["That isn't something you drink, and you're fairly sure of it."]
+  board:  ["There's nothing here to board."]
+  call:   ["Your voice goes flat in the damp air. Nothing answers."]
+  use:    ["You'll need to be more specific about how."]
+  give:   ["Nobody here seems to want that."]
+
+# Replies to commands the parser can't read at all. Picked at random.
+unknown:
+  - "You'd like to do that, but you can't think how."
+  - "That's a sentence. It isn't a plan."
+  - "The parser squints at that and gives up."
+
+not_here: "You don't see that here."
+nobody_here: "There's no one here to talk to."
+cant_go: "You can't go that way."
+ambiguous: "Which do you mean: {options}?"
+did_you_mean: "Did you mean {options}?"
+
+# Meta commands, available everywhere.
+meta:
+  inventory: [i, inv, inventory]
+  score: [score, points]
+  save: [save]
+  restore: [restore, load]
+  restart: [restart]
+  help: [help, hint, hints, "?", "what now", stuck]
+  wait: [wait, z, rest]
+  listen: [listen]
+  look_around: [look, l, look around]
+
+score_line: "Your score is {score} of {max_score}."
+
+death_screen:
+  title: "You have died."
+  prompt: "Restore, Restart or Retry?"
+  retry_note: "You find yourself a moment earlier, considerably wiser."
+
+settings:
+  sidebar: true              # looked-at sidebar
+  highlight: off             # off | key | all
+  clickable: false
+  histories: false           # the optional histories (citations) panel

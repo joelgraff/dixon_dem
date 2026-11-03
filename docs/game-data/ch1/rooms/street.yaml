@@ -1,0 +1,111 @@
+id: street
+era: present
+name: West Fifth Street at Hennepin
+sources: []
+picture: >-
+  Street corner at dusk. The brick museum at left, a dusty pickup at the curb,
+  frame houses and big maples, Hennepin running away north to a courthouse at
+  the end of the next block.
+
+look: >-
+  The sidewalk is warm and nearly empty. A [pickup] is parked at the [corner],
+  and a [porch light] clicks on across the way. The [museum] door stands
+  behind you. This is a quiet residential block of old frame [houses] and big
+  [maples]. [Hennepin] runs north; at the end of the next block you can make
+  out the police station and the [courthouse], and beyond them the downtown
+  blocks run on toward the [river].
+listen: A truck downshifts somewhere. Under it, very faintly, the sound of moving water.
+
+nouns:
+  pickup:
+    name: pickup
+    aliases: [truck, pickup truck, plate, bumper]
+    reveals: [sticker]
+    look: A dusty pickup with an Illinois plate. A faded [sticker] curls on the bumper. Nobody is in it.
+    verbs:
+      open: Locked.
+      touch: The hood is warm. Whoever left it here hasn't been gone long.
+
+  sticker:
+    name: bumper sticker
+    hidden: true
+    aliases: [bumper sticker, stickers, older sticker, old sticker]
+    look:
+      - when: [present.sticker_peeled]
+        text: The top sticker curls back from an older one underneath, sun-bleached for years. DIXON'S FERRY DAYS, with the same cartoon ferry.
+      - when: [1830.lease_dixon]
+        text: DIXON RIVER DAYS, with a cartoon ferry. The corner has peeled away from the bumper, and part of an older sticker shows underneath.
+      - when: [1830.lease_player]
+        text: RIVER DAYS COMMITTEE, with a cartoon ferry and no town name at all. The corner has peeled away, and part of an older sticker shows underneath.
+      - text: ROLETTE RIVER DAYS, with a cartoon ferry. The corner has peeled away from the bumper, and part of an older sticker shows underneath.
+    verbs:
+      touch:
+        - when: [present.sticker_peeled]
+          say: You've already peeled it back. DIXON'S FERRY DAYS looks up at you, patient.
+        - say: The curled corner lifts easily. You peel the top sticker back, and the older one beneath it is clear enough to read. DIXON'S FERRY DAYS, with the same cartoon ferry. Nobody on this block would call the town that.
+          do: [{set: present.sticker_peeled}]
+      take:
+        - when: [present.sticker_peeled]
+          say: The older one is stuck fast. It has been there for years.
+        - say: The curled corner lifts easily. You peel the top sticker back, and the older one beneath it is clear enough to read. DIXON'S FERRY DAYS, with the same cartoon ferry. Nobody on this block would call the town that.
+          do: [{set: present.sticker_peeled}]
+
+  corner:
+    name: corner
+    aliases: [intersection, crosswalk, bench, bus bench]
+    look: A crosswalk and a bus bench with no bus. Nothing worth a second look.
+    verbs:
+      sit: The bench is warm from the sun, and no bus is coming. You sit anyway for a moment, then get up.
+
+  porchlight:
+    name: porch light
+    aliases: [porch light, porch, light, house across the way]
+    look: A yellow bulb on a porch across the street, already drawing moths.
+
+  museum:
+    name: Historic Center
+    aliases: [center, historic center, building, door, brick building]
+    look: The {town} Historic Center, a modest brick building on the corner, its glass door propped open. Inside, the fluorescents are still lit.
+    verbs:
+      open: The door is already open.
+      touch: The brick is still warm from the day.
+
+  houses:
+    name: houses
+    aliases: [house, frame houses, homes, block]
+    look: Old frame houses with deep porches, most of them older than anyone living in them.
+
+  maples:
+    name: maples
+    aliases: [maple, trees, tree]
+    look: Big silver maples, their roots lifting the sidewalk in slow waves.
+    verbs:
+      climb: Not on this block, and not at your age.
+
+  hennepin:
+    name: Hennepin
+    aliases: [hennepin avenue, hennepin street, road, north]
+    look: Hennepin runs north past the police station and the courthouse, through three blocks of downtown, to the river.
+
+  courthouse:
+    name: courthouse
+    aliases: [police station, police, station, downtown]
+    look: At the end of the next block, the courthouse and the police station sit side by side, stone and brick. Past them the buildings get taller and closer together. Downtown.
+    verbs:
+      touch: It's a block away.
+
+  river:
+    name: river
+    aliases: [water, rock river]
+    look: You can't see it from here. The Rock River is four blocks north, past the courthouse and through downtown, and the riverside walk runs along it.
+    verbs:
+      touch: It's four blocks away.
+
+exits:
+  - names: [museum, door, back, inside, in, south, center]
+    to: museum
+    text: You step back into the cool, bright room.
+  - names: [north, river, riverwalk, river walk, riverfront, walk, hennepin, downtown]
+    to: riverwalk
+    peek: Hennepin runs north, past the police station and the courthouse and through three blocks of downtown, to the riverfront.
+    text: You walk north up Hennepin, past the police station and the courthouse, then through three blocks of downtown storefronts, until the pavement opens onto the riverfront.

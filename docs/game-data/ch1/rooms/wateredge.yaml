@@ -1,0 +1,210 @@
+id: wateredge
+era: present
+name: The water's edge
+sources: [S2, S4]
+picture: >-
+  Low view along the lower walk: limestone wall at left, a low seawall and the
+  water at right, a bridge and a steel tower faint upstream, mist thickening.
+  Second frame for the shift: the same view as a plank dock, a muddy bank and
+  dark trees, the river unchanged.
+
+# Fog: four turns here build it; looking at the water then brings the planks;
+# the next look shows 1830 and the voice. Closed once the chapter is repaired.
+look:
+  - when: [1830.lease_dixon, not present.planks]
+    text: >-
+      A broad concrete [walkway] runs along the water at the foot of the
+      steps, between a curved limestone [wall] and a low green [seawall].
+      Upstream, a [bridge] crosses the river and a steel [tower] carries power
+      lines over the bank. The mist has lifted. It is only the [water], brown
+      and unhurried, and the [stairway] you came down is behind you.
+  - when: [present.planks]
+    do: [{set: present.voice}]
+    text: >-
+      The mist has thinned to a pale veil, and the city is simply gone. There
+      is no bridge, no tower, no limestone wall: only a low muddy [bank], dark
+      [trees] pressed close behind it, and the rough-hewn [planks] you are
+      standing on, running out toward the [water]. The river is the same
+      river, brown and unhurried. Out in the white, wood knocks against wood,
+      and a hoarse [voice] calls across the water: "Hallo! Anybody there who
+      can handle a canoe?"
+  - when: [turns>=4]
+    text: >-
+      The mist is up around your knees and rising. The traffic noise has gone,
+      and the walk above you is only a pale line. The [walkway] is dark with
+      wet, and the [water] slides past, steady and unhurried, hard to stop
+      watching.
+  - when: [turns>=2]
+    text: >-
+      The mist has thickened. The far bank is gone, and the walk above you is
+      only a pale line. The [walkway] is dark with wet. The [water] slides past
+      a few feet away.
+  - text: >-
+      A broad concrete [walkway] runs along the water at the foot of the
+      steps, hemmed in by a curved limestone [wall] on one side and a low green
+      [seawall] on the other. Upstream, a [bridge] crosses the river, and a
+      steel [tower] carries power lines over the bank. A little [driftwood]
+      has washed up in the corners. The [water] slides past a few feet away,
+      mist hanging low over it, and the [stairway] you came down is behind
+      you.
+
+listen:
+  - when: [present.planks]
+    do: [{set: present.voice}]
+    text: "Wood knocks against wood out in the white, and a hoarse voice calls across the water: \"Hallo! Anybody there who can handle a canoe?\""
+  - when: [1830.lease_dixon]
+    text: Water against stone, and the traffic up on Hennepin. Nothing else.
+  - text: Water. Nothing else, and then, for a moment, something else.
+
+on_turn:
+  - when: [turns==2, not 1830.lease_dixon, not present.planks]
+    say: The mist off the water is thicker now. The far bank has gone altogether.
+  - when: [turns==4, not 1830.lease_dixon, not present.planks]
+    say: The sound of the street fades into the heavy fog.
+
+nouns:
+  water:
+    name: water
+    key: true
+    aliases: [river, mist, fog, current, rock river]
+    reveals: [ridges]
+    look:
+      - when: [1830.lease_dixon]
+        text: Brown water slides past. Just the river, the mist gone from it.
+      - when: [present.voice]
+        text: Brown water slides past, the same river and not. Out in the white, the knocking goes on, and the voice is waiting.
+      - when: [present.planks]
+        text: The river is the same river. You're less sure about everything else. You should look around.
+      - when: [turns>=4]
+        do: [{set: present.planks}]
+        text: >-
+          You watch the current slide past, brown and smooth, a single leaf
+          turning in it, and for a moment you lose track of everything else.
+          When you look down, the concrete under your feet is gone. You are
+          standing on rough-hewn wooden planks, grey with age and wet with
+          mist.
+      - text: Brown water slides past. At the end of the walkway the lowest broad step runs into the water, and the silt left on it is combed into two shallow [ridges], as though something has recently been dragged across it.
+    verbs:
+      touch:
+        - when: [turns>=4]
+          say: The water is colder than it should be on a warm evening, and it pulls at your fingers.
+        - say: Cold and slow. It leaves your fingers smelling of iron.
+      drink: You'd rather not. It looks like the Rock River in any century.
+      smell: Mud, iron, and under it something like woodsmoke.
+
+  ridges:
+    name: ridges
+    hidden: true
+    when: [not present.planks]
+    aliases: [ridge, grooves, marks, drag marks, silt]
+    room_line: Two shallow [ridges] run through the silt on the lowest step.
+    look: The silt is pressed into two long, shallow grooves, about a boat's width apart, running from the waterline up to the walk. Their edges look old and weathered, but the damp earth inside them seems freshly disturbed.
+
+  walkway:
+    name: walkway
+    when: [not present.planks]
+    aliases: [walk, concrete, lower walk, pavement]
+    look: Broad concrete, dark with damp, running along the water between the wall and the seawall.
+
+  wall:
+    name: limestone wall
+    when: [not present.planks]
+    aliases: [limestone, limestone wall, stone, stonework]
+    look: Rough-cut limestone in warm tan and grey, laid in courses and curving up to the railing of the riverfront above. The stone is cool, and a little damp.
+    verbs:
+      climb: There's nothing to hold on to.
+
+  seawall:
+    name: seawall
+    when: [not present.planks]
+    aliases: [railing, rail, green railing, concrete wall]
+    look: A low concrete wall with a green iron railing along its top, between the walk and the water. Beyond it the river is only a few feet down.
+    verbs:
+      climb: The river's a long way to fall into, and you don't need to.
+
+  bridge:
+    name: bridge
+    when: [not present.planks]
+    aliases: [upstream bridge]
+    look: A low grey line across the river upstream, half lost in the mist.
+
+  tower:
+    name: steel tower
+    when: [not present.planks]
+    aliases: [pylon, power lines, lines, transmission tower]
+    look: A lattice steel tower on the bank, carrying power lines across the water.
+    verbs:
+      climb: "No."
+
+  driftwood:
+    name: driftwood
+    when: [not present.planks]
+    aliases: [bottle, litter, plastic bottle]
+    look: Silver driftwood and a plastic bottle, washed into the corner by the last high water. Nothing you'd want.
+    verbs:
+      take: None of it is worth carrying.
+
+  stairway:
+    name: stairway
+    when: [not present.planks]
+    aliases: [stairs, steps, stair]
+    look: The concrete steps you came down, going back up to the riverfront.
+
+  planks:
+    name: planks
+    when: [present.planks]
+    aliases: [plank, boards, dock, wood, floor, ground]
+    look: Rough-hewn planks, adze-marked and pegged, grey and slick with mist. There are no nails in them anywhere.
+    verbs:
+      touch: Damp, rough wood. A splinter catches your thumb.
+      sit: The planks are wet. You stay on your feet.
+
+  bank:
+    name: muddy bank
+    when: [present.voice]
+    aliases: [muddy bank, mud, shore]
+    look: A low bank of black mud, cut by hooves and wheels. No wall, no walk, no Hennepin.
+
+  trees:
+    name: trees
+    when: [present.voice]
+    aliases: [tree, woods, dark trees]
+    look: Elm and oak, dark and close, where the downtown blocks were a few minutes ago.
+
+  voice:
+    name: voice
+    when: [present.voice]
+    aliases: [knocking, sound, calling, man]
+    look: A man's voice, hoarse and practical, from somewhere out in the white. He sounds as if he has been calling a while.
+
+actions:
+  - id: answer_voice
+    phrases: [answer, answer voice, call, call back, call out, shout, shout back, reply, respond, hello, hallo, yes, talk to voice, go to voice, follow voice, walk out]
+    when: [present.voice]
+    do:
+      - if:
+          when: [1830.lease_player]
+          do:
+            - rewind: 1830
+            - say: Something is different as you go. Whatever you did last time has been unmade, and you remember it anyway.
+      - set: 1830.arrived
+      - say: You call back and walk out along the planks toward the voice. The mist parts, and the knocking is suddenly very close.
+      - move: landing
+    else:
+      - when: [present.planks]
+        say: You can't make out where the planks lead. Look around first.
+      - say: Your voice goes flat in the damp air. Nothing answers.
+
+exits:
+  - names: [up, stairway, stairs, steps, stair, back, south, riverwalk, riverfront, plaza, statue]
+    to: riverwalk
+    when: [not present.planks]
+    blocked: You turn, but there are no steps behind you now; only planks, and the mist.
+    text: You climb the steps and come out on the riverfront, near the statue. The traffic sound comes back in pieces.
+  - names: [north, forward, out, water, river, fog, mist]
+    blocked:
+      - when: [present.voice]
+        text: You'd want to answer him first.
+      - when: [present.planks]
+        text: You can't make out where the planks lead. Look around first.
+      - text: The water is only water, and you'd have to be a fool to wade it.

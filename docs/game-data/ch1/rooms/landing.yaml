@@ -1,0 +1,395 @@
+id: landing
+era: 1830
+name: The ferry landing, 1830
+sources: [S1, S2, S4, S6, S7, S8]
+picture: >-
+  Low south-bank landing at the foot of a wooded slope. Plank dock at centre,
+  the flatboat tugging at its lines in high brown water, a tar pot smoking on
+  a small fire, a canoe in the gravel, a seated man in a dark coat at right,
+  loaded wagons and oxen at the head of the landing, the far bank empty and
+  wooded.
+
+look: >-
+  A rough plank [dock] runs out into the high brown [river]. A worn [path]
+  climbs south, away from the water, toward [woodsmoke]. Across the river,
+  the north [northbank|bank] is empty but for a post and a road going up
+  into the trees.
+listen:
+  - when: [1830.rope_strung]
+    text: Water slapping the hull, the rope creaking as it takes the strain, oxen complaining at the head of the landing.
+  - text: Water slapping the hull. The ferry knocks against the dock, again and again, like someone asking to be let in.
+
+nouns:
+  dock:
+    name: dock
+    aliases: [landing, wharf, pilings, flood lines, lines, planks]
+    look: Rough planks and posts, half under water at the edges. Under the planks, four green bands mark the pilings, one above another. Ogee has been flooded out more than once and rebuilt in the same place each time.
+    verbs:
+      sit: You sit on the edge of the dock. The river is very close, and in a hurry.
+
+  ferry:
+    name: ferry
+    key: true
+    aliases: [boat, flatboat, flat, raft]
+    room_line:
+      - when: [1830.rope_strung]
+        text: The flat-bottomed [ferry] rides at the dock on a new [rope] strung bank to bank.
+      - text: A flat-bottomed [ferry] is tied at the dock, rocking hard in the high water.
+    look:
+      - when: [1830.rope_strung]
+        text: Ogee's flatboat, a new rope running from the bank through a block on her rail and across to the far side. She looks steadier on it than she has any right to.
+      - text: Ogee's flatboat, broad and low, big enough for a wagon and team. She is built to be poled, and the river is running well over the length of any pole.
+
+  rope:
+    name: rope
+    when: [1830.rope_strung]
+    aliases: [line, new rope, hemp]
+    look: Dixon's hemp, tied off on the south bank and running taut across the water to the post on the far side. The first rope ferry on this river, as far as anyone here knows.
+
+  pole:
+    name: setting pole
+    when: [not 1830.has_pole]
+    aliases: [pole, setting pole, ash pole]
+    reveals: [shoe]
+    look: A long ash setting pole with an iron [shoe] on the end, worn bright on the side that bears against the riverbed.
+    verbs:
+      push: You lean on it. It's heavier than it looks.
+
+  shoe:
+    name: pole shoe
+    hidden: true
+    when: [not 1830.has_pole]
+    aliases: [iron shoe, pole shoe, iron]
+    look: A cone of forged iron, dented on one side. The kind of object a museum would put on a velvet pedestal, if anyone thought to save it.
+    verbs:
+      take: It's riveted to the pole.
+
+  tarpot:
+    name: tar pot
+    aliases: [tar pot, tar, pot, fire, small fire]
+    room_line: A [tarpot|tar pot] smokes on a small fire.
+    look: An iron pot of pine tar over a small fire, bubbling slowly. It smells like a shipyard.
+    verbs:
+      touch: You think better of it about an inch away. It's hot.
+      take: You'd need something to carry it in, and you'd need to want burned hands.
+
+  canoe:
+    name: canoe
+    key: true
+    when: [not 1830.canoe_across]
+    aliases: [dugout, seam, split, crack]
+    room_line:
+      - when: [1830.canoe_tarred]
+        text: The [canoe] sits by the water, its seam black with fresh tar.
+      - text: A cracked [canoe] lies on its side in the gravel.
+    look:
+      - when: [1830.canoe_tarred]
+        text: Ogee's dugout, its split seam packed and black with fresh tar. It might even float.
+      - text: An old dugout canoe, split along one seam. No paddle. It would carry one person and a coil of rope, if it floated.
+    verbs:
+      push: It slides a little in the gravel.
+
+  crate:
+    name: crate
+    when: [here:agent]
+    aliases: [box]
+    look: A packing crate the agent has made into a chair. It says GALENA on the side.
+
+  papers:
+    name: papers
+    when: [here:agent]
+    aliases: [note, notes, mortgage, documents]
+    look: Notes and a mortgage, folded small. You catch the names Schellenger and Rolette, and a column of figures that does not end well for Ogee.
+    verbs:
+      take: The agent's hand settles on them without his looking up.
+
+  wagons:
+    name: wagons
+    aliases: [wagon, train, oxen, teams, freight, kegs, flour]
+    room_line:
+      - when: [1830.wagon_free]
+        text: Asa's [wagons], five now, wait their turn on the rope ferry.
+      - text: Loaded [wagons] wait at the head of the landing, [teamsters] idle beside them.
+    look:
+      - when: [1830.wagon_free]
+        text: Five ox-drawn wagons loaded with flour, tools and kegs, bound north for the Galena diggings. The fifth one is still black with slough mud to the hubs.
+      - text: Four ox-drawn wagons loaded with flour, tools and kegs, bound north for the Galena diggings. A gap in the line shows where a fifth should be.
+    verbs:
+      search: Flour, picks and shovels, and kegs that slosh. Nothing that's yours.
+
+  teamsters:
+    name: teamsters
+    aliases: [men, drivers]
+    look: Men in sweat-stained shirts, dozing in the shade of the wagons. One of them is whittling. None of them looks at the river; they've seen it.
+
+  river:
+    name: river
+    aliases: [water, high water, rock river, current]
+    look: The Rock River in spring, brown and high and fast, carrying whole branches past the end of the dock. Nobody is poling anything across that.
+    verbs:
+      drink: You'd rather not.
+      touch: Cold enough to make your fingers ache.
+
+  northbank:
+    name: north bank
+    aliases: [north bank, far bank, far side, other side, post]
+    look:
+      - when: [1830.rope_strung]
+        text: The north bank, the rope running to its post, the Galena road climbing away into the trees.
+      - text: The north bank is empty but for a stout post at the water and the Galena road climbing away into the trees.
+
+  path:
+    name: path
+    aliases: [trail, south path]
+    look: A worn path climbing south from the landing toward woodsmoke and a clearing.
+
+  woodsmoke:
+    name: woodsmoke
+    aliases: [smoke, chimney smoke]
+    look: Smoke from a chimney up the slope, and farther off, a cook fire.
+
+npcs:
+  ogee:
+    name: Joseph Ogee
+    unknown: a man in a buckskin shirt
+    aliases: [ogee, joseph, joseph ogee, ferryman, man in buckskin, man in buckskin shirt, man]
+    room_line:
+      - when: [1830.rope_strung]
+        text: "[ogee] works the ferry along the rope, hand over hand."
+      - text: "[ogee] stands watching the river, a setting [pole] in his hands."
+    look: A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He looks at the river the way a man looks at a horse that has thrown him before.
+    talk:
+      - when: [not known.ogee]
+        text: >-
+          "Joseph Ogee." He doesn't take his eyes off the water. "River's up
+          past the pole. Put her out in this and she goes to St. Louis without
+          me. The fellow camped up the Peoria trail, Dixon, has rope enough to
+          run a line bank to bank. Somebody has to carry it over, and my
+          canoe's split. Tar's hot in the pot. Tar that seam and she'll float.
+          You'll want a paddle. The oak by the cabin splits clean, if you've an
+          axe."
+        do: [{set: [known.ogee, 1830.met_ogee]}]
+      - when: [not 1830.met_ogee]
+        text: "\"Back again. River's still up past the pole. Dixon has the rope, I have a split canoe, and the tar's hot.\""
+        do: [{set: 1830.met_ogee}]
+      - when: [not 1830.rope_strung]
+        text: "\"Rope's the thing. Dixon's got it, I've got the canoe, and the river's got opinions.\""
+      - when: [not 1830.wagon_free]
+        text: "\"She runs. Never thought I'd see her pulled across like a bucket on a well rope.\" He nods at the waiting wagons. \"Now if that train would move.\""
+      - text: "\"Back again. Anything else you wanted to know?\""
+    topics:
+      - keys: [river, water, high water, flood, rise, current]
+        say: "\"Every spring she comes up. Four times I've rebuilt this dock. You can't pole a flat when the river's deeper than the pole is long.\""
+      - keys: [rope, line, rope ferry]
+        say:
+          - when: [1830.rope_strung]
+            text: "\"Dixon's notion. I'll admit it works. I'll not admit it to him.\""
+          - text: "\"Dixon's notion. A line bank to bank, and you pull her over hand over hand. Can't get the line over without a boat, and I can't get a boat over in this.\""
+      - keys: [canoe, dugout, seam, tar, paddle]
+        say: "\"Split on a snag last fall. Tar's in the pot. And you'll want a paddle; the oak by the cabin splits clean.\""
+      - keys: [axe, oak, wood, cabin]
+        say: "\"Axe is in the block by the cabin. Ask Madeline. She'll let you have it, and she'll want it back.\""
+      - keys: [agent, man, coat, creditor, rolette, debt, debts, notes, owe, money]
+        say: "Ogee's jaw works for a moment. \"Come for my creditors. I owe more than this ferry takes in a year. Rolette holds the paper now, and that man holds it for him.\""
+      - keys: [schellenger, partner, half]
+        say: "\"George Schellenger bought half the ferry off me last fall and wanted out by winter. Now I owe him more than I sold it for, and he's sold the debt to Rolette.\""
+      - keys: [dixon, trader, mail, john]
+        say: "\"John Dixon. Carries the mail up from Peoria. Came to lease the ferry off me, and found that one sitting on it.\" He jerks his chin at the agent. \"He's a fair man. He's just got no silver.\""
+      - keys: [madeline, wife, family, sons, boys]
+        say: "\"Madeline. Her people are Potawatomi, and her father traded on Franklin Creek. It's on her account nobody burns my boat, the way they burned Bogardus's.\""
+      - keys: [bogardus]
+        say: "\"Fellow tried a ferry here before me. Got the boat half built before it was burned. I had the sense to marry well.\""
+      - keys: [wagons, teams, train, diggings, galena, mines, lead, teamsters]
+        say: "\"Every spring they come up from the south, bound for the diggings, and every one of them has to cross here. Lead goes down by boat from Galena. Men come up by road.\""
+      - keys: [pole, shoe, smith, iron]
+        say:
+          - when: [1830.rope_strung]
+            text: "\"Ash pole, iron shoe. I had the smith make that shoe. I've no use for her with the rope; you can borrow her if you need a long lever.\""
+          - text: "\"Ash pole, iron shoe. I had the smith make that shoe. It'll outlast me.\""
+      - keys: [toll, fare, price, cost, rates]
+        say: "\"Two bits a man and horse. Two dollars six bits for a wagon and four yoke. When they pay it.\""
+      - keys: [fog, mist, where, from]
+        say: "Ogee looks upriver for a long moment. \"Comes and goes. Folks walk into it and don't always walk out the same.\" He goes back to the river."
+    fallback: "He gives a small shrug. \"Couldn't tell you. I've spent most of my life on this river.\""
+    social:
+      hello: "\"You came through the fog, eh?\""
+      thanks: "Ogee grunts. \"Don't thank me yet. River's not done with any of us.\""
+      bye: "\"Watch the water.\""
+      how: "\"Alive. Dock's still standing. That's a good week.\""
+      sorry: "\"No harm done.\""
+    parting: You nod to [ogee]. He lifts his chin without looking away from the water.
+
+  agent:
+    name: Rolette's agent
+    unknown: a man in a good coat
+    aliases: [agent, man in coat, man in good coat, coat, stranger, creditor's man, rolette's man, rolette's agent]
+    when: [not 1830.lease_dixon, not 1830.lease_player]
+    room_line: "[agent] sits on a [crate] with [papers] in his lap."
+    look: A well-made coat, mud to the knee. He watches Ogee the way a man watches a horse he means to take.
+    talk:
+      - when: [not known.agent]
+        text: >-
+          "I've come down from Galena for Mr. Rolette, who holds Mr. Ogee's
+          notes. A hundred dollars in silver toward what's overdue, and the
+          boat stays where it is. Otherwise I take her."
+        do: [{set: known.agent}]
+      - text: "\"The terms haven't changed, friend. A hundred in silver.\""
+    topics:
+      - keys: [debt, notes, owe, overdue, installment, mortgage, terms, hundred, silver]
+        say: "\"Mr. Ogee owes a hundred dollars that fell due in February, and a good deal more after it. A hundred in silver today buys him time. Paper buys him nothing.\""
+      - keys: [rolette, master, employer, prairie du chien, trader]
+        say: "\"Mr. Rolette trades out of Prairie du Chien. He's a patient man, up to a point. This is the point.\""
+      - keys: [boat, ferry, seize, take, court]
+        say: "\"The boat is goods, and goods answer for the debt. The claim is another matter; that's for a court. I don't need a court for a boat.\""
+      - keys: [galena]
+        say: "\"Galena is where the note was recorded, and where I'd rather be.\""
+      - keys: [dixon, paper, order]
+        say: "\"Mr. Dixon has paper. Paper is not silver.\""
+      - keys: [name, who]
+        say: "He smiles thinly. \"My name isn't on the note. Mr. Rolette's is.\""
+      - keys: [ogee, joseph]
+        say: "\"Mr. Ogee is a good ferryman and a poor bookkeeper. I'm here about the second thing.\""
+    fallback: "\"I'm not paid to chat.\""
+    social:
+      hello: "He touches his hat brim without getting up."
+      thanks: "\"For what?\""
+      bye: "\"I'll be here.\""
+      how: "\"Waiting. I'm paid to wait.\""
+      sorry: "\"Quite.\""
+    parting: The agent doesn't look up as you go.
+
+  eli:
+    name: Eli
+    unknown: a young man with an old rifle
+    aliases: [eli, young man, teamster, boy, rifle, flintlock]
+    room_line: "[eli] sits on a wagon tongue among them."
+    look: A young man in patched homespun with an old flintlock across his knees. He keeps looking back up the trail.
+    talk:
+      - when: [not known.eli]
+        text: >-
+          "Eli." He nods back up the trail. "We're bound for the diggings, but
+          my uncle's second wagon is down to the hubs in the slough back on the
+          trail, and he won't cross the train without it. Not that anybody's
+          crossing today."
+        do: [{set: [known.eli, 1830.met_eli]}]
+      - when: [1830.wagon_free]
+        text: "\"Uncle's in a fine mood now. First time this week.\""
+      - text: "\"Still stuck. Uncle says he'll be out by dark or know why.\""
+    topics:
+      - keys: [uncle, asa, wagon, slough, stuck, mud]
+        say: "\"Asa. He's back in the slough past Dixon's camp, cussing at the oxen. His bar broke. He needs a lever and something under the wheels.\""
+      - keys: [father, pa, militia, winnebago, "1827", war]
+        say: "\"Pa went out with the militia in '27, the Winnebago trouble. Took sick on the march and never came home.\" He looks at the rifle. \"Ma says the diggings pay better than corn.\""
+      - keys: [rifle, gun, flintlock]
+        say: "\"Pa's old flintlock. Shoots true, if you hold your breath.\""
+      - keys: [diggings, galena, mines, lead]
+        say: "\"Uncle says a man can make more in a summer at the diggings than in five years farming. Uncle says a lot of things.\""
+      - keys: [river, crossing, ferry]
+        say: "\"Never seen a river this big. I'd sooner not get to know it better.\""
+    fallback: Eli shrugs and looks back up the trail.
+    social:
+      hello: Eli gives a quick, nervous nod.
+      thanks: "\"Oh. Sure. Anytime.\" He looks pleased and a little surprised."
+      bye: "\"Watch the river.\""
+      how: "\"Jumpy, mostly. Folks say the war's coming back.\""
+      sorry: "\"It's all right.\""
+    parting: You nod to [eli], and he nods back.
+
+actions:
+  - id: pole_ferry
+    phrases: [pole ferry, pole across, push off, push off ferry, use pole on ferry, pole the ferry, untie ferry]
+    when: [not 1830.rope_strung]
+    do:
+      - death: pole_high_water
+    else:
+      - say: With the rope strung there's no call for poling. Ogee would be insulted.
+
+  - id: ride_ferry
+    phrases: [ride ferry, take ferry, board ferry, cross, cross on ferry, pull across, ride across, get on ferry]
+    when: [1830.rope_strung]
+    do:
+      - say: Ogee works you across on the rope, hand over hand. The current leans on the line and the line holds.
+      - move: northlanding
+    else:
+      - say: "Ogee's arm bars the way. \"Not in this water.\""
+
+  - id: tar_canoe
+    phrases: [tar canoe, tar the canoe, tar seam, tar the seam, patch canoe, fix canoe, repair canoe, use tar on canoe, put tar on canoe, seal canoe]
+    when: [not 1830.canoe_tarred, not 1830.canoe_across]
+    do:
+      - set: 1830.canoe_tarred
+      - say: You work the hot tar into the split with a stick until it stops weeping river water. Ogee watches without comment, which you take as approval.
+    else:
+      - say: The seam is already tarred.
+
+  - id: launch_canoe
+    phrases: [launch canoe, paddle across, cross in canoe, get in canoe, row across, take canoe, use canoe, paddle canoe, canoe across, push off canoe]
+    when: [1830.canoe_tarred, has:paddle, has:rope, not 1830.rope_strung, not 1830.canoe_across]
+    do:
+      - set: 1830.canoe_across
+      - say: >-
+          Ogee makes the rope's end fast on the south bank. You push off,
+          paying out the coil, and the current leans on it the whole way over.
+          You land, wet to the knees, at the north landing.
+      - move: northlanding
+    else:
+      - when: [{any: [1830.rope_strung, 1830.canoe_across]}]
+        say: The canoe has done its work. The ferry runs on the rope now.
+      - when: [not 1830.canoe_tarred]
+        do: [{death: canoe_sinks}]
+      - when: [not has:paddle]
+        do: [{death: no_paddle}]
+      - say: "Ogee catches the bow. \"No sense going over empty. Fetch Dixon's rope.\""
+
+  - id: borrow_pole
+    phrases: [ask ogee for pole, ask ogee for the pole, borrow pole, take pole, get pole, borrow setting pole, ask for pole]
+    when: [1830.rope_strung, not 1830.has_pole, here:ogee]
+    do:
+      - give: pole
+      - set: 1830.has_pole
+      - say: "\"Take her. I've no use for her with the rope. Bring her back whole.\""
+    else:
+      - when: [1830.has_pole]
+        say: You already have it.
+      - say: "Ogee keeps his hands on it. \"I need her, such as she is, till there's a rope across.\""
+
+  - id: give_shoe
+    phrases: [give shoe to ogee, give ogee shoe, return shoe, give shoe, give pole shoe to ogee, give iron to ogee]
+    when: [has:shoe, here:ogee]
+    do:
+      - take: shoe
+      - set: 1830.shoe_returned
+      - say: "Ogee turns it over in his hands. \"Smith made that. I thought it was gone.\" He fits it back on the pole."
+    else:
+      - say: You have nothing of his to give back.
+
+  - id: pay_agent
+    phrases: [pay agent, give agent 100, give agent money, give money to agent, give 100 to agent, pay the debt, pay debt, pay rolette's man, give agent silver, give silver to agent, pay agent 100]
+    when: [money>=100, here:agent]
+    do:
+      - money: -100
+      - set: [1830.lease_player, 1830.fog]
+      - say: >-
+          The agent counts the silver twice. "Silver's silver. Whose name goes
+          on the paper?" He writes yours. Ogee looks away. Up the trail, a tall
+          figure turns back toward the camp. Then a chill comes off the river,
+          and in a few breaths the fog is on you. Ogee's voice, close by,
+          flatter than before: "Easy now. Take my arm."
+    else:
+      - when: [not here:agent]
+        say: There's nobody here to pay.
+      - say: "\"A hundred in silver, friend. Not a coin less.\""
+
+exits:
+  - names: [south, path, cabin, smoke, woodsmoke, clearing, up]
+    to: cabin
+    peek: A worn path climbs south, away from the water, toward woodsmoke and a clearing.
+    text: You walk up the path to a clearing.
+  - names: [north, across, far bank, north bank, other side]
+    to: northlanding
+    when: [1830.rope_strung]
+    farewell: false
+    blocked: Not in this water. Ogee would stop you, and if he didn't, the river would.
+    text: Ogee works you across on the rope, hand over hand.
+  - names: [east, west, upstream, downstream]
+    blocked: The bank runs on both ways, thick with willow and brush. There's no path that way, and no reason to push into it.
