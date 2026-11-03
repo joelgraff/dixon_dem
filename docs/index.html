@@ -644,7 +644,7 @@ const scenes = {
   ferry: {
     get name() { return (state.dixonOwns ? "Dixon's" : "Ogee's") + " ferry landing, 1830"; },
     look: () => {
-      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. " + (state.dixonOwns ? "The landing is Dixon's now; Ogee has gone, and a hired hand is tarring a seam. " : "A man in a buckskin shirt, [man], is working on the boat. ") + "Half buried in the gravel along the bank, a cracked [canoe] lies on its side. Two loaded [wagons] wait their turn at the head of the landing. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
+      let text = "A rough plank dock runs out into the slow brown water of the Rock River. A flat-bottomed [ferry] rides against it, and the [dock] posts hold a coil of line. " + (state.dixonOwns ? "The landing is Dixon's now; Ogee has gone, and a hired hand is tarring a seam. " : "A [man] in a buckskin shirt is working on the boat. ") + "Half buried in the gravel along the bank, a cracked [canoe] lies on its side. Two loaded [wagons] wait their turn at the head of the landing. A worn [path] climbs south, away from the water, toward woodsmoke; across the river, the north bank has a few buildings standing on it. ";
       text += state.fog
         ? "The [fog] has come in off the river, thick and white, and you can barely see the end of the dock."
         : "The afternoon is clear; the mist you came through has burned off.";
@@ -720,9 +720,9 @@ const scenes = {
         get name() { return state.ogeeIntroduced ? "Joseph Ogee" : "the ferryman"; },
         aliases: ["joseph", "ferryman", "man"],
         desc: "A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He runs the ferry and has been here longer than the town.",
-        fallback: "Ogee shrugs. “Can't say. Ask me about work, or the boat.”",
+        fallback: "He gives a small shrug. “I couldn't tell you much about that, I'm afraid. I've spent most of my life on this river.”",
         topics: [
-          { keys: ["price", "ferry", "buy", "boat", "sell"], say: () => state.hasFerry ? "Ogee says, “She's yours. Keep the seams tarred, and don't pole her out when the river's running high.”" : "Ogee says, “Three hundred sixty. A man from downriver offered it flat, and I can't sell for less than I'm offered. Dixon has been over twice with less than that. I'd sooner sell to a neighbor.” He shrugs. “The money decides it.”" },
+          { keys: ["price", "ferry", "buy", "boat", "sell"], say: () => state.hasFerry ? "Ogee says, “She's yours. Keep the seams tarred, and don't pole her out when the river's running high.”" : "Ogee says, “A fellow came up from downriver and offered me three hundred sixty dollars for her. Dixon's been over twice, but he hasn't got that much. I'd rather sell to someone around here, but I can't turn down the full price.”" },
           { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “There's usually freight to take over to the settlement. Whiskey kegs, mostly. Four to a load, near a hundred and fifty pounds apiece. I'll pay twenty dollars to pole them across and bring the ferry back. If the river behaves, you might make three trips in a week.”" },
           { keys: ["lead", "galena", "wagon", "wagons", "teams", "mines", "traffic", "teamsters"], say: "Ogee says, “Lead out of the Galena mines, bound downriver. Some days I've five, ten teams waiting. It's the only crossing for fifty miles, so they wait.”" },
           { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
@@ -1443,7 +1443,7 @@ function run(input) {
     return;
   }
   if (/^price/.test(input)) {
-    return print(state.scene === "ferry" ? (state.dixonOwns ? "The ferry is Dixon's now." : state.hasFerry ? "The ferry is yours; there's nothing left to buy." : `Ogee says, “Three hundred sixty. Boat's sound. Rope's new last spring.”`) : "Nothing here is for sale.");
+    return print(state.scene === "ferry" ? (state.dixonOwns ? "The ferry is Dixon's now." : state.hasFerry ? "The ferry is yours; there's nothing left to buy." : `Ogee says, “A fellow came up from downriver and offered me three hundred sixty dollars for her. Dixon's been over twice, but he hasn't got that much. I'd rather sell to someone around here, but I can't turn down the full price.”`) : "Nothing here is for sale.");
   }
   print(`You can't think how to do that. (${VERBS})`);
 }
