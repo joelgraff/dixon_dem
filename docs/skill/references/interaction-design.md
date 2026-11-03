@@ -45,6 +45,7 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - Every spoken line is attributed ("Margaret says, “…”") so the player always knows who is talking, even when using `ask about` without greeting first.
 - Pleasantries work with whoever is present or a named NPC: thanks, hello, goodbye and well-wishes, how are you, sorry. Each NPC has its own in-character reply. Free-form small talk beyond these is optional, not required.
 - NPCs should answer questions a person would actually ask. Do not add topics for things nobody would ask about (the window); an NPC fallback should sound like that person, not a parser.
+- Keep NPC dialogue natural and context-appropriate, even when the story is fantastic. Avoid formulaic introductions and other lines that sound written for the player's benefit rather than spoken by a person.
 - Tone must match content. An NPC lowers her voice only for something conspiratorial; otherwise let her be dry or humorous.
 - NPCs are the primary source of nudges. Margaret mentions the river walk when asked about the exhibit or the river; the fog is an in-world reason to go out.
 
