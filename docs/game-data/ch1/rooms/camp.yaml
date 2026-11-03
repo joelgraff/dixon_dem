@@ -62,6 +62,7 @@ nouns:
 npcs:
   dixon:
     name: John Dixon
+    short: Dixon
     unknown: a tall man in a dark coat
     aliases: [dixon, john, john dixon, tall man, man in dark coat, man]
     room_line: "[dixon] stands looking down toward the river."
@@ -103,7 +104,9 @@ npcs:
         say: "\"I've lent money to half the men on this road. Funny how none of it's in my pocket today.\""
       - keys: [sauk, fox, black hawk, saukenuk, treaty]
         say: "Dixon is quiet a moment. \"The Sauk and Fox come back every spring to their corn at Saukenuk, and the settlers there don't like it. The government says an old treaty sold the land. Black Hawk says nobody sold it.\" He looks at the river. \"I'd rest easier if I thought that was finished.\""
-      - keys: ["1832", lincoln, war, militia]
+      - keys: [lincoln, abraham]
+        say: "\"Lincoln? Can't say I know the name.\""
+      - keys: ["1832", war, militia]
         say: "Dixon gives you an odd look. \"Eighteen thirty-two? That's two years off. I don't keep accounts that far ahead.\""
       - keys: [fog, mist]
         say: "\"The mist? It's been odd this year.\" He doesn't say more."
@@ -118,7 +121,8 @@ npcs:
 
   rebecca:
     name: Rebecca Dixon
-    unknown: a woman at the fire
+    short: Rebecca
+    unknown: a woman in an apron
     aliases: [rebecca, woman, wife, mrs. dixon, rebecca dixon]
     room_line: "[rebecca] tends the fire."
     look: A woman in a plain dress and apron, stirring the kettle with the patience of someone who has cooked on a great many fires.
@@ -144,7 +148,8 @@ npcs:
 
   james:
     name: James Dixon
-    unknown: a young man with harness
+    short: James
+    unknown: a young man of nineteen or so
     aliases: [james, young man, son, james dixon, mail driver]
     room_line: "[james] oils harness beside a [mailsack|mail sack]."
     look: A young man of nineteen or so, oiling harness with his sleeves rolled up. He has his father's careful face.
@@ -167,7 +172,7 @@ npcs:
       sorry: "\"Nothing to be sorry for.\""
 
   dixonboys:
-    name: the boys
+    name: boys
     aliases: [boys, two boys, bucket, john w, elijah]
     room_line: Two [dixonboys|boys] go by with a bucket of water between them, arguing.
     look: Two boys of thirteen or fourteen, carrying a bucket between them and spilling most of it. They're too busy arguing to notice you.
@@ -177,6 +182,7 @@ npcs:
 
 actions:
   - id: get_rope
+    speaker: dixon
     phrases: [ask dixon for rope, ask for rope, borrow rope, take rope, get rope, get rope from wagon, ask dixon for the rope, ask about rope]
     when: [not 1830.has_rope, here:dixon]
     do:
@@ -187,6 +193,7 @@ actions:
       - say: You've already got Dixon's rope.
 
   - id: get_order
+    speaker: dixon
     phrases: [offer to sell the order, offer to sell order, ask dixon for the order, ask dixon for order, take paper, i'll sell it, sell order for dixon, offer to cash the order, ask for the order, i'll find a buyer]
     when: [not 1830.has_order, not 1830.order_cashed, here:dixon]
     do:
@@ -197,6 +204,7 @@ actions:
       - say: You already have Dixon's order, or what it bought.
 
   - id: give_dixon
+    speaker: dixon
     phrases: [give dixon 100, "give dixon {n}", give dixon money, give money to dixon, give dixon the money, give dixon silver, give dixon the silver, give silver to dixon, pay dixon, lend dixon the money, lend dixon money, give 100 to dixon]
     when: [money>=100, here:dixon, not 1830.lease_dixon]
     do:

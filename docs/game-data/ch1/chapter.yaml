@@ -3,6 +3,9 @@ title: "Chapter 1: Ogee's Ferry"
 start: museum
 max_score: 100
 
+# Every room file, in the order the browser loads them (it can't list folders).
+rooms: [museum, street, riverwalk, wateredge, landing, cabin, camp, northlanding, slough]
+
 # Flags that score. Points are given the first time the flag is set and taken
 # back if a rewind clears it. Other flags need no declaration, but listing the
 # important ones here documents them.
@@ -232,3 +235,42 @@ npcs:
       how: "\"Muddy.\""
       sorry: "\"Nothing to be sorry about.\""
     parting: You nod to [asa], who nods back without letting go of the wheel.
+
+# What `help` says: the first entry whose `when` holds. Help is the one place
+# the game may name commands outright.
+hints:
+  - when: [1830.fog]
+    text: The fog has you. Take Ogee's arm.
+  - when: [in:wateredge, present.voice]
+    text: Someone is calling from the water. Answer him.
+  - when: [in:wateredge, present.planks]
+    text: The air has changed. Look around.
+  - when: [in:wateredge, not 1830.lease_dixon]
+    text: The water is hard to stop watching. Wait a little, then look at the water.
+  - when: [era:1830, not 1830.met_ogee]
+    text: Talk to the man in the buckskin shirt.
+  - when: [era:1830, not 1830.rope_strung, not has:rope]
+    text: Ogee needs Dixon's rope carried across the river. Dixon is camped up the trail, south past the cabin. Ask him for the rope.
+  - when: [era:1830, not 1830.rope_strung, not has:paddle]
+    text: You'll need a paddle. The oak by the cabin splits clean, if you take the axe. Then cut a paddle.
+  - when: [era:1830, not 1830.rope_strung, not 1830.canoe_tarred]
+    text: Tar the canoe at the landing.
+  - when: [era:1830, not 1830.rope_strung]
+    text: Launch the canoe at the landing, then tie the rope to the post on the far bank.
+  - when: [era:1830, not 1830.wagon_free]
+    text: Eli's uncle Asa is stuck in the slough, south past Dixon's camp. Cut brush with the axe and put it under the wheels, then lever the wagon with Ogee's pole. Ask Ogee for the pole.
+  - when: [era:1830, not 1830.order_cashed, not has:order]
+    text: Dixon's government order is worthless here, but a man bound for Galena might buy it. Offer to sell the order for Dixon.
+  - when: [era:1830, not 1830.order_cashed]
+    text: Sell the order to Asa.
+  - when: [era:1830, money>=100]
+    text: You have the hundred. Give it to Dixon, not the agent. (give dixon 100)
+  - when: [era:1830]
+    text: Raise a hundred dollars in silver for Dixon.
+  - when: [1830.lease_player]
+    text: Something went wrong in 1830. Go back to the water's edge, wait for the fog, and cross again.
+  - when: [chapter1.done]
+    text: Chapter 1 is finished. Margaret's next puzzle is still to come.
+  - when: [present.returned, 1830.lease_dixon]
+    text: Go to the museum and talk to Margaret.
+  - text: Margaret keeps mentioning the river and the marker. Talk to her, look around, then walk north up Hennepin to the river.

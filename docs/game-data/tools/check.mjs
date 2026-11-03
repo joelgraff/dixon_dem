@@ -43,6 +43,9 @@ for (const ch of chapterDirs) {
     rooms[id] = r;
   }
 
+  const manifest = asList(chapter.rooms);
+  for (const id of Object.keys(rooms)) if (!manifest.includes(id)) err(`${ch}/chapter.yaml`, `room file ${id}.yaml is missing from the rooms list`);
+  for (const id of manifest) if (!rooms[id]) err(`${ch}/chapter.yaml`, `rooms lists ${id}, but there is no ${id}.yaml`);
   const items = chapter.items || {};
   const deaths = chapter.deaths || {};
   const chapterNpcs = chapter.npcs || {};
@@ -109,7 +112,7 @@ for (const ch of chapterDirs) {
 
   // Generic walk: every `when` is a condition list, every `do`/`on_look` an
   // effect list, every string is checked for markup.
-  const VARIANT_KEYS = new Set(['look', 'room_line', 'talk', 'listen', 'say', 'blocked', 'parting', 'peek', 'fallback', 'text', 'else', 'at', 'take', 'touch', 'push', 'open', 'close', 'sit', 'climb', 'smell', 'taste', 'search', 'sign', 'drink', 'board', 'call', 'use', 'give', 'read']);
+  const VARIANT_KEYS = new Set(['hints', 'look', 'room_line', 'talk', 'listen', 'say', 'blocked', 'parting', 'peek', 'fallback', 'text', 'else', 'at', 'take', 'touch', 'push', 'open', 'close', 'sit', 'climb', 'smell', 'taste', 'search', 'sign', 'drink', 'board', 'call', 'use', 'give', 'read']);
   function walk(node, where, rid, onString, parentKey) {
     if (Array.isArray(node)) {
       node.forEach((x, i) => walk(x, `${where}[${i}]`, rid, onString));
@@ -207,7 +210,7 @@ for (const ch of chapterDirs) {
   const chWhere = `${ch}/chapter.yaml`;
   if (!rooms[chapter.start]) err(chWhere, `start room "${chapter.start}" not found`);
   for (const i of asList(chapter.start_items)) if (!items[i]) err(chWhere, `start item "${i}" not defined`);
-  walk({ vars: chapter.vars, items: chapter.items, fog_lock: chapter.fog_lock, actions: chapter.actions }, chWhere, null, (s, w) => checkMarkup(s, w, null));
+  walk({ vars: chapter.vars, items: chapter.items, fog_lock: chapter.fog_lock, actions: chapter.actions, hints: chapter.hints }, chWhere, null, (s, w) => checkMarkup(s, w, null));
   for (const [nid, npc] of Object.entries(chapterNpcs)) {
     counts.npcs++;
     counts.topics += asList(npc.topics).length;

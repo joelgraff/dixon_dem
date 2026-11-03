@@ -100,7 +100,9 @@ nouns:
     reveals: [plate]
     look: A slatted bench with a brass [plate] screwed to the back. The slats are damp, though it hasn't rained.
     verbs:
-      sit: You sit for a while. The mist on the water doesn't move, and neither, you notice, does anything else. The city sounds seem a little farther away than when you sat down.
+      sit:
+        say: You sit for a while. A brass [plate] on the backrest presses into your shoulders. The mist on the water doesn't move, and neither, you notice, does anything else.
+        do: [{reveal: plate}]
 
   plate:
     name: brass plate

@@ -80,9 +80,9 @@ nouns:
 npcs:
   madeline:
     name: Madeline
-    unknown: a woman at the west door
+    unknown: a woman in a dark shawl
     aliases: [madeline, woman, wife, madeline ogee, mrs. ogee]
-    room_line: "[madeline] stands at the west door, and two [boys] split kindling by the block."
+    room_line: "[madeline] stands at the west door, and two [boys|boys] split kindling by the block."
     look: A woman in a dark dress and a shawl, her sleeves pushed up from work. She is watching you the way you'd watch a dog you didn't know.
     talk:
       - when: [not known.madeline]
@@ -114,8 +114,8 @@ npcs:
     parting: You nod to [madeline], and she nods back.
 
   boys:
-    name: the boys
-    aliases: [boys, sons, children, kindling]
+    name: boys
+    aliases: [boys, sons, children, kindling, two boys]
     look: Two boys splitting kindling with a hatchet and more enthusiasm than skill. They stop to watch you, then pretend they weren't.
     talk:
       - text: The boys look at each other and say nothing. One of them grins.

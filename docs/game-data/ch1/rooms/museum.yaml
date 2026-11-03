@@ -176,7 +176,7 @@ nouns:
     aliases: [coffee, cup, coffee cup, mints, roll of mints, lanyard]
     look: A lanyard, a roll of mints, and a cold cup of coffee with a lipstick ring on the lid. Margaret's, all of it.
     verbs:
-      take: Margaret's mints are Margaret's mints.
+      take: Margaret's coffee, Margaret's mints, Margaret's lanyard. You leave them be.
       drink: It's cold, and it's hers.
 
   guestbook:
@@ -287,6 +287,7 @@ npcs:
       - when: [present.returned]
         text: Margaret, by her name tag. Sixty or so, reading glasses pushed up into grey hair. She is looking at the panel with her head tilted, the way you look at a picture hung slightly crooked.
       - text: A woman in a cardigan, sixty or so, reading glasses pushed up into grey hair. Her name tag says MARGARET. She works the crossword with the patience of long habit.
+        do: [{set: known.volunteer}]
     talk:
       - when: [not known.volunteer]
         text: >-

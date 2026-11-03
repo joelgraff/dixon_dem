@@ -4,11 +4,21 @@ The game's content lives here as YAML data. The browser runtime reads it; the
 runtime holds no story text of its own. Writing a room's text now also writes
 the art brief for the picture that may later replace it.
 
-Run the checker after every change:
+The game page is `docs/play.html` (engine: `docs/play.js`). It loads these
+files over HTTP, so open it through GitHub Pages or a local server, not as a
+file. Test URLs: `play.html?fresh` starts over, `?scene=landing` starts in a
+room, `?seed=1` makes random picks repeatable.
+
+Run the checker after every change, and the playthrough tests before pushing:
 
 ```
-cd docs/game-data/tools && npm install && node check.mjs
+cd docs/game-data/tools && npm install && npm run check
+npm install playwright && npx playwright install chromium   # once
+node test.mjs              # all tests; node test.mjs wrong   runs matching ones
 ```
+
+Test scripts live in `ch1/tests/`; see the top of `tools/test.mjs` for their
+format.
 
 ## Files
 
@@ -145,6 +155,7 @@ pedestal:
 ogee:
   name: Joseph Ogee
   unknown: the man in buckskin  # used until known.ogee is set
+  short: Ogee                   # optional: used in speech tags and room text once known
   aliases: [ferryman, man in buckskin, joseph]
   when: [not 1830.fog]
   look: ...
@@ -191,6 +202,7 @@ dropping `the`, `a`, `an`. `{n}` matches a number; quote any phrase that contain
 
 ```yaml
 - id: tar_canoe
+  speaker: ogee                 # optional: quoted say lines are attributed to this NPC
   phrases: [tar canoe, tar the seam, patch canoe, fix canoe, use tar on canoe]
   when: [not 1830.canoe_tarred]
   do:

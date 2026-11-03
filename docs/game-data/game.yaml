@@ -6,7 +6,7 @@ input_limit: 40            # SCI-era input buffer
 # Canonical verbs and the words that map to them. Multi-word synonyms are
 # matched before single words.
 verbs:
-  look:   [look at, examine, x, inspect, check, study, look in, look under, look behind, look through, look out, read]
+  look:   [look at, examine, x, inspect, check, study, look in, look under, look behind, look through, look out, read, look]
   take:   [take, get, grab, pick up]
   touch:  [touch, feel, pat, rub, stroke, lean on, peel, lift]
   push:   [push, pull, shove, move, turn, knock on, kick]

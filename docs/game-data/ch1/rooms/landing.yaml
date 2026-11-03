@@ -151,6 +151,7 @@ nouns:
 npcs:
   ogee:
     name: Joseph Ogee
+    short: Ogee
     unknown: a man in a buckskin shirt
     aliases: [ogee, joseph, joseph ogee, ferryman, man in buckskin, man in buckskin shirt, man]
     room_line:
@@ -342,6 +343,7 @@ actions:
       - say: "Ogee catches the bow. \"No sense going over empty. Fetch Dixon's rope.\""
 
   - id: borrow_pole
+    speaker: ogee
     phrases: [ask ogee for pole, ask ogee for the pole, borrow pole, take pole, get pole, borrow setting pole, ask for pole]
     when: [1830.rope_strung, not 1830.has_pole, here:ogee]
     do:
@@ -364,6 +366,7 @@ actions:
       - say: You have nothing of his to give back.
 
   - id: pay_agent
+    speaker: agent
     phrases: [pay agent, give agent 100, give agent money, give money to agent, give 100 to agent, pay the debt, pay debt, pay rolette's man, give agent silver, give silver to agent, pay agent 100]
     when: [money>=100, here:agent]
     do:
