@@ -1,5 +1,6 @@
 # Changelog
 ## 2026-11-03
+- Removed parenthetical parser instructions from Ogee's and Dixon's dialogue; their work and ferry offer remain discoverable from the conversation, while explicit commands remain available through requested help.
 - Social-flow guidance now states the general principle: conversation and interaction should follow common real-life behavior, including natural greetings and leave-taking.
 - Ogee's introduction is now a single natural exchange ("I'm Joseph Ogee. I run this ferry"), avoiding the repetitive scripted "Name's Ogee. Joseph Ogee" and preventing premature name attribution before the introduction.
 - Ogee's first appearance now identifies him only as a man/the ferryman; his name becomes known through his introduction or first conversation.

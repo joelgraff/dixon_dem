@@ -723,7 +723,7 @@ const scenes = {
         fallback: "Ogee shrugs. “Can't say. Ask me about work, or the boat.”",
         topics: [
           { keys: ["price", "ferry", "buy", "boat", "sell"], say: () => state.hasFerry ? "Ogee says, “She's yours. Keep the seams tarred, and don't pole her out when the river's running high.”" : "Ogee says, “Three hundred sixty. A man from downriver offered it flat, and I can't sell for less than I'm offered. Dixon has been over twice with less than that. I'd sooner sell to a neighbor.” He shrugs. “The money decides it.”" },
-          { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm.” (Type “haul” or “haul week”.)" },
+          { keys: ["work", "haul", "keg", "freight", "job", "money"], say: "Ogee says, “Whiskey kegs to the settlement. Four kegs, about a hundred fifty pounds each. Twenty dollars a trip, three trips a week if the river's calm.”" },
           { keys: ["lead", "galena", "wagon", "wagons", "teams", "mines", "traffic", "teamsters"], say: "Ogee says, “Lead out of the Galena mines, bound downriver. Some days I've five, ten teams waiting. It's the only crossing for fifty miles, so they wait.”" },
           { keys: ["timber", "axe", "wood", "oak"], say: "Ogee jerks his chin up the path. “Axe is up at the cabins. White oak down by the river sells at the sawmill.”" },
           { keys: ["dixon", "trader"], say: "Ogee says, “John Dixon. Trader. Came up this spring and set up across the river. Does a fair trade with the Sauk and Fox. Quiet man, but everybody knows him.”" },
@@ -900,8 +900,8 @@ const scenes = {
 };
 
 const npcTalk = {
-  ogee: "He wipes his hands on his shirt. “I'm Joseph Ogee. I run this ferry. You looking for work, or just passing through? Kegs go to the settlement, twenty dollars a trip.” (Type “haul” for one trip, or “haul week” for three.)",
-  dixon: "Dixon steps forward, hand out. “John Dixon.” His handshake is firm. “Ogee send you? I'll be plain: I'm trying to buy his ferry, and I'm short of the price. If you've a strong back, kegs pay twenty dollars a trip, and I'd make it right with anyone who helped me.” (Try “haul week”, then “give Dixon 100”.)",
+  ogee: "He wipes his hands on his shirt. “I'm Joseph Ogee. I run this ferry. You looking for work, or just passing through? Kegs go to the settlement, twenty dollars a trip.”",
+  dixon: "Dixon steps forward, hand out. “John Dixon.” His handshake is firm. “Ogee send you? I'll be plain: I'm trying to buy his ferry, and I'm short of the price. If you've a strong back, kegs pay twenty dollars a trip, and I'd make it right with anyone who helped me.”",
   clerk: "The surveyor looks up from his field book. “Claims near the river are spoken for. There's timber on the west ridge, if you take it as it stands. Mind, I only enter the bounds; the claim is between you and your neighbors.”",
   settler: "The young man shifts the rifle. “Waiting on the second wagon. Uncle says we'll make the diggings by the first frost. Name's Eli.”"
 };
