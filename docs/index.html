@@ -413,7 +413,12 @@ const scenes = {
       sticker: {
         hidden: true,
         aliases: ["bumper sticker", "bumper"],
-        desc: "RIVER DAYS COMMITTEE, with a cartoon ferry. The corner has peeled, and underneath there's a second, older sticker you can't read."
+        desc: "RIVER DAYS COMMITTEE, with a cartoon ferry. The corner has peeled away from the bumper, and part of an older sticker shows underneath, hidden by the newer one."
+        ,verbs: {
+          touch: "The curled corner lifts easily. You peel the whole sticker back, and the older one beneath it is clear enough to read: DIXON'S FERRY DAYS, with the same cartoon ferry. It's sun-bleached, as though it has been there for years. Nobody on this block would call the town that.",
+          read: "The top sticker is easy to read. The older one is hidden beneath it, though the corner is loose enough to peel back.",
+          take: "The curled corner lifts easily. You peel the whole sticker back, and the older one beneath it is clear enough to read: DIXON'S FERRY DAYS, with the same cartoon ferry. It's sun-bleached, as though it has been there for years. Nobody on this block would call the town that."
+        }
       },
       corner: {
         aliases: ["intersection"],
@@ -1116,7 +1121,7 @@ function renderNotes() {
 const VERB_CANON = {
   sign: "sign", write: "sign", "write in": "sign", "write on": "sign", autograph: "sign",
   read: "read", sit: "sit", "sit on": "sit", "sit at": "sit", "sit in": "sit", "sit down": "sit",
-  touch: "touch", feel: "touch", pat: "touch", rub: "touch", stroke: "touch",
+  touch: "touch", peel: "touch", lift: "touch", feel: "touch", pat: "touch", rub: "touch", stroke: "touch",
   push: "push", pull: "push", shove: "push", turn: "push", move: "push", knock: "push", "knock on": "push", kick: "push",
   smell: "smell", sniff: "smell", taste: "taste", lick: "taste",
   open: "open", close: "close", shut: "close",
