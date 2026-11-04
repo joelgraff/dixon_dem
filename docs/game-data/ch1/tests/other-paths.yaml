@@ -128,6 +128,7 @@ tests:
       - {cmd: talk to man in buckskin, expect: [Joseph Ogee, "So it's you", "Mine's halfway to St. Louis"]}
       - {cmd: ask ogee why, expect: "you owe me the use of them"}
       - {cmd: ask ogee about canoe, expect: fishing you out}
+      - {cmd: tar the split, expect: work the hot tar into the split}
       - {cmd: help, expect: [No signal, the assistant answers]}
       - {cmd: use phone, expect: the assistant answers}
       - {cmd: look at phone, expect: came through the river}

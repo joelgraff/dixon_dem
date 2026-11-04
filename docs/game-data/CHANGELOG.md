@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.6.2 (2026-11-03)
+- Tarring the canoe accepts the words Ogee uses (tar the split) and many more: patch, seal, caulk, fix or fill the split, crack, seam or canoe, use tar on it, and so on.
+
 ## 0.6.1 (2026-11-03)
 - The crossing to 1830 is quicker and forgiving: the fog builds for two moves and takes you on the third whatever you do (sooner if you look at the water), the planks and the voice arrive together, and walking toward the voice (north, forward, into the fog, out along the planks, follow the voice) answers it.
 
