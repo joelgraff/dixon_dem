@@ -10,7 +10,7 @@ picture: >-
 look: >-
   A small landing on the north bank: a stout [post] at the water, and the
   Galena [road] climbing away north into the trees, empty. Across the
-  [river], Ogee's dock and the waiting wagons look small.
+  [river], {ogee's} dock and the waiting wagons look small.
 listen: The river, loud from this side. Very faintly, across the water, oxen.
 
 nouns:
@@ -20,17 +20,17 @@ nouns:
     aliases: [stout post, mooring post, stake]
     room_line:
       - when: [1830.rope_strung]
-        text: Dixon's [rope] runs from the post, taut, across the water.
+        text: "{dixon's} [rope] runs from the post, taut, across the water."
     look:
       - when: [1830.rope_strung]
-        text: A stout oak post with Dixon's rope made fast around it, humming faintly with the current.
+        text: A stout oak post with {dixon's} rope made fast around it, humming faintly with the current.
       - text: A stout oak post, set deep. Somebody meant something to be tied to it one day.
 
   rope:
     name: rope
     when: [1830.rope_strung]
     aliases: [line, hemp]
-    look: The rope runs from the post across the river to Ogee's landing, taut and humming.
+    look: The rope runs from the post across the river to {ogee's} landing, taut and humming.
 
   road:
     name: Galena road
@@ -40,7 +40,7 @@ nouns:
   river:
     name: river
     aliases: [water, high water, rock river, south bank, dock, wagons]
-    look: The river is louder from this side. Across it, Ogee's landing, the wagons, and a thread of cabin smoke.
+    look: The river is louder from this side. Across it, {ogee's} landing, the wagons, and a thread of cabin smoke.
     verbs:
       drink: You'd rather not.
 
@@ -48,7 +48,7 @@ nouns:
     name: canoe
     when: [1830.canoe_across]
     aliases: [dugout]
-    look: Ogee's canoe, pulled up on the gravel, its tarred seam holding. It has done its work.
+    look: "{ogee's} canoe, pulled up on the gravel, its tarred seam holding. It has done its work."
 
 actions:
   - id: tie_rope
@@ -58,9 +58,9 @@ actions:
       - take: rope
       - set: 1830.rope_strung
       - say: >-
-          You make it fast around the post. Across the water Ogee hauls it
+          You make it fast around the post. Across the water {ogee} hauls it
           taut, and before long the ferry comes across hand over hand along
-          the rope, Ogee at the line. "Well," he says as he lands. "Dixon's
+          the rope, {ogee} at the line. "Well," he says as he lands. "Dixon's
           rope."
     else:
       - say: The rope is already tied off.
@@ -69,7 +69,7 @@ actions:
     phrases: [ride ferry, take ferry, board ferry, cross, cross on ferry, pull across, ride across, get on ferry, go back across]
     when: [1830.rope_strung]
     do:
-      - say: You ride back across on the rope, hand over hand with Ogee.
+      - say: You ride back across on the rope, hand over hand with {ogee}.
       - move: landing
     else:
       - say: There's no ferry on this side yet. Make the rope fast first.
@@ -85,6 +85,6 @@ exits:
     when: [1830.rope_strung]
     farewell: false
     blocked: The canoe will never make it back against this current with the rope dragging. Make the rope fast first.
-    text: You ride back across on the rope, hand over hand with Ogee.
+    text: You ride back across on the rope, hand over hand with {ogee}.
   - names: [north, road, galena, galena road]
     blocked: The Galena road climbs away north. Your business is on the other bank.

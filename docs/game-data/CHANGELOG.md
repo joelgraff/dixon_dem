@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.4.2 (2026-11-03)
+- Narration no longer names people before you meet them: Ogee is "the ferryman" (his flatboat, his cabin) until he introduces himself, and likewise for Dixon, Madeline, Asa, Eli, James, Rebecca and Margaret. The camp is "A wagon camp" until someone mentions Dixon. The checker now flags any name in narration that the player may not know yet.
+
 ## 0.4.1 (2026-11-03)
 - Start-of-game notices (the tour offer, Welcome back, Updated) are now gold-edged banners instead of muted italic text; the tour offer has a Take the tour button, and the log opens scrolled to the banner.
 

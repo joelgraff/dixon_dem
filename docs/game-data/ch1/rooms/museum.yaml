@@ -77,7 +77,7 @@ nouns:
       shoe from a river flatboat, c. 1830. Donor unknown." You know exactly
       where the dent came from.
     verbs:
-      take: It belongs to the museum now, and Margaret is watching.
+      take: It belongs to the museum now, and {volunteer} is watching.
 
   card:
     name: typed card
@@ -87,7 +87,7 @@ nouns:
     look: >-
       The typed card, slightly crooked, reads: "Exhibit temporarily removed
       for conservation." Below it, in pencil, someone has written and half
-      erased: ask Margaret.
+      erased: "ask Margaret."
 
   cases:
     name: glass cases
@@ -169,14 +169,14 @@ nouns:
       on top. The [guestbook] lies open at the corner nearest the door, and
       below the blotter the middle [drawer] has a small brass lock.
     verbs:
-      sit: You glance at the chair. Margaret looks at you over her glasses, and you think better of it.
+      sit: You glance at the chair. {volunteer} looks at you over her glasses, and you think better of it.
 
   clutter:
     name: desk clutter
     aliases: [coffee, cup, coffee cup, mints, roll of mints, lanyard]
-    look: A lanyard, a roll of mints, and a cold cup of coffee with a lipstick ring on the lid. Margaret's, all of it.
+    look: A lanyard, a roll of mints, and a cold cup of coffee with a lipstick ring on the lid. {volunteer's}, all of it.
     verbs:
-      take: Margaret's coffee, Margaret's mints, Margaret's lanyard. You leave them be.
+      take: "{volunteer's} coffee, {volunteer's} mints, {volunteer's} lanyard. You leave them be."
       drink: It's cold, and it's hers.
 
   guestbook:
@@ -241,15 +241,15 @@ nouns:
           letters, "Founder of the ferry town," is blank, the squares rubbed
           raw from erasing. In the margin, over and over: john.
     verbs:
-      touch: The paper is soft where the eraser has been. Margaret glances over, and you take your hand away.
-      take: Margaret's hand covers it, politely.
+      touch: The paper is soft where the eraser has been. {volunteer} glances over, and you take your hand away.
+      take: "{volunteer's} hand covers it, politely."
 
   sign:
     name: hand-lettered sign
     when: [present.returned]
     aliases: [hand-lettered sign, labels sign]
     room_line: A hand-lettered [sign] is taped to the front of the desk.
-    look: ASK ABOUT THE LATEST LABELS, in marker, taped to the front of the desk. Margaret's handwriting.
+    look: ASK ABOUT THE LATEST LABELS, in marker, taped to the front of the desk. {volunteer's} handwriting.
 
   window:
     name: window
@@ -265,19 +265,20 @@ nouns:
     aliases: [glass door, entrance, front door, wedge]
     look: Glass, propped open with a rubber wedge. The street beyond is warm and quiet.
     verbs:
-      close: Margaret likes it open. You leave it.
+      close: "{volunteer} likes it open. You leave it."
 
   riverwalk:
     name: riverwalk
     hidden: true
     key: true
     aliases: [river walk, riverfront, river, walk]
-    look: The riverfront walk Margaret mentioned, four blocks north up Hennepin. You can't see it from in here.
+    look: The riverfront walk {volunteer} mentioned, four blocks north up Hennepin. You can't see it from in here.
 
 npcs:
   volunteer:
     name: Margaret
     unknown: a volunteer in a cardigan
+    ref: the volunteer
     aliases: [margaret, volunteer, docent, woman, lady, name tag, nametag]
     room_line:
       - when: [present.returned]
@@ -285,7 +286,8 @@ npcs:
       - text: "[volunteer] sits behind the [desk] by the entrance, a [guestbook] open at her elbow and a pencil moving slowly over a [crossword]."
     look:
       - when: [present.returned]
-        text: Margaret, by her name tag. Sixty or so, reading glasses pushed up into grey hair. She is looking at the panel with her head tilted, the way you look at a picture hung slightly crooked.
+        do: [{set: known.volunteer}]
+        text: "Her name tag says MARGARET. Sixty or so, reading glasses pushed up into grey hair. She is looking at the panel with her head tilted, the way you look at a picture hung slightly crooked."
       - text: A woman in a cardigan, sixty or so, reading glasses pushed up into grey hair. Her name tag says MARGARET. She works the crossword with the patience of long habit.
         do: [{set: known.volunteer}]
     talk:

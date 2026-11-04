@@ -71,12 +71,12 @@ items:
     era: 1830
     name: coil of rope
     aliases: [rope, coil, hemp, line]
-    look: A heavy coil of new hemp, every foot Dixon could buy in Peoria.
+    look: A heavy coil of new hemp, every foot {dixon} could buy in Peoria.
   axe:
     era: 1830
     name: axe
     aliases: [hatchet]
-    look: Ogee's axe, its edge sharp enough to catch a thumbnail.
+    look: "{ogee's} axe, its edge sharp enough to catch a thumbnail."
   paddle:
     era: 1830
     name: paddle
@@ -88,8 +88,8 @@ items:
     aliases: [pole, setting pole, ash pole]
     look:
       - when: [1830.shoe_lost, not 1830.shoe_returned]
-        text: Ogee's ash setting pole, lighter at the foot now that its iron shoe is gone.
-      - text: Ogee's ash setting pole, shod with a cone of forged iron.
+        text: "{ogee's} ash setting pole, lighter at the foot now that its iron shoe is gone."
+      - text: "{ogee's} ash setting pole, shod with a cone of forged iron."
   brush:
     era: 1830
     name: bundle of brush
@@ -111,12 +111,12 @@ items:
 fog_lock:
   when: [1830.fog]
   room_line: The fog has closed in around you, thick and white, and a rough hand has found your sleeve.
-  blocked: The fog is too thick to go anywhere. You take a step and lose all sense of direction, and Ogee's hand tightens on your sleeve. "Not that way. Take my arm."
+  blocked: The fog is too thick to go anywhere. You take a step and lose all sense of direction, and {ogee's} hand tightens on your sleeve. "Not that way. Take my arm."
 
 deaths:
   pole_high_water: >-
     You push the ferry off. The current takes it, and you with it, and the
-    landing is a long way behind before you think of letting go. Ogee did
+    landing is a long way behind before you think of letting go. {ogee} did
     mention the river was up. Several times.
   canoe_sinks: >-
     Halfway across, the split seam opens like a mouth. The Rock River accepts
@@ -139,7 +139,7 @@ actions:
       - clear: [1830.fog, present.planks, present.voice]
       - set: present.returned
       - say: >-
-          You take Ogee's arm and walk blind through the white, step by step.
+          You take {ogee's} arm and walk blind through the white, step by step.
           His hand lets go of your sleeve somewhere along the way. The planks
           give way to concrete, the knocking fades, and the city sounds come
           back one by one.
@@ -176,7 +176,7 @@ actions:
       - set: 1830.order_cashed
       - money: 60
       - say: >-
-          Asa holds it to the light. "Seventy-two and change, on the governor.
+          {asa} holds it to the light. "Seventy-two and change, on the governor.
           I can pass that in Galena." He counts out silver. "Sixty, and I'm
           doing you a kindness." You now have ${money}.
     else:
@@ -189,6 +189,7 @@ npcs:
   asa:
     name: Asa
     unknown: a big man in a sweat-dark shirt
+    ref: the big man
     aliases: [asa, big man, man, uncle, wagon master, eli's uncle]
     at:
       - when: [1830.wagon_free]
@@ -227,9 +228,9 @@ npcs:
           - when: [1830.rope_strung]
             text: "\"Ogee's got her running on a rope. Never seen the like. We'll be over by dark.\""
           - text: "\"Can't cross anyway till the river drops. Might as well be stuck here as there.\""
-    fallback: "Asa spits. \"No idea.\""
+    fallback: "{asa} spits. \"No idea.\""
     social:
-      hello: Asa grunts a greeting.
+      hello: "{asa} grunts a greeting."
       thanks: "\"Thank me when she's out.\""
       bye: "\"Mind your boots.\""
       how: "\"Muddy.\""

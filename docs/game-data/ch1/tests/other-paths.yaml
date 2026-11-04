@@ -100,3 +100,24 @@ tests:
     url: scene=landing
     steps:
       - {cmd: help, expect: Talk to the man in the buckskin shirt}
+
+  - name: narration doesn't name people before you meet them
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.arrived]}
+      - {cmd: look at ferry, expect: "The ferryman's flatboat", not: Ogee}
+      - {cmd: look at dock, expect: The ferryman has been flooded out, not: Ogee}
+      - {cmd: look at agent, expect: watches the ferryman, not: Ogee}
+      - {cmd: s, expect: "The ferryman's cabin", not: Ogee}
+      - {cmd: look at axe, not: Ogee}
+      - {cmd: take axe, not: Madeline}
+      - {cmd: look at cabin}
+      - {cmd: search west room, expect: "It isn't your house", not: Madeline}
+      - {cmd: s, expect: A wagon camp, not: Dixon}
+      - {cmd: look at wagon, expect: the family owns, not: Dixon}
+      - {cmd: n}
+      - {cmd: n}
+      - {cmd: talk to man in buckskin, expect: Joseph Ogee}
+      - {cmd: look at ferry, expect: "Ogee's flatboat"}
+      - {cmd: s, expect: "Ogee's cabin"}
+      - {cmd: s, expect: "Dixon's camp"}

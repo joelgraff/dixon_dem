@@ -188,6 +188,12 @@ function npcName(id, full = false) {
   if (!known(id)) return n.unknown || n.name;
   return full ? n.name : (n.short || n.name);
 }
+// How narration refers to someone: their short name once known, else `ref`.
+function refName(id) {
+  const n = npcDef(id);
+  if (known(id)) return n.short || n.name;
+  return n.ref || String(n.unknown || n.name).replace(/^(a|an) /, 'the ');
+}
 // Calling someone by their real name means you know it.
 function learnName(c, typed) {
   if (c.kind !== 'npc' || known(c.id)) return;
@@ -294,7 +300,15 @@ function smartQuotes(t) {
 function render(text, opts = {}) {
   const rid = opts.room || S.room;
   const v = vars(opts.vars);
-  let t = String(text).replace(/\{([a-z_]+)\}/g, (m, k) => (k in v ? v[k] : m));
+  // {town} is a variable; {ogee} / {ogee's} is a character, by name once known
+  // and by their `ref` description until then, capitalised at a sentence start.
+  let t = String(text).replace(/\{([a-z_]+)('s)?\}/g, (m, k, poss, off, whole) => {
+    if (k in v) return `${v[k]}${poss ? "'s" : ''}`;
+    if (!npcDef(k)) return m;
+    const w = refName(k) + (poss ? "'s" : '');
+    const prior = whole.slice(0, off);
+    return !prior.trim() || /[.!?]["”]?\s*$/.test(prior) ? cap(w) : w;
+  });
   t = smartQuotes(t.replace(/\s+/g, ' ').trim());
   const labels = labelMap(rid);
   let out = '';

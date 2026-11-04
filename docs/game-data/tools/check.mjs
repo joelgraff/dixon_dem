@@ -155,7 +155,41 @@ for (const ch of chapterDirs) {
       const key = m[1].trim().toLowerCase();
       if (labels && !labels.has(key)) err(where, `[${m[1]}] does not name a noun or NPC in this room`);
     }
-    for (const m of s.matchAll(/\{([a-z_]+)\}/g)) if (!vars.has(m[1])) err(where, `{${m[1]}} is not a known variable`);
+    for (const m of s.matchAll(/\{([a-z_]+)(?:'s)?\}/g)) if (!vars.has(m[1]) && !allNpcIds.has(m[1])) err(where, `{${m[1]}} is not a known variable or character`);
+  }
+
+  // ---- names before introductions -----------------------------------------
+  // Narration may not use a character's name unless the text only shows once
+  // the player knows it (a `known.<id>` or `heard.<id>` condition), or it uses
+  // {id} / {id's}, which the runtime turns into the name or a description.
+  // Speech inside quotation marks is exempt: characters know each other.
+  // A word belongs to one person: a family surname ("Dixon" in Rebecca Dixon)
+  // counts only for the character whose short name it is.
+  const npcList = [...Object.values(rooms).flatMap(r => Object.entries(r.npcs || {})), ...Object.entries(chapterNpcs)];
+  const shortOf = new Map(npcList.filter(([, n]) => n.short).map(([id, n]) => [n.short, id]));
+  const people = [];
+  for (const [id, n] of npcList) {
+    const words = new Set([n.short, ...String(n.name || '').split(/\s+/)].filter(w => w && /^[A-Z][a-z]{2,}$/.test(w)));
+    for (const w of words) if (!shortOf.has(w) || shortOf.get(w) === id) people.push({ id, word: w });
+  }
+  const SKIP = new Set(['id', 'name', 'short', 'unknown', 'ref', 'aliases', 'phrases', 'keys', 'names', 'sources', 'picture', 'when', 'do', 'speaker', 'at', 'era', 'reveals']);
+  function lintNames(node, where, guards) {
+    if (Array.isArray(node)) return node.forEach((x, i) => lintNames(x, `${where}[${i}]`, guards));
+    if (node && typeof node === 'object') {
+      const g = node.when ? [...guards, ...asList(node.when).map(String)] : guards;
+      for (const [k, v] of Object.entries(node)) {
+        if (SKIP.has(k) && !(k === 'name' && where.endsWith('.yaml'))) continue;
+        lintNames(v, `${where}.${k}`, g);
+      }
+      return;
+    }
+    if (typeof node !== 'string') return;
+    const narration = node.replace(/"[^"]*"/g, ' ').replace(/\u201c[^\u201d]*\u201d/g, ' ');
+    for (const p of people) {
+      if (!new RegExp(`\\b${p.word}s?\\b`).test(narration)) continue;
+      if (guards.some(c => c === `known.${p.id}` || c === `heard.${p.id}`)) continue;
+      err(where, `narration names ${p.word} before the player may know it (use {${p.id}} / {${p.id}'s}, or a known.${p.id} variant)`);
+    }
   }
 
   // ---- rooms ---------------------------------------------------------------
@@ -167,6 +201,7 @@ for (const ch of chapterDirs) {
     for (const s of asList(r.sources)) if (!(src.sources || {})[s]) err(where, `unknown source ${s}`);
     const labels = labelsFor(rid);
     walk(r, where, rid, (s, w) => checkMarkup(s, w, labels));
+    lintNames(r, where, []);
 
     const nouns = r.nouns || {};
     for (const [nid, n] of Object.entries(nouns)) {
@@ -211,6 +246,7 @@ for (const ch of chapterDirs) {
   if (!rooms[chapter.start]) err(chWhere, `start room "${chapter.start}" not found`);
   for (const i of asList(chapter.start_items)) if (!items[i]) err(chWhere, `start item "${i}" not defined`);
   walk({ vars: chapter.vars, items: chapter.items, fog_lock: chapter.fog_lock, actions: chapter.actions, hints: chapter.hints }, chWhere, null, (s, w) => checkMarkup(s, w, null));
+  lintNames({ items: chapter.items, actions: chapter.actions, fog_lock: chapter.fog_lock, deaths: chapter.deaths, npcs: chapterNpcs }, chWhere, []);
   for (const [nid, npc] of Object.entries(chapterNpcs)) {
     counts.npcs++;
     counts.topics += asList(npc.topics).length;

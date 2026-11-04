@@ -67,6 +67,7 @@ Markup inside text:
 | `[cases]` | A lookable noun, by id or alias, in this room. The checker requires every bracket to resolve. |
 | `[emptycase\|empty case]` | Same, showing different words. |
 | `[ogee]` | An NPC id shows that NPC's current name: `unknown` until `known.<id>` is set, then `name`. |
+| `{ogee}`, `{ogee's}` | A character in plain narration: their short name once `known.<id>` is set, until then their `ref` ("the ferryman", "the ferryman's"). Capitalized at a sentence start. |
 | `{town}` | A chapter variable (see `vars` in chapter.yaml). |
 | `{money}`, `{score}`, `{max_score}` | Live values. |
 | `{picked}` | Random entries from the noun's `pick` pool (see Nouns). |
@@ -114,7 +115,16 @@ score; the points are given the first time the flag is set, and taken back if
 a rewind clears it.
 
 Flag prefixes: `present.` (the present day), `1830.` (cleared by a rewind),
-`known.` (names the player has learned; never cleared), `chapter1.`.
+`known.` (names the player has learned; never cleared), `heard.` (a name the
+player has been told but whose owner they haven't met, e.g. `heard.dixon` once
+Ogee mentions him; never cleared), `chapter1.`.
+
+**Names before introductions.** Narration never names a character the player
+hasn't been introduced to. Write `{dixon}` / `{dixon's}` instead of "Dixon",
+or put the name in a variant whose `when` includes `known.dixon` or
+`heard.dixon`. Speech in quotation marks is exempt (characters know each
+other), and so is written text the player reads, which should be quoted. The
+checker flags every name in narration that breaks this rule.
 
 ## Rooms
 
@@ -166,6 +176,7 @@ pedestal:
 ogee:
   name: Joseph Ogee
   unknown: the man in buckskin  # used until known.ogee is set
+  ref: the ferryman             # {ogee} in narration until known.ogee
   short: Ogee                   # optional: used in speech tags and room text once known
   aliases: [ferryman, man in buckskin, joseph]
   when: [not 1830.fog]
