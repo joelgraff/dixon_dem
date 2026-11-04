@@ -199,7 +199,7 @@ actions:
           do:
             - rewind: 1830
             - say: Something is different as you go. Whatever you did last time has been unmade, and you remember it anyway.
-      - set: 1830.arrived
+      - set: [1830.arrived, 1830.dazed]
       - say: >-
           You call back and walk out along the planks toward the voice. The
           knocking is very close now. One more step, and the planks aren't
@@ -218,11 +218,6 @@ actions:
           He looks at the long split in his canoe, and then at you. "I called
           for somebody who could handle a canoe," he says. "The river sent me
           somebody who needed one."
-      - say: >-
-          You sit up. Somewhere in the river you lost your own clothes, and came
-          out in wet wool trousers, a homespun shirt and a pair of cracked
-          boots. The only thing in your pocket is a flat tin case. You decide
-          not to think about that.
       - move: landing
     else:
       - say: Nothing answers. There's only the water, and the mist on it.

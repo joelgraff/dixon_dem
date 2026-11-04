@@ -70,7 +70,9 @@ nouns:
   tarpot:
     name: tar pot
     aliases: [tar pot, tar, pot, fire, small fire]
-    room_line: A [tarpot|tar pot] smokes on a small fire, a [swab] standing up out of it, with a hank of [oakum] on the planks beside it.
+    room_line:
+      - when: [not 1830.dazed]
+        text: A [tarpot|tar pot] smokes on a small fire, a [swab] standing up out of it, with a hank of [oakum] on the planks beside it.
     look: An iron pot of pine tar over a small fire, bubbling slowly. It smells like a shipyard. {ogee's} caulking things are laid out beside it, the way a man leaves his tools when someone shouts for help.
     verbs:
       touch: You think better of it about an inch away. It's hot.
@@ -128,7 +130,8 @@ nouns:
     room_line:
       - when: [1830.wagon_free]
         text: "{asa's} [wagons], five now, wait their turn on the rope ferry."
-      - text: Loaded [wagons] wait at the head of the landing, [teamsters] idle beside them.
+      - when: [not 1830.dazed]
+        text: Loaded [wagons] wait at the head of the landing, [teamsters] idle beside them.
     look:
       - when: [1830.wagon_free]
         text: Five ox-drawn wagons loaded with flour, tools and kegs, bound north for the Galena diggings. The fifth one is still black with slough mud to the hubs.
@@ -254,7 +257,9 @@ npcs:
     ref: the man in the good coat
     aliases: [agent, man in coat, man in good coat, coat, stranger, creditor's man, rolette's man, rolette's agent]
     when: [not 1830.lease_dixon, not 1830.lease_player]
-    room_line: "[agent] sits on a [crate] with [papers] in his lap."
+    room_line:
+      - when: [not 1830.dazed]
+        text: "[agent] sits on a [crate] with [papers] in his lap."
     look: A well-made coat, mud to the knee. He watches {ogee} the way a man watches a horse he means to take.
     talk:
       - when: [not known.agent]
@@ -293,7 +298,9 @@ npcs:
     unknown: a young man with an old rifle
     ref: the young man with the rifle
     aliases: [eli, young man, teamster, boy, rifle, flintlock]
-    room_line: "[eli] sits on a wagon tongue among them."
+    room_line:
+      - when: [not 1830.dazed]
+        text: "[eli] sits on a wagon tongue among them."
     look: A young man in patched homespun with an old flintlock across his knees. He keeps looking back up the trail.
     talk:
       - when: [not known.eli]
@@ -464,3 +471,23 @@ exits:
     text: "{ogee} works you across on the rope, hand over hand."
   - names: [east, west, upstream, downstream]
     blocked: The bank runs on both ways, thick with willow and brush. There's no path that way, and no reason to push into it.
+
+# The arrival comes in three beats: the rescue (wateredge answer_voice), then
+# the clothes and the tin case, then the rest of the landing. 1830.dazed keeps
+# the busier parts of the room out of the description until the last beat.
+on_turn:
+  - when: [1830.dazed, not 1830.dressed]
+    say: >-
+      You sit up. Somewhere in the river you lost your own clothes, and came
+      out in wet wool trousers, a homespun shirt and a pair of cracked boots.
+      The only thing in your pocket is a flat tin case. You decide not to
+      think about that.
+    do: [{set: 1830.dressed}]
+  - when: [1830.dazed, 1830.dressed, turns>=2]
+    say: >-
+      As your head clears, the rest of the landing comes into focus. A
+      [tarpot|tar pot] smokes on a small fire, a [swab] standing up out of it
+      beside a hank of [oakum]. Loaded [wagons] wait at the head of the
+      landing, [teamsters] idle beside them. [agent] sits on a [crate] with
+      [papers] in his lap, and [eli] sits on a wagon tongue among them.
+    do: [{clear: 1830.dazed}]

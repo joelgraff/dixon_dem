@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.6.6 (2026-11-04)
+- The arrival in 1830 comes in three beats instead of one wall of text: answering the voice gives the fall and the rescue, your next move gives the clothes and the tin case, and the one after brings the rest of the landing (tar pot, wagons, the man in the good coat, the young man with the rifle) into focus. Until then the room description leaves them out.
+
 ## 0.6.5 (2026-11-04)
 - Leaving the museum before meeting Margaret now says "You thank the volunteer", not "a volunteer": the exit lines use the narration form of her name.
 
