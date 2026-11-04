@@ -1,6 +1,13 @@
 # Game-wide data: verbs, the narrator's default replies, meta commands.
 # Chapter and room files hold everything specific to a place.
 
+# Release version (see CHANGELOG.md for the rules). Bump it, the ?v= in
+# play.html and the changelog together; the checker verifies they match.
+version: 0.3.2
+# Bump when a change would break saved games (renamed or removed flags,
+# items or rooms). Saves from another save_compat are refused, not loaded.
+save_compat: 1
+
 input_limit: 40            # SCI-era input buffer
 
 # Canonical verbs and the words that map to them. Multi-word synonyms are
@@ -70,6 +77,7 @@ meta:
   wait: [wait, z, rest]
   listen: [listen]
   look_around: [look, l, look around]
+  version: [version, about]
 
 score_line: "Your score is {score} of {max_score}."
 

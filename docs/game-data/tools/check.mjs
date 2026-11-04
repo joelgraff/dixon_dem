@@ -260,6 +260,20 @@ for (const ch of chapterDirs) {
   if (todos.length) console.log(`${ch}: ${todos.length} TODO lines:\n  ${todos.join('\n  ')}`);
 }
 
+// Version: game.yaml, play.html's ?v= and the newest changelog entry must agree.
+{
+  const page = fs.readFileSync(path.resolve(root, '..', 'play.html'), 'utf8');
+  const pv = (page.match(/play\.js\?v=([\d.]+)/) || [])[1];
+  const log = fs.existsSync(path.join(root, 'CHANGELOG.md')) ? fs.readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8') : '';
+  const lv = (log.match(/^## (\d+\.\d+\.\d+)/m) || [])[1];
+  const gv = String(game.version || '');
+  if (!/^\d+\.\d+\.\d+$/.test(gv)) err('game.yaml', `version "${gv}" should look like 1.2.3`);
+  if (pv !== gv) err('play.html', `loads play.js?v=${pv}, but game.yaml says ${gv} (run npm run bump)`);
+  if (lv !== gv) err('CHANGELOG.md', `newest entry is ${lv}, but game.yaml says ${gv}`);
+  if (!Number.isInteger(game.save_compat)) err('game.yaml', 'save_compat should be a whole number');
+  console.log(`version ${gv}, save_compat ${game.save_compat}`);
+}
+
 if (warnings.length) console.log(`\n${warnings.length} warning(s):\n  ${warnings.join('\n  ')}`);
 if (errors.length) {
   console.log(`\n${errors.length} error(s):\n  ${errors.join('\n  ')}`);

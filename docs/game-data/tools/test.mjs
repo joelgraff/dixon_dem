@@ -115,8 +115,33 @@ async function runPhrases(ch, file) {
       }
     }
   }
+  // Every exit, by every one of its names, in several common shapes.
+  let exits = 0;
+  for (const rid of asList(chapter.rooms)) {
+    const room = yaml.load(fs.readFileSync(path.join(dataRoot, ch, 'rooms', `${rid}.yaml`), 'utf8'));
+    await page.evaluate(r => window.dixon.setup({ room: r }), rid);
+    const actionPhrases = new Set(asList(room.actions).flatMap(a => asList(a.phrases)).map(p => String(p).toLowerCase()));
+    for (const e of asList(room.exits)) {
+      if (!e.to) continue;
+      const names = asList(e.names).map(String);
+      const dir = names.includes('down') ? 'down' : names.includes('up') ? 'up' : null;
+      const tries = [];
+      for (const nm of names) {
+        tries.push(`go ${nm}`, nm, `go to the ${nm}`, `walk ${nm}`);
+        if (dir && /stair|step/.test(nm)) tries.push(`go ${dir} ${nm}`, `go ${dir} the ${nm}`, `climb ${dir} the ${nm}`, `take the ${nm}`, `walk ${dir} the ${nm}`);
+      }
+      if (dir) tries.push(`${dir}stairs`, `go ${dir}stairs`, `go ${dir}`);
+      for (const t of tries) {
+        if (actionPhrases.has(t)) continue;   // a puzzle action owns this phrasing here
+        const got = await page.evaluate(x => window.dixon.exitFor(x), t);
+        exits++;
+        if (got !== e.to) problems.push(`${rid}: "${t}" leads to ${got || 'nothing'}, not ${e.to}`);
+      }
+    }
+  }
+  count += exits;
   await context.close();
-  const label = `${file} › every phrasing reaches its action (${count})`;
+  const label = `${file} › every phrasing reaches its action or exit (${count})`;
   if (problems.length) { failed++; console.log(`  FAIL  ${label}\n    ${problems.join('\n    ')}`); }
   else { passed++; console.log(`  pass  ${label}`); }
 }

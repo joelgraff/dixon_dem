@@ -59,12 +59,16 @@ function freshState() {
 }
 const SET_FIELDS = ['flags', 'scored', 'found', 'parted'];
 function serialize(s) {
-  const o = { ...s };
+  const o = { ...s, _version: G.version, _compat: G.save_compat };
   for (const f of SET_FIELDS) o[f] = [...s[f]];
   return o;
 }
+// A save from an incompatible version is refused rather than half-loaded.
+function compatible(saved) { return saved && saved._compat === G.save_compat; }
 function deserialize(o) {
   const s = { ...o };
+  delete s._version;
+  delete s._compat;
   for (const f of SET_FIELDS) s[f] = new Set(o[f] || []);
   return s;
 }
@@ -346,18 +350,38 @@ function arrive(id, text) {
   say(textOf(room().name), { cls: 'heading' });
   describe();
 }
+// Finds the exit a phrase names: "north", "the stairs", "down the steps to
+// the water", "downstairs". Leading direction and filler words are peeled off
+// one at a time, and "X to Y" tries both halves.
 function findExit(word) {
-  let w = norm(word);
-  const dirs = { n: 'north', s: 'south', e: 'east', w: 'west', u: 'up', d: 'down' };
-  for (let i = 0; i < 4 && w; i++) {
-    const t = dirs[w] || w;
-    const hit = L(room().exits).find(e => L(e.names).map(norm).includes(t));
-    if (hit) return hit;
-    const next = w.replace(/^(the|to|toward|towards|into|through|along|onto|on|over|across|back to|back|up to|down to)\s+/, '');
-    if (next === w) break;
-    w = next;
-  }
+  const dirs = { n: 'north', s: 'south', e: 'east', w: 'west', u: 'up', d: 'down', downstairs: 'down', upstairs: 'up', downhill: 'down', uphill: 'up' };
+  const names = e => L(e.names).map(norm);
+  const tryPhrase = phrase => {
+    let w = norm(phrase).replace(/[.!?]+$/, '');
+    for (let i = 0; i < 6 && w; i++) {
+      const t = dirs[w] || w;
+      const hit = L(room().exits).find(e => names(e).includes(t));
+      if (hit) return hit;
+      const next = w.replace(/^(the|a|to|toward|towards|into|through|along|onto|on|over|across|back to|back|up to|down to|up|down|out of|out|in|inside|around)\s+/, '');
+      if (next === w) break;
+      w = next;
+    }
+    return null;
+  };
+  const whole = tryPhrase(word);
+  if (whole) return whole;
+  const parts = norm(word).split(/\s+(?:to|toward|towards|into)\s+/);
+  for (const p of parts.length > 1 ? parts.reverse() : []) { const hit = tryPhrase(p); if (hit) return hit; }
   return null;
+}
+// Movement-shaped commands: "go down the stairs", "take the path", "climb up".
+const MOVE_RE = /^(?:go|walk|head|run|step|travel|climb|descend|ascend|take|use|follow)\s+(.+)$/;
+const MOVE_STRICT = /^(?:go|walk|head|run|step|travel)\s/;
+function moveExit(t) {
+  const m = t.match(MOVE_RE);
+  if (m) { const e = findExit(m[1]); if (e) return e; }
+  if (/^(descend|ascend)$/.test(t)) return findExit(t === 'descend' ? 'down' : 'up');
+  return findExit(t);
 }
 function fogLocked() {
   return String(room().era) === '1830' && CH.fog_lock && ok(CH.fog_lock.when);
@@ -432,6 +456,7 @@ function answerPending(input) {
   if (/^(restore|load)$/.test(t)) {
     const saved = store.get(SAVE_KEY);
     if (!saved) return meta('There is no saved game. Retry or Restart?');
+    if (!compatible(saved)) return meta(`That save is from ${saved._version ? `version ${saved._version}` : 'an earlier build'}, which this version can't load. Retry or Restart?`);
     pending = null;
     return restore(saved);
   }
@@ -645,16 +670,18 @@ function handle(t) {
   if (isMeta(t, 'wait')) return say('You wait. Time passes, slowly.');
   if (isMeta(t, 'listen')) return say(textOf(room().listen) || 'You listen. Nothing stands out.');
   if (isMeta(t, 'save')) { store.set(SAVE_KEY, serialize(S)); return meta('Game saved.'); }
-  if (isMeta(t, 'restore')) { const s = store.get(SAVE_KEY); return s ? restore(s) : meta('There is no saved game.'); }
+  if (isMeta(t, 'restore')) {
+    const s = store.get(SAVE_KEY);
+    if (!s) return meta('There is no saved game.');
+    if (!compatible(s)) return meta(`That save is from ${s._version ? `version ${s._version}` : 'an earlier build'}, which this version can't load.`);
+    return restore(s);
+  }
+  if (isMeta(t, 'version')) return meta(`Dixon ${G.version}, ${CH.title}.`);
   if (isMeta(t, 'restart')) { pending = { kind: 'restart' }; return meta('Restart from the beginning? (yes or no)'); }
   // 3. movement
-  if ((m = t.match(/^(?:go|walk|head|run|step|move|climb|travel)\s+(.+)$/))) {
-    const e = findExit(m[1]);
-    if (e) return go(e);
-    if (!/^(?:climb)/.test(t)) return say(G.cant_go);
-  }
-  const bare = findExit(t);
-  if (bare) return go(bare);
+  const exit = moveExit(t);
+  if (exit) return go(exit);
+  if (MOVE_STRICT.test(t)) return say(G.cant_go);
   if (/^(north|south|east|west|up|down|n|s|e|w|u|d)$/.test(t)) return say(G.cant_go);
   // 4. conversation
   if ((m = t.match(/^(?:talk to|talk with|speak to|speak with|chat with|tell)\s+(.+?)\s+about\s+(.+)$/))) return askAbout(m[1], m[2]);
@@ -776,7 +803,12 @@ async function boot() {
   Object.assign(settings, G.settings || {}, store.get(SETTINGS_KEY) || {});
   if (params.has('fresh')) { store.del(AUTO_KEY); store.del(SAVE_KEY); }
   wireUI();
-  const auto = !params.has('scene') && store.get(AUTO_KEY);
+  let auto = !params.has('scene') && store.get(AUTO_KEY);
+  if (auto && !compatible(auto)) {
+    meta(`Dixon has been updated to version ${G.version}. Your game in progress came from ${auto._version ? `version ${auto._version}` : 'an earlier build'} and can't be carried over, so this is a fresh start.`);
+    store.del(AUTO_KEY);
+    auto = null;
+  }
   if (auto) {
     S = deserialize(auto);
     meta('Welcome back. You are where you left off; type restart to begin again.');
@@ -784,6 +816,9 @@ async function boot() {
     S = freshState();
     if (params.has('scene') && ROOMS[params.get('scene')]) { S.room = params.get('scene'); S.visited = [S.room]; }
   }
+  $('version').textContent = `v${G.version}`;
+  $('about').textContent = `Dixon ${G.version} · ${CH.title} · saves: format ${G.save_compat}`;
+  document.title = `Dixon ${G.version}`;
   applySettings();
   say(textOf(room().name), { cls: 'heading' });
   describe();
@@ -795,6 +830,7 @@ async function boot() {
     score,
     get state() { return S; },
     match: t => { const m = matchAction(norm(t)); return m ? m.a.id : null; },
+    exitFor: t => { const e = moveExit(norm(t)); return e ? (e.to || '(blocked)') : null; },
     setup({ room: r, flags = [], items = [], money } = {}) {
       if (r) { S.room = r; S.turns = 0; if (!S.visited.includes(r)) S.visited.push(r); }
       flags.forEach(setFlag);
