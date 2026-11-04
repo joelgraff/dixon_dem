@@ -67,6 +67,7 @@ Markup inside text:
 | `[cases]` | A lookable noun, by id or alias, in this room. The checker requires every bracket to resolve. |
 | `[emptycase\|empty case]` | Same, showing different words. |
 | `[ogee]` | An NPC id shows that NPC's current name: `unknown` until `known.<id>` is set, then `name`. |
+| `{ogee}`, `{ogee's}` | A character in plain narration: their short name once `known.<id>` is set, until then their `ref` ("the ferryman", "the ferryman's"). Capitalized at a sentence start. |
 | `{town}` | A chapter variable (see `vars` in chapter.yaml). |
 | `{money}`, `{score}`, `{max_score}` | Live values. |
 | `{picked}` | Random entries from the noun's `pick` pool (see Nouns). |
@@ -114,7 +115,16 @@ score; the points are given the first time the flag is set, and taken back if
 a rewind clears it.
 
 Flag prefixes: `present.` (the present day), `1830.` (cleared by a rewind),
-`known.` (names the player has learned; never cleared), `chapter1.`.
+`known.` (names the player has learned; never cleared), `heard.` (a name the
+player has been told but whose owner they haven't met, e.g. `heard.dixon` once
+Ogee mentions him; never cleared), `chapter1.`.
+
+**Names before introductions.** Narration never names a character the player
+hasn't been introduced to. Write `{dixon}` / `{dixon's}` instead of "Dixon",
+or put the name in a variant whose `when` includes `known.dixon` or
+`heard.dixon`. Speech in quotation marks is exempt (characters know each
+other), and so is written text the player reads, which should be quoted. The
+checker flags every name in narration that breaks this rule.
 
 ## Rooms
 
@@ -166,6 +176,7 @@ pedestal:
 ogee:
   name: Joseph Ogee
   unknown: the man in buckskin  # used until known.ogee is set
+  ref: the ferryman             # {ogee} in narration until known.ogee
   short: Ogee                   # optional: used in speech tags and room text once known
   aliases: [ferryman, man in buckskin, joseph]
   when: [not 1830.fog]
@@ -255,3 +266,30 @@ supports, and the claims ledger: each claim with its status (`record`,
 `disputed`, `guess`, `invented`, `needs-source`), the rooms it appears in and
 its source ids. A room's `sources` list is what the optional histories panel
 shows. Any new historical claim gets a ledger entry in the same change.
+
+## The veil (chapter.yaml `veil`)
+
+In the past the fog makes the player look as if they belong, and the phone
+looks like a tin case to anyone else. Using it openly breaks that.
+
+```yaml
+veil:
+  item: phone                       # the giveaway object
+  verbs: [show, photograph, light]  # what counts as using it openly
+  warned: 1830.veil_warned          # set the first time; cleared by a rewind
+  exempt: [ogee]                    # people who don't mind
+  exempt_text: ...                  # shown when only exempt people saw
+  react: {dixon: ..., default: ...} # the first time, said by whoever saw
+  warning: ...                      # narrator line after the first time
+  cold: {dixon: ..., default: ...}  # while spooked, instead of talk or ask
+  again: [effects]                  # the second time (here: the fog takes you back)
+```
+
+`show phone to X` is discreet: only X sees. Lighting it or taking pictures,
+everyone in the room sees. Anyone who saw is spooked (`1830.spooked.<id>`, set
+by the engine) until the player leaves the room. Alone, or in the present, the
+phone's own `verbs` answer instead. `help` is a private glance and never
+counts.
+
+NPCs can be typed by their `ref` as well as their `unknown` description, since
+narration uses it.

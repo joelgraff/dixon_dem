@@ -11,7 +11,7 @@ picture: >-
 look: >-
   A low wet stretch of the Peoria trail, where the ruts disappear into black
   [mud]. [willows] crowd the edges. The trail climbs back north toward
-  Dixon's camp.
+  {dixon's} camp.
 listen:
   - when: [1830.wagon_free]
     text: Frogs, and water filling the ruts.
@@ -86,7 +86,7 @@ actions:
     do:
       - take: brush
       - set: 1830.brush_placed
-      - say: "You pack the willow under the sunk wheels, as deep as you can shove it. \"Now the lever,\" says Asa."
+      - say: "You pack the willow under the sunk wheels, as deep as you can shove it. \"Now the lever,\" says {asa}."
     else:
       - say: You've no brush to lay.
 
@@ -97,9 +97,9 @@ actions:
       - set: [1830.wagon_free, 1830.shoe_lost]
       - money: 40
       - say: >-
-          You set the pole under the axle and heave. Asa hollers the oxen up,
+          You set the pole under the axle and heave. {asa} hollers the oxen up,
           the brush bites, and with a sound like a cork leaving a bottle the
-          wagon lurches out onto firm ground. Asa counts forty dollars in silver
+          wagon lurches out onto firm ground. {asa} counts forty dollars in silver
           into your hand. "Earned," he says, and drives on toward the landing.
           The pole comes up lighter: its iron shoe is gone, somewhere in the
           mud.
@@ -107,8 +107,8 @@ actions:
       - when: [1830.wagon_free]
         say: The wagon's out and gone.
       - when: [not 1830.brush_placed]
-        say: "Asa waves you off. \"Brush under the wheels first, or you'll only drive her deeper.\""
-      - say: You've nothing long enough for a lever. Asa's bar is in two pieces in the mud.
+        say: "{asa} waves you off. \"Brush under the wheels first, or you'll only drive her deeper.\""
+      - say: You've nothing long enough for a lever. {asa's} bar is in two pieces in the mud.
 
   - id: dig_mud
     phrases: [dig in mud, search mud, feel in mud, look in mud, dig, reach into mud, search hole, dig in hole, reach in hole]
@@ -122,7 +122,7 @@ actions:
 exits:
   - names: [north, trail, camp, back, dixon's camp]
     to: camp
-    peek: The trail climbs back north out of the wet toward Dixon's camp.
-    text: You climb out of the wet and walk back north to Dixon's camp.
+    peek: The trail climbs back north out of the wet toward {dixon's} camp.
+    text: You climb out of the wet and walk back north to {dixon's} camp.
   - names: [south, peoria, trail south]
     blocked: The trail goes on south to Peoria, a long way off. Your business is back at the river.

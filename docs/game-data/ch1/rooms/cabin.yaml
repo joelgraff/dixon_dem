@@ -1,6 +1,6 @@
 id: cabin
 era: 1830
-name: Ogee's cabin, 1830
+name: "{ogee's} cabin, 1830"
 sources: [S1, S2]
 picture: >-
   A single long log cabin with two doors and smoke from the chimney, in a
@@ -29,7 +29,7 @@ nouns:
     aliases: [west room, family room, sitting room]
     look: Through the west door, a family room with two beds, a table and some chairs, kept neat. It isn't your room to walk into.
     verbs:
-      search: You keep to the doorway. It's Madeline's house.
+      search: You keep to the doorway. It isn't your house.
 
   eastroom:
     name: east room
@@ -64,7 +64,7 @@ nouns:
       take:
         - when: [not known.madeline]
           say: "The woman at the door says, \"That's ours.\" Not unkindly. It stays in the block."
-        - say: You work the axe free of the block. Madeline watches you do it.
+        - say: You work the axe free of the block. {madeline} watches you do it.
           do: [{give: axe}, {set: 1830.has_axe}]
 
   path:
@@ -81,14 +81,15 @@ npcs:
   madeline:
     name: Madeline
     unknown: a woman in a dark shawl
+    ref: the woman in the shawl
     aliases: [madeline, woman, wife, madeline ogee, mrs. ogee]
     room_line: "[madeline] stands at the west door, and two [boys|boys] split kindling by the block."
     look: A woman in a dark dress and a shawl, her sleeves pushed up from work. She is watching you the way you'd watch a dog you didn't know.
     talk:
       - when: [not known.madeline]
-        text: "\"I'm his wife, Madeline. You'll be the one he shouted for.\" She glances at the axe. \"Take it if you need it. Bring it back.\""
+        text: "\"I'm his wife, Madeline. You'll be the one he fished out of the river. You're dripping on my floor.\" She glances at the axe. \"Take it if you need it. Bring it back.\""
         do: [{set: known.madeline}]
-      - text: "Madeline gives you a short nod and goes on with her work."
+      - text: "{madeline} gives you a short nod and goes on with her work."
     topics:
       - keys: [father, lasallier, trader, franklin creek, post]
         say: "\"My father keeps a post on Franklin Creek, up the river.\" She doesn't offer more."
@@ -104,9 +105,9 @@ npcs:
         say: "\"He worries at that river like it owes him money.\" A pause. \"It's the other way around.\""
       - keys: [axe]
         say: "\"Bring it back.\""
-    fallback: Madeline only shakes her head. She is not going to discuss that with a stranger.
+    fallback: "{madeline} only shakes her head. She is not going to discuss that with a stranger."
     social:
-      hello: Madeline nods.
+      hello: "{madeline} nods."
       thanks: "\"Mm.\""
       bye: She lifts a hand.
       how: "\"Well enough.\""
@@ -140,7 +141,7 @@ actions:
     do:
       - take: axe
       - clear: 1830.has_axe
-      - say: You hand the axe back. Madeline takes it without a word, but something in her face eases.
+      - say: You hand the axe back. {madeline} takes it without a word, but something in her face eases.
     else:
       - say: You haven't got it to give back.
 

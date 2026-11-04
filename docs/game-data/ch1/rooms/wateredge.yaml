@@ -188,7 +188,29 @@ actions:
             - rewind: 1830
             - say: Something is different as you go. Whatever you did last time has been unmade, and you remember it anyway.
       - set: 1830.arrived
-      - say: You call back and walk out along the planks toward the voice. The mist parts, and the knocking is suddenly very close.
+      - say: >-
+          You call back and walk out along the planks toward the voice. The
+          knocking is very close now. One more step, and the planks aren't
+          there.
+      - say: >-
+          The river closes over your head, colder than anything has a right to
+          be, and the current has you before you know which way is up. Then a
+          fist takes your collar. A dugout canoe has come out of the white, a
+          broad man in buckskin kneeling in it, and he hauls you over the side
+          like a sack of meal. The current swings the canoe hard into a piling.
+          Wood cracks. His paddle spins away into the fog, and the river starts
+          coming in through the bottom.
+      - say: >-
+          He gets you both to the bank, somehow, and drags the canoe up onto
+          the gravel. You lie there and cough up a good part of the Rock River.
+          He looks at the long split in his canoe, and then at you. "I called
+          for somebody who could handle a canoe," he says. "The river sent me
+          somebody who needed one."
+      - say: >-
+          You sit up. Somewhere in the river you lost your own clothes, and came
+          out in wet wool trousers, a homespun shirt and a pair of cracked
+          boots. The only thing in your pocket is a flat tin case. You decide
+          not to think about that.
       - move: landing
     else:
       - when: [present.planks]

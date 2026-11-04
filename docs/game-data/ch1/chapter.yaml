@@ -58,10 +58,24 @@ start_money: 0
 items:
   phone:
     name: phone
-    aliases: [cell, cellphone, mobile]
+    aliases: [cell, cellphone, mobile, tin, tin case, case, flashlight, camera, light]
+    verbs:
+      show:
+        - when: [era:1830]
+          text: There's nobody here to show it to, which is probably for the best.
+        - text: Nobody here needs to see your phone.
+      light:
+        - when: [era:1830]
+          text: The light comes on, startlingly white against the grey, and you shut it off again fast. Nobody saw.
+        - text: The flashlight comes on. Nothing here needs lighting.
+      photograph: You take a picture. Later, maybe, you'll find out whether it came out.
+      call:
+        - when: [era:1830]
+          text: No bars. In 1830 there is nobody to call.
+        - text: You can't think of anyone you need to call right now.
     look:
       - when: [era:1830]
-        text: The screen is black. When you hold the button it lights for a moment, with no bars and no clock, then goes dark again.
+        text: A flat tin case, the kind a man keeps tobacco in. Open it, and it's your phone, which came through the river better than you did. No bars, and the clock is stuck at 4:17, but the battery reads 61 percent and the assistant still opens. You could ask it for help. To anyone watching, you suspect, it would look like a great deal more than a tin.
       - when: [in:wateredge, turns>=4, not 1830.lease_dixon]
         text: The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.
       - when: [1830.lease_dixon]
@@ -71,12 +85,12 @@ items:
     era: 1830
     name: coil of rope
     aliases: [rope, coil, hemp, line]
-    look: A heavy coil of new hemp, every foot Dixon could buy in Peoria.
+    look: A heavy coil of new hemp, every foot {dixon} could buy in Peoria.
   axe:
     era: 1830
     name: axe
     aliases: [hatchet]
-    look: Ogee's axe, its edge sharp enough to catch a thumbnail.
+    look: "{ogee's} axe, its edge sharp enough to catch a thumbnail."
   paddle:
     era: 1830
     name: paddle
@@ -88,8 +102,8 @@ items:
     aliases: [pole, setting pole, ash pole]
     look:
       - when: [1830.shoe_lost, not 1830.shoe_returned]
-        text: Ogee's ash setting pole, lighter at the foot now that its iron shoe is gone.
-      - text: Ogee's ash setting pole, shod with a cone of forged iron.
+        text: "{ogee's} ash setting pole, lighter at the foot now that its iron shoe is gone."
+      - text: "{ogee's} ash setting pole, shod with a cone of forged iron."
   brush:
     era: 1830
     name: bundle of brush
@@ -111,12 +125,12 @@ items:
 fog_lock:
   when: [1830.fog]
   room_line: The fog has closed in around you, thick and white, and a rough hand has found your sleeve.
-  blocked: The fog is too thick to go anywhere. You take a step and lose all sense of direction, and Ogee's hand tightens on your sleeve. "Not that way. Take my arm."
+  blocked: The fog is too thick to go anywhere. You take a step and lose all sense of direction, and {ogee's} hand tightens on your sleeve. "Not that way. Take my arm."
 
 deaths:
   pole_high_water: >-
     You push the ferry off. The current takes it, and you with it, and the
-    landing is a long way behind before you think of letting go. Ogee did
+    landing is a long way behind before you think of letting go. {ogee} did
     mention the river was up. Several times.
   canoe_sinks: >-
     Halfway across, the split seam opens like a mouth. The Rock River accepts
@@ -139,10 +153,11 @@ actions:
       - clear: [1830.fog, present.planks, present.voice]
       - set: present.returned
       - say: >-
-          You take Ogee's arm and walk blind through the white, step by step.
+          You take {ogee's} arm and walk blind through the white, step by step.
           His hand lets go of your sleeve somewhere along the way. The planks
           give way to concrete, the knocking fades, and the city sounds come
-          back one by one.
+          back one by one. Your own clothes are back, and dry. You decide not to
+          think about that either.
       - move: wateredge
     else:
       - say: There's nobody to follow just now.
@@ -176,7 +191,7 @@ actions:
       - set: 1830.order_cashed
       - money: 60
       - say: >-
-          Asa holds it to the light. "Seventy-two and change, on the governor.
+          {asa} holds it to the light. "Seventy-two and change, on the governor.
           I can pass that in Galena." He counts out silver. "Sixty, and I'm
           doing you a kindness." You now have ${money}.
     else:
@@ -184,11 +199,63 @@ actions:
         say: Nobody here has silver to spare for a government order.
       - say: You haven't anything to sell.
 
+# The veil. In 1830 the fog makes you look as if you belong: homespun, boots,
+# and a phone that looks like a tin case to anyone else. Using it openly
+# (these verbs, where someone can see) breaks that. Showing it to one person is
+# discreet, so only they see; lighting it or taking pictures, everyone here
+# sees. The first time, whoever saw goes cold (`cold`) until you leave the
+# room; the second time, `again` runs. Ogee has seen it before.
+veil:
+  item: phone
+  verbs: [show, photograph, light]
+  warned: 1830.veil_warned
+  exempt: [ogee]
+  exempt_text: >-
+    [ogee] glances at it, and then back at the river. "The last one had a
+    thing like that," he says. "Put it away before somebody else sees it."
+  react:
+    dixon: >-
+      [dixon] looks at the thing in your hand for a long moment. "I'd put that
+      away," he says quietly, and turns back toward the river.
+    rebecca: "[rebecca] stops stirring. She looks at your hand, then at your face, and calls the children to her."
+    james: "[james] goes pale and steps back behind the wagon."
+    madeline: >-
+      [madeline] makes a small sign with two fingers and steps between you and
+      the boys. "Not here," she says.
+    agent: "[agent] stares at it, then writes something on his papers, slowly, without taking his eyes off you."
+    eli: >-
+      [eli] scrambles back off the wagon tongue with his rifle half raised.
+      "What is that?" Nobody answers him.
+    asa: >-
+      [asa] stops swearing, which is somehow worse. "Whatever that is," he
+      says, "keep it off my wagon."
+    default: Whoever saw it goes very still, and then very busy somewhere else.
+  warning: >-
+    Out over the river the air thickens for a moment, as though something has
+    noticed. You put the phone away. Better not do that again.
+  cold:
+    dixon: "[dixon] keeps his eyes on the river. \"Not now.\""
+    madeline: "[madeline] shakes her head and keeps the boys behind her."
+    agent: "[agent] goes on writing and doesn't answer."
+    eli: "[eli] edges away along the wagon tongue."
+    default: They won't meet your eye. Give it time, somewhere else.
+  again:
+    - say: >-
+        This time the fog doesn't wait. It comes up off the river all at once,
+        thick and white and cold, and the voices around you go thin and far
+        away. When it clears you're standing on concrete in your own dry
+        clothes, with your phone in your hand. Whatever you did in 1830 has
+        come undone.
+    - rewind: 1830
+    - clear: [present.planks, present.voice]
+    - move: wateredge
+
 # NPCs who move between rooms. `at` is a variant list of rooms.
 npcs:
   asa:
     name: Asa
     unknown: a big man in a sweat-dark shirt
+    ref: the big man
     aliases: [asa, big man, man, uncle, wagon master, eli's uncle]
     at:
       - when: [1830.wagon_free]
@@ -227,9 +294,9 @@ npcs:
           - when: [1830.rope_strung]
             text: "\"Ogee's got her running on a rope. Never seen the like. We'll be over by dark.\""
           - text: "\"Can't cross anyway till the river drops. Might as well be stuck here as there.\""
-    fallback: "Asa spits. \"No idea.\""
+    fallback: "{asa} spits. \"No idea.\""
     social:
-      hello: Asa grunts a greeting.
+      hello: "{asa} grunts a greeting."
       thanks: "\"Thank me when she's out.\""
       bye: "\"Mind your boots.\""
       how: "\"Muddy.\""
