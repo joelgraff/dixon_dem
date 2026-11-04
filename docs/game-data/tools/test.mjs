@@ -15,6 +15,8 @@
 //           score: 18                  # optional checks after the command
 //           room: landing
 //           money: 0
+//         - click: "#tour-next"         # click a page element (times: 3 repeats it)
+//           visible: "#tour-card"       # also hidden:, and shows: {selector: words}
 //   phrases: true                      # instead of steps: every room action's
 //                                      # phrasings must reach that action
 import fs from 'node:fs';
@@ -73,7 +75,16 @@ async function runSteps(t, file) {
   try {
     for (const [i, step] of asList(t.steps).entries()) {
       if (step.setup) await page.evaluate(s => window.dixon.setup(s), step.setup);
-      if (step.cmd === undefined) continue;
+      for (let k = 0; k < (step.times || 1) && step.click; k++) await page.click(step.click);
+      const domChecks = async () => {
+        for (const sel of asList(step.visible)) if (!(await page.isVisible(sel))) throw new Error(`step ${i + 1}: expected ${sel} to be visible`);
+        for (const sel of asList(step.hidden)) if (await page.isVisible(sel)) throw new Error(`step ${i + 1}: expected ${sel} to be hidden`);
+        if (step.shows) for (const [sel, words] of Object.entries(step.shows)) {
+          const got = (await page.textContent(sel)) || '';
+          if (!got.toLowerCase().includes(String(words).toLowerCase())) throw new Error(`step ${i + 1}: ${sel} shows "${got.slice(0, 120)}", expected "${words}"`);
+        }
+      };
+      if (step.cmd === undefined) { await domChecks(); continue; }
       let before = await outputCount(page);
       await page.evaluate(c => window.dixon.command(c), String(step.cmd));
       if ((await outputCount(page)) < before) before = 0;   // restart clears the screen
@@ -87,6 +98,7 @@ async function runSteps(t, file) {
       if (step.room !== undefined && st.room !== step.room) fail(`room ${st.room}, expected ${step.room}`);
       if (step.money !== undefined && st.money !== step.money) fail(`money ${st.money}, expected ${step.money}`);
       if (errors.length) fail(`page error: ${errors[0]}`);
+      await domChecks();
     }
     passed++;
     console.log(`  pass  ${label}`);
