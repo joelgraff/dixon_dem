@@ -108,7 +108,7 @@ A list of one-key maps, run in order.
 | `move: room` | go to a room (no farewell lines) |
 | `death: id` | show that death and the Restore / Restart / Retry prompt |
 | `rewind: 1830` | clear every `1830.` flag and 1830 item, set money to 0, take back their points |
-| `if: {when: [...], do: [...]}` | conditional effects |
+| `if: {when: [...], do: [...], else: [...]}` | conditional effects (`else` optional) |
 
 **Score** is never awarded by an effect. chapter.yaml lists the flags that
 score; the points are given the first time the flag is set, and taken back if

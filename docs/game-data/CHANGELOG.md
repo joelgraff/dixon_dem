@@ -17,6 +17,18 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.6.4 (2026-11-03)
+- Puzzle review: asking Madeline for the axe now earns it (taking it first gets a hint to ask); Ogee points you at the canoe when it's ready and you try the ferry; you can give the pole back, and Ogee notices a missing shoe; Dixon is seen turning his government order over in his hands; and every puzzle action takes many more phrasings.
+
+## 0.6.3 (2026-11-03)
+- The tools for tarring are now in the scene: a swab standing in the tar pot and a hank of oakum beside it, both in the room description. Ogee says to pack the split with oakum and swab tar over it, and 'use swab on canoe', 'pack the split' and the like all work.
+
+## 0.6.2 (2026-11-03)
+- Tarring the canoe accepts the words Ogee uses (tar the split) and many more: patch, seal, caulk, fix or fill the split, crack, seam or canoe, use tar on it, and so on.
+
+## 0.6.1 (2026-11-03)
+- The crossing to 1830 is quicker and forgiving: the fog builds for two moves and takes you on the third whatever you do (sooner if you look at the water), the planks and the voice arrive together, and walking toward the voice (north, forward, into the fog, out along the planks, follow the voice) answers it.
+
 ## 0.6.0 (2026-11-03)
 - The veil: in 1830 the fog dresses you in homespun, and your phone looks like a tin case to everyone else. Show it to someone, light it or take pictures where people can see, and whoever saw goes cold until you leave; do it again and the fog takes you back to the present and 1830 starts over. Ogee has seen it before and doesn't mind. People can now be called by what the narration calls them ("the tall man").
 

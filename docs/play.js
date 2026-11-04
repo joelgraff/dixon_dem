@@ -145,7 +145,7 @@ function run(list) {
       case 'move': arrive(v); break;
       case 'death': die(v); break;
       case 'rewind': rewind(); break;
-      case 'if': if (ok(v.when)) run(v.do); break;
+      case 'if': run(ok(v.when) ? v.do : v.else); break;
       default: break;
     }
   }
@@ -457,6 +457,7 @@ function fogLocked() {
 }
 function go(exit) {
   if (fogLocked()) return say(CH.fog_lock.blocked);
+  if (exit.action && ok(exit.when)) return doAction({ a: [...L(room().actions), ...L(CH.actions)].find(a => a.id === exit.action), n: null });
   if (!exit.to || !ok(exit.when)) return say(textOf(exit.blocked) || G.cant_go);
   if (exit.farewell !== false) farewell();
   arrive(exit.to, textOf(exit.text));

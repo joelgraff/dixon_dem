@@ -67,7 +67,7 @@ nouns:
 
 actions:
   - id: cut_brush
-    phrases: [cut brush, cut willows, cut willow, chop brush, chop willows, gather brush, cut saplings, chop willow, use axe on willows]
+    phrases: [cut brush, cut willows, cut willow, chop brush, chop willows, gather brush, cut saplings, chop willow, use axe on willows, use axe on brush, use axe on willow, cut willow brush, chop saplings, cut some brush, cut branches, chop branches, cut willow branches, use axe]
     when: [has:axe, not has:brush, not 1830.brush_placed, not 1830.wagon_free]
     do:
       - give: brush
@@ -81,7 +81,7 @@ actions:
       - say: Your hands aren't up to willow. You'd want an axe.
 
   - id: place_brush
-    phrases: [put brush under wheels, put brush under wagon, put brush under wheel, use brush on wheels, lay brush, put brush in mud, place brush, put brush down, use brush]
+    phrases: [put brush under wheels, put brush under wagon, put brush under wheel, use brush on wheels, lay brush, put brush in mud, place brush, put brush down, use brush, use brush on wagon, put willows under wheels, put willow under wheels, lay brush under wheels, pack brush under wheels, use willows, put brush under axle, give brush to asa, put brush under wheels of wagon, put brush in ruts, spread brush, lay willow]
     when: [has:brush, not 1830.wagon_free]
     do:
       - take: brush
@@ -91,7 +91,7 @@ actions:
       - say: You've no brush to lay.
 
   - id: lever_wagon
-    phrases: [lever wagon with pole, lever wagon, pry wagon, pry wagon with pole, use pole on wagon, push wagon with pole, lift axle, lever axle, use pole, put pole under axle, lift wagon]
+    phrases: [lever wagon with pole, lever wagon, pry wagon, pry wagon with pole, use pole on wagon, push wagon with pole, lift axle, lever axle, use pole, put pole under axle, lift wagon, use pole on axle, lever axle with pole, put pole under wagon, pry axle, lift wagon with pole, use pole as lever, lever with pole, push pole under axle, pry axle with pole, lever, heave, pry wagon out, lever wagon out, put pole under wheel, use lever]
     when: [has:pole, 1830.brush_placed, not 1830.wagon_free]
     do:
       - set: [1830.wagon_free, 1830.shoe_lost]
@@ -111,7 +111,7 @@ actions:
       - say: You've nothing long enough for a lever. {asa's} bar is in two pieces in the mud.
 
   - id: dig_mud
-    phrases: [dig in mud, search mud, feel in mud, look in mud, dig, reach into mud, search hole, dig in hole, reach in hole]
+    phrases: [dig in mud, search mud, feel in mud, look in mud, dig, reach into mud, search hole, dig in hole, reach in hole, search hole for shoe, dig for shoe, look for shoe, find shoe, search for shoe, feel in hole, dig in mud for shoe, search mud for shoe, reach into hole, look in hole, dig for iron, search for iron, get shoe, take shoe]
     when: [1830.shoe_lost, not has:shoe, not 1830.shoe_returned]
     do:
       - give: shoe

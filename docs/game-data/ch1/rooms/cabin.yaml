@@ -62,8 +62,8 @@ nouns:
     look: A worn axe, its edge sharp enough to catch a thumbnail, sunk in the block.
     verbs:
       take:
-        - when: [not known.madeline]
-          say: "The woman at the door says, \"That's ours.\" Not unkindly. It stays in the block."
+        - when: [not 1830.axe_ok]
+          say: "{madeline} looks up from the door. \"That's ours.\" Not unkindly. It stays in the block. If you need it, you could ask."
         - say: You work the axe free of the block. {madeline} watches you do it.
           do: [{give: axe}, {set: 1830.has_axe}]
 
@@ -87,8 +87,8 @@ npcs:
     look: A woman in a dark dress and a shawl, her sleeves pushed up from work. She is watching you the way you'd watch a dog you didn't know.
     talk:
       - when: [not known.madeline]
-        text: "\"I'm his wife, Madeline. You'll be the one he fished out of the river. You're dripping on my floor.\" She glances at the axe. \"Take it if you need it. Bring it back.\""
-        do: [{set: known.madeline}]
+        text: "\"I'm his wife, Madeline. You'll be the one he fished out of the river. You're dripping on my doorstep.\" She glances at the axe. \"Take it if you need it. Bring it back.\""
+        do: [{set: [known.madeline, 1830.axe_ok]}]
       - text: "{madeline} gives you a short nod and goes on with her work."
     topics:
       - keys: [father, lasallier, trader, franklin creek, post]
@@ -103,8 +103,9 @@ npcs:
         say: "Her mouth thins. \"He eats at our table and sleeps in our east room, and he means to take the boat. My husband says it's business.\""
       - keys: [joseph, ogee, husband]
         say: "\"He worries at that river like it owes him money.\" A pause. \"It's the other way around.\""
-      - keys: [axe]
-        say: "\"Bring it back.\""
+      - keys: [axe, borrow, chopping, block]
+        say: "\"Take it if you need it. Bring it back.\""
+        do: [{set: 1830.axe_ok}]
     fallback: "{madeline} only shakes her head. She is not going to discuss that with a stranger."
     social:
       hello: "{madeline} nods."
@@ -124,7 +125,7 @@ npcs:
 
 actions:
   - id: cut_paddle
-    phrases: [cut paddle, make paddle, carve paddle, split oak for paddle, chop paddle, make a paddle, cut a paddle, shape paddle, carve oak]
+    phrases: [cut paddle, make paddle, carve paddle, split oak for paddle, chop paddle, make a paddle, cut a paddle, shape paddle, carve oak, use axe on oak, split oak, chop oak, cut oak, make paddle from oak, carve paddle from oak, cut paddle from oak, split oak with axe, whittle paddle, carve a paddle, shape oak, shape oak into paddle, make oar, cut oar, carve oar]
     when: [has:axe, not 1830.has_paddle]
     do:
       - give: paddle
@@ -135,8 +136,20 @@ actions:
         say: One paddle is plenty for one canoe.
       - say: You'd need an axe for that, and the only one here is in the block.
 
+  - id: borrow_axe
+    speaker: madeline
+    phrases: [ask for axe, borrow axe, ask madeline for axe, ask woman for axe, ask her for axe, ask madeline for the axe, ask to borrow axe, can i borrow axe, may i borrow axe, can i use axe, may i use axe, ask to use axe, ask madeline about axe, ask woman about axe]
+    when: [here:madeline, not has:axe]
+    do:
+      - set: 1830.axe_ok
+      - say: "\"Take it if you need it. Bring it back.\""
+    else:
+      - when: [has:axe]
+        say: You already have it.
+      - say: There's nobody here to ask.
+
   - id: return_axe
-    phrases: [give axe to madeline, return axe, give madeline axe, put axe back, give back axe]
+    phrases: [give axe to madeline, return axe, give madeline axe, put axe back, give back axe, give axe back, give axe back to madeline, return axe to madeline, give axe to woman, put axe in block, give her axe, give her the axe]
     when: [has:axe, here:madeline]
     do:
       - take: axe

@@ -18,13 +18,9 @@ tests:
       - {cmd: read marker, expect: "ROLETTE'S FERRY"}
       - {cmd: look at sanded line, expect: the cross, score: 10}
       - {cmd: down, expect: "The water's edge", room: wateredge}
-      - {cmd: look at water, expect: ridges}
-      - {cmd: look at ridges, expect: [grooves, thicker]}
-      - {cmd: wait}
-      - {cmd: listen, expect: street fades}
-      - {cmd: wait}
-      - {cmd: look at water, expect: planks, score: 13}
-      - {cmd: look around, expect: [city is simply gone, handle a canoe]}
+      - {cmd: look at water, expect: [ridges, thicker]}
+      - {cmd: look at ridges, expect: [grooves, street fades]}
+      - {cmd: look at water, expect: [planks, city is simply gone, handle a canoe], score: 13}
       - {cmd: answer, expect: [The ferry landing, 1830], score: 18, room: landing}
       # Part 2: the high water and the rope
       - {cmd: talk to man in buckskin, expect: [Joseph Ogee, River's up past the pole, Dixon], score: 21}

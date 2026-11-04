@@ -46,6 +46,14 @@ nouns:
     aliases: [pot, cooking pot]
     look: An iron kettle, something with beans in it, a long way from done.
 
+  paper:
+    name: folded paper
+    when: [not 1830.has_order, not 1830.order_cashed]
+    aliases: [folded paper, order, government order, document, seal]
+    look: A folded paper with a state seal on it, worn soft at the creases from being turned over. Whatever it is, it isn't making him any happier.
+    verbs:
+      take: "{dixon} folds it away. \"Ask, if you've a use for it.\""
+
   mailsack:
     name: mail sack
     aliases: [mail sack, mail, sack, mailbag, pouch, letters]
@@ -71,7 +79,10 @@ npcs:
     unknown: a tall man in a dark coat
     ref: the tall man
     aliases: [dixon, john, john dixon, tall man, man in dark coat, man]
-    room_line: "[dixon] stands looking down toward the river."
+    room_line:
+      - when: [not 1830.has_order, not 1830.order_cashed]
+        text: "[dixon] stands looking down toward the river, turning a folded [paper] over in his hands."
+      - text: "[dixon] stands looking down toward the river."
     look: A tall man in a dark coat, in his forties, with a careful face. He looks like a man doing sums he doesn't like.
     talk:
       - when: [not known.dixon]
@@ -202,7 +213,7 @@ actions:
 
   - id: get_order
     speaker: dixon
-    phrases: [offer to sell the order, offer to sell order, ask dixon for the order, ask dixon for order, take paper, i'll sell it, sell order for dixon, offer to cash the order, ask for the order, i'll find a buyer]
+    phrases: [offer to sell the order, offer to sell order, ask dixon for the order, ask dixon for order, take paper, i'll sell it, sell order for dixon, offer to cash the order, ask for the order, i'll find a buyer, ask for paper, ask dixon for paper, ask for order, can i have order, let me sell order, i'll sell order, sell order, sell paper, sell the paper, take order, get order, i can sell it, offer to sell it, ask to sell order, ask dixon about selling order]
     when: [not 1830.has_order, not 1830.order_cashed, here:dixon]
     do:
       - give: order

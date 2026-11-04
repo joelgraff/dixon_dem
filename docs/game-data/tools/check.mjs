@@ -233,6 +233,7 @@ for (const ch of chapterDirs) {
       if (!e.names || !e.names.length) err(`${where} exits[${i}]`, `exit has no names`);
       if (e.to && !rooms[e.to]) err(`${where} exits[${i}]`, `unknown room "${e.to}"`);
       if (!e.to && !e.blocked) err(`${where} exits[${i}]`, `exit with no "to" needs "blocked" text`);
+      if (e.action && ![...asList(r.actions), ...asList(chapter.actions)].some(a => a.id === e.action)) err(`${where} exits[${i}]`, `unknown action "${e.action}"`);
     }
     for (const a of asList(r.actions)) {
       counts.actions++;
