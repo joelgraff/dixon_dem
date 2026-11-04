@@ -15,9 +15,10 @@ tests:
       - {click: "#gear", visible: "#tour-btn"}
       - {click: "#tour-btn", visible: "#tour-card"}
       - {click: "#tour-close", hidden: "#tour-card", visible: "#settings"}
-  - name: new players are offered the tour
+  - name: new players are offered the tour in a banner
     steps:
-      - {shows: {"#output": "New here? Type tour"}}
+      - {visible: "#output .notice button", shows: {"#output .notice": "New here?"}}
+      - {click: "#output .notice button", visible: "#tour-card"}
   - name: the tour skips the touch-screen buttons on a desktop
     steps:
       - {cmd: tour}

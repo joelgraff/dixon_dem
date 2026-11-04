@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.4.1 (2026-11-03)
+- Start-of-game notices (the tour offer, Welcome back, Updated) are now gold-edged banners instead of muted italic text; the tour offer has a Take the tour button, and the log opens scrolled to the banner.
+
 ## 0.4.0 (2026-11-03)
 - In-game guided tour: type tour (or tutorial), or Settings > Take the tour. It outlines each part of the real screen with a caption, with Next, Back and Close (Esc closes); it never touches the game state. New players are offered it once. The steps live in game.yaml. Tests can now click page elements and check what is shown.
 

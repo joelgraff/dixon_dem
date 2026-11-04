@@ -324,6 +324,20 @@ function say(text, opts = {}) {
   return p;
 }
 const meta = t => say(t, { cls: 'meta', raw: true });
+// A banner for things the player should not miss (the tour offer, updates).
+function notice(label, text, button) {
+  const d = document.createElement('div');
+  d.className = 'notice';
+  d.setAttribute('role', 'status');
+  d.innerHTML = `<span class="label">${esc(label)}</span><span class="msg">${esc(text)}</span>`;
+  if (button) {
+    const b = document.createElement('button');
+    b.textContent = button.text;
+    b.addEventListener('click', button.onClick);
+    d.appendChild(b);
+  }
+  $('output').appendChild(d);
+}
 
 // -------------------------------------------------------------------- rooms
 function describe() {
@@ -886,16 +900,19 @@ async function boot() {
   wireUI();
   let auto = !params.has('scene') && store.get(AUTO_KEY);
   if (auto && !compatible(auto)) {
-    meta(`Dixon has been updated to version ${G.version}. Your game in progress came from ${auto._version ? `version ${auto._version}` : 'an earlier build'} and can't be carried over, so this is a fresh start.`);
+    notice('Updated', `Dixon has been updated to version ${G.version}. Your game in progress came from ${auto._version ? `version ${auto._version}` : 'an earlier build'} and can't be carried over, so this is a fresh start.`);
     store.del(AUTO_KEY);
     auto = null;
   }
   if (auto) {
     S = deserialize(auto);
-    meta('Welcome back. You are where you left off; type restart to begin again.');
+    notice('Welcome back', `You are where you left off (version ${G.version}). Type restart to begin again.`);
   } else {
     S = freshState();
-    if (!store.get('dixon.seen') && G.tour_offer) { meta(G.tour_offer); store.set('dixon.seen', true); }
+    if (!store.get('dixon.seen') && G.tour_offer) {
+      notice('New here?', G.tour_offer, { text: 'Take the tour', onClick: () => startTour() });
+      store.set('dixon.seen', true);
+    }
     if (params.has('scene') && ROOMS[params.get('scene')]) { S.room = params.get('scene'); S.visited = [S.room]; }
   }
   $('version').textContent = `v${G.version}`;
@@ -904,6 +921,7 @@ async function boot() {
   applySettings();
   say(textOf(room().name), { cls: 'heading' });
   describe();
+  if ($('output').querySelector('.notice')) $('output').scrollTop = 0;   // show the banner first
   status();
   renderNotes();
   // Test hooks (used by game-data/tools/test.mjs).
