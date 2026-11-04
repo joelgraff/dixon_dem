@@ -67,11 +67,27 @@ nouns:
   tarpot:
     name: tar pot
     aliases: [tar pot, tar, pot, fire, small fire]
-    room_line: A [tarpot|tar pot] smokes on a small fire.
-    look: An iron pot of pine tar over a small fire, bubbling slowly. It smells like a shipyard.
+    room_line: A [tarpot|tar pot] smokes on a small fire, a [swab] standing up out of it, with a hank of [oakum] on the planks beside it.
+    look: An iron pot of pine tar over a small fire, bubbling slowly. It smells like a shipyard. {ogee's} caulking things are laid out beside it, the way a man leaves his tools when someone shouts for help.
     verbs:
       touch: You think better of it about an inch away. It's hot.
       take: You'd need something to carry it in, and you'd need to want burned hands.
+
+  swab:
+    name: swab
+    key: true
+    aliases: [tar swab, mop, pitch mop, tar brush, stick, applicator, rag]
+    look: A stick with a wad of rag lashed to the end, black and stiff with old tar, standing in the pot. It's what you work hot tar into a seam with.
+    verbs:
+      take: You lift it, dripping, and think better of carrying it around. It's for using here.
+
+  oakum:
+    name: oakum
+    aliases: [hank, fiber, fibre, tow, caulking, rope fiber]
+    look: Old rope picked apart into loose, tarry fiber. You pack it into a seam first, then seal it with hot tar over the top.
+    verbs:
+      take: It's for using here, on whatever needs caulking.
+      smell: Tar and old hemp.
 
   canoe:
     name: canoe
@@ -171,8 +187,8 @@ npcs:
           the canoe, and then at you. "Now nobody's paddling anything. I can't
           leave these lines, and I'll not step off this dock while that one's
           sitting on it." A nod at the man in the good coat. "So it's you.
-          Tar's hot in the pot; I was doing the ferry's seams. Tar that split
-          and she'll float. And you'll want a paddle. Mine's halfway to St.
+          Tar's hot in the pot; I was doing the ferry's seams. Pack that split
+          with oakum, swab the tar over it, and she'll float. And you'll want a paddle. Mine's halfway to St.
           Louis. The oak by the cabin splits clean, if you've an axe."
         do: [{set: [known.ogee, 1830.met_ogee, heard.dixon]}]
       - when: [not 1830.met_ogee]
@@ -192,7 +208,7 @@ npcs:
             text: "\"Dixon's notion. I'll admit it works. I'll not admit it to him.\""
           - text: "\"Dixon's notion. A line bank to bank, and you pull her over hand over hand. Can't get the line over without a boat, and I can't get a boat over in this.\""
       - keys: [canoe, dugout, seam, tar, paddle]
-        say: "\"Split on my own piling, fishing you out. Tar's in the pot. And you'll want a paddle; mine went downriver, and the oak by the cabin splits clean.\""
+        say: "\"Split on my own piling, fishing you out. Oakum's by the pot and the swab's in it. Pack the split, then tar it over. And you'll want a paddle; mine went downriver, and the oak by the cabin splits clean.\""
       - keys: [help, yourself, why me, why, you, cross, carry, fix, repair, lines]
         say: "\"I let go of these lines in this water and she's gone. I step off this dock and that one says I've left her, and she's Rolette's. The boy up there won't go near the river, and Dixon doesn't know it.\" He takes a fresh turn of line around the post. \"You've two hands, and you owe me the use of them.\""
       - keys: [rescue, saving, saved, fall, fell, drowning, swim]
@@ -327,11 +343,11 @@ actions:
       - say: "{ogee's} arm bars the way. \"Not in this water.\""
 
   - id: tar_canoe
-    phrases: [tar canoe, tar seam, tar split, tar crack, tar dugout, tar hole, tar leak, tar boat, tar it, patch canoe, patch seam, patch split, patch crack, patch dugout, patch hole, patch leak, patch boat, patch it, fix canoe, fix seam, fix split, fix crack, fix dugout, fix hole, fix leak, fix boat, fix it, repair canoe, repair seam, repair split, repair crack, repair dugout, repair hole, repair leak, repair boat, repair it, seal canoe, seal seam, seal split, seal crack, seal dugout, seal hole, seal leak, seal boat, seal it, caulk canoe, caulk seam, caulk split, caulk crack, caulk dugout, caulk hole, caulk leak, caulk boat, caulk it, pitch canoe, pitch seam, pitch split, pitch crack, pitch dugout, pitch hole, pitch leak, pitch boat, pitch it, mend canoe, mend seam, mend split, mend crack, mend dugout, mend hole, mend leak, mend boat, mend it, plug canoe, plug seam, plug split, plug crack, plug dugout, plug hole, plug leak, plug boat, plug it, fill canoe, fill seam, fill split, fill crack, fill dugout, fill hole, fill leak, fill boat, fill it, use tar on canoe, put tar on canoe, put tar in canoe, apply tar to canoe, spread tar on canoe, rub tar on canoe, work tar into canoe, fill canoe with tar, seal canoe with tar, patch canoe with tar, fix canoe with tar, tar canoe with stick, use tar on seam, put tar on seam, put tar in seam, apply tar to seam, spread tar on seam, rub tar on seam, work tar into seam, fill seam with tar, seal seam with tar, patch seam with tar, fix seam with tar, tar seam with stick, use tar on split, put tar on split, put tar in split, apply tar to split, spread tar on split, rub tar on split, work tar into split, fill split with tar, seal split with tar, patch split with tar, fix split with tar, tar split with stick, use tar on crack, put tar on crack, put tar in crack, apply tar to crack, spread tar on crack, rub tar on crack, work tar into crack, fill crack with tar, seal crack with tar, patch crack with tar, fix crack with tar, tar crack with stick, use tar on dugout, put tar on dugout, put tar in dugout, apply tar to dugout, spread tar on dugout, rub tar on dugout, work tar into dugout, fill dugout with tar, seal dugout with tar, patch dugout with tar, fix dugout with tar, tar dugout with stick, use tar on hole, put tar on hole, put tar in hole, apply tar to hole, spread tar on hole, rub tar on hole, work tar into hole, fill hole with tar, seal hole with tar, patch hole with tar, fix hole with tar, tar hole with stick, use tar on leak, put tar on leak, put tar in leak, apply tar to leak, spread tar on leak, rub tar on leak, work tar into leak, fill leak with tar, seal leak with tar, patch leak with tar, fix leak with tar, tar leak with stick, use tar on boat, put tar on boat, put tar in boat, apply tar to boat, spread tar on boat, rub tar on boat, work tar into boat, fill boat with tar, seal boat with tar, patch boat with tar, fix boat with tar, tar boat with stick, use tar on it, put tar on it, put tar in it, apply tar to it, spread tar on it, rub tar on it, work tar into it, fill it with tar, seal it with tar, patch it with tar, fix it with tar, tar it with stick, use tar, use tar pot, use pot, apply tar, spread tar, use pine tar, dip stick in tar]
+    phrases: [tar canoe, tar seam, tar split, tar crack, tar dugout, tar hole, tar leak, tar boat, tar it, patch canoe, patch seam, patch split, patch crack, patch dugout, patch hole, patch leak, patch boat, patch it, fix canoe, fix seam, fix split, fix crack, fix dugout, fix hole, fix leak, fix boat, fix it, repair canoe, repair seam, repair split, repair crack, repair dugout, repair hole, repair leak, repair boat, repair it, seal canoe, seal seam, seal split, seal crack, seal dugout, seal hole, seal leak, seal boat, seal it, caulk canoe, caulk seam, caulk split, caulk crack, caulk dugout, caulk hole, caulk leak, caulk boat, caulk it, pitch canoe, pitch seam, pitch split, pitch crack, pitch dugout, pitch hole, pitch leak, pitch boat, pitch it, mend canoe, mend seam, mend split, mend crack, mend dugout, mend hole, mend leak, mend boat, mend it, plug canoe, plug seam, plug split, plug crack, plug dugout, plug hole, plug leak, plug boat, plug it, fill canoe, fill seam, fill split, fill crack, fill dugout, fill hole, fill leak, fill boat, fill it, use tar on canoe, put tar on canoe, put tar in canoe, apply tar to canoe, spread tar on canoe, rub tar on canoe, work tar into canoe, fill canoe with tar, seal canoe with tar, patch canoe with tar, fix canoe with tar, tar canoe with stick, use tar on seam, put tar on seam, put tar in seam, apply tar to seam, spread tar on seam, rub tar on seam, work tar into seam, fill seam with tar, seal seam with tar, patch seam with tar, fix seam with tar, tar seam with stick, use tar on split, put tar on split, put tar in split, apply tar to split, spread tar on split, rub tar on split, work tar into split, fill split with tar, seal split with tar, patch split with tar, fix split with tar, tar split with stick, use tar on crack, put tar on crack, put tar in crack, apply tar to crack, spread tar on crack, rub tar on crack, work tar into crack, fill crack with tar, seal crack with tar, patch crack with tar, fix crack with tar, tar crack with stick, use tar on dugout, put tar on dugout, put tar in dugout, apply tar to dugout, spread tar on dugout, rub tar on dugout, work tar into dugout, fill dugout with tar, seal dugout with tar, patch dugout with tar, fix dugout with tar, tar dugout with stick, use tar on hole, put tar on hole, put tar in hole, apply tar to hole, spread tar on hole, rub tar on hole, work tar into hole, fill hole with tar, seal hole with tar, patch hole with tar, fix hole with tar, tar hole with stick, use tar on leak, put tar on leak, put tar in leak, apply tar to leak, spread tar on leak, rub tar on leak, work tar into leak, fill leak with tar, seal leak with tar, patch leak with tar, fix leak with tar, tar leak with stick, use tar on boat, put tar on boat, put tar in boat, apply tar to boat, spread tar on boat, rub tar on boat, work tar into boat, fill boat with tar, seal boat with tar, patch boat with tar, fix boat with tar, tar boat with stick, use tar on it, put tar on it, put tar in it, apply tar to it, spread tar on it, rub tar on it, work tar into it, fill it with tar, seal it with tar, patch it with tar, fix it with tar, tar it with stick, use tar, use tar pot, use pot, apply tar, spread tar, use pine tar, dip stick in tar, use swab, use swab on canoe, use swab on split, use swab on seam, use swab on crack, swab canoe, swab split, swab seam, swab crack, tar canoe with swab, tar split with swab, tar seam with swab, use oakum, use oakum on canoe, use oakum on split, use oakum on seam, use oakum on crack, pack split, pack seam, pack crack, pack canoe, pack split with oakum, pack seam with oakum, pack crack with oakum, stuff oakum in split, put oakum in split, put oakum in seam, put oakum in crack, dip swab in tar, use mop on canoe, use brush on canoe, use brush on split]
     when: [not 1830.canoe_tarred, not 1830.canoe_across]
     do:
       - set: 1830.canoe_tarred
-      - say: You work the hot tar into the split with a stick until it stops weeping river water. {ogee} watches without comment, which you take as approval.
+      - say: You pack the split with oakum, then work hot tar into it with the swab, over and over, until the seam stops weeping river water. {ogee} watches without comment, which you take as approval.
     else:
       - say: The seam is already tarred.
 
