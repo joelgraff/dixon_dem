@@ -162,6 +162,45 @@ function show(v, opts = {}) {
   return true;
 }
 
+// -------------------------------------------------------------------- veil
+// In the past the fog makes you look as if you belong, and your phone looks
+// like a tin case to anyone else. Using it openly (chapter `veil.verbs`) where
+// someone can see breaks that: the first time, whoever saw goes cold until you
+// leave the room; the second time, `veil.again` runs (the fog takes you back).
+const veilVerb = canon => !!CH.veil && L(CH.veil.verbs).includes(canon);
+const spooked = id => S.flags.has(`1830.spooked.${id}`);
+function cold(id) {
+  if (!spooked(id)) return false;
+  const c = (CH.veil || {}).cold || {};
+  if (!show(c[id]) && !show(c.default)) say(`${cap(npcName(id))} won't look at you.`);
+  return true;
+}
+function veil(canon, rest) {
+  const V = CH.veil;
+  if (!veilVerb(canon) || String(room().era) !== '1830' || !S.items.includes(V.item)) return false;
+  let [thing, toWho] = rest.split(/\s+(?:to|at)\s+/);
+  const m = !toWho && thing.match(/^(.+?)\s+(?:the\s+|my\s+|your\s+)?(\S+)$/);
+  if (m && canon === 'show') { const r = resolve(m[2]); if (r && r.one && r.one.id === V.item) [toWho, thing] = [m[1], m[2]]; }
+  if (canon === 'show') { const r = resolve(thing || ''); if (!(r && r.one && r.one.kind === 'item' && r.one.id === V.item)) return false; }
+  const here = npcIdsIn(S.room);
+  const npcIn = t => { const r = t && resolve(t); return r && r.one && r.one.kind === 'npc' && here.includes(r.one.id) ? r.one.id : null; };
+  const target = npcIn(toWho) || (canon === 'photograph' ? npcIn(thing) : null);
+  // Showing it to one person is discreet: only they see it. Anything else,
+  // everybody here sees.
+  const saw = canon === 'show' && target ? [target] : here;
+  if (!saw.length) return false;
+  const watched = saw.filter(id => !L(V.exempt).includes(id));
+  if (!watched.length) { show(V.exempt_text); return true; }
+  if (S.flags.has(V.warned)) { run(V.again); return true; }
+  S.flags.add(V.warned);
+  for (const id of watched) S.flags.add(`1830.spooked.${id}`);
+  const who = watched.includes(target) ? target : watched[0];
+  const rx = V.react || {};
+  if (!show(rx[who]) && !show(rx.default)) say(`${cap(npcName(who))} goes very still.`);
+  show(V.warning);
+  return true;
+}
+
 // -------------------------------------------------------------------- NPCs
 function npcDef(id) { return (room().npcs || {})[id] || (CH.npcs || {})[id] || findNpcAnywhere(id); }
 function findNpcAnywhere(id) {
@@ -238,7 +277,8 @@ function candidates() {
   for (const id of npcIdsIn(S.room)) {
     const n = npcDef(id);
     const labels = [id, ...L(n.aliases)];
-    if (known(id)) labels.push(n.name); else if (n.unknown) labels.push(n.unknown.replace(/^(a|an|the) /, ''));
+    // What narration calls them is something the player can type back.
+    if (known(id)) labels.push(n.name); else for (const d of [n.unknown, n.ref]) if (d) labels.push(d.replace(/^(a|an|the) /, ''));
     list.push({ kind: 'npc', id, def: n, name: npcName(id), labels });
   }
   for (const id of S.items) {
@@ -374,6 +414,7 @@ function arrive(id, text) {
   S.room = id;
   S.turns = 0;
   S.parted = new Set();
+  for (const f of [...S.flags]) if (f.startsWith('1830.spooked.')) S.flags.delete(f);
   if (!S.visited.includes(id)) S.visited.push(id);
   say(textOf(room().name), { cls: 'heading' });
   describe();
@@ -518,6 +559,7 @@ function talkTo(name) {
   const c = res.one;
   if (c.kind !== 'npc') return say('It doesn\'t answer. You hadn\'t really expected it to.');
   learnName(c, name);
+  if (cold(c.id)) return;
   S.lastNpc = c.id;
   const e = pick(c.def.talk);
   if (!e) return say(`${cap(npcName(c.id))} looks at you and says nothing.`);
@@ -539,6 +581,7 @@ function askAbout(who, topic) {
     id = here[0];
   }
   S.lastNpc = id;
+  if (cold(id)) return;
   const npc = npcDef(id);
   const t = ` ${cleanNoun(topic)} `;
   const hit = L(npc.topics).find(tp => L(tp.keys).some(k => new RegExp(`\\b${norm(k).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(t)));
@@ -629,6 +672,8 @@ function verbNoun(canon, rest) {
   }
   if (canon === 'talk') return talkTo(rest);
   if (canon === 'go') { const e = findExit(rest); return e ? go(e) : say(G.cant_go); }
+  if (veil(canon, rest)) return;
+  if (!rest && veilVerb(canon)) rest = CH.veil.item;   // "turn on flashlight", "take a picture"
   const target = /^(give|use|show)$/.test(canon) ? rest.split(/\s+(?:to|on|with|at)\s+/)[0] : rest;
   const res = resolve(target);
   if (canon === 'give' && !(res && res.one && res.one.kind === 'item')) return say("You haven't got that to give.");
@@ -724,6 +769,7 @@ function handle(t) {
   if (social(t)) return;
   // 5. verb + noun
   for (const [syn, canon] of verbList()) {
+    if (t === syn && veilVerb(canon) && canon !== 'show') return verbNoun(canon, '');
     if (t === syn) return say(canon === 'look' ? 'Look at what?' : `${cap(syn)} what?`);
     if (t.startsWith(`${syn} `)) return verbNoun(canon, t.slice(syn.length + 1));
   }

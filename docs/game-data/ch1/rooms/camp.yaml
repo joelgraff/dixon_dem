@@ -130,7 +130,7 @@ npcs:
     short: Rebecca
     unknown: a woman in an apron
     ref: the woman at the fire
-    aliases: [rebecca, woman, wife, mrs. dixon, rebecca dixon]
+    aliases: [rebecca, woman, wife, mrs. dixon, rebecca dixon, woman in apron]
     room_line: "[rebecca] tends the fire."
     look: A woman in a plain dress and apron, stirring the kettle with the patience of someone who has cooked on a great many fires.
     talk:

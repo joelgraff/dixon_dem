@@ -266,3 +266,30 @@ supports, and the claims ledger: each claim with its status (`record`,
 `disputed`, `guess`, `invented`, `needs-source`), the rooms it appears in and
 its source ids. A room's `sources` list is what the optional histories panel
 shows. Any new historical claim gets a ledger entry in the same change.
+
+## The veil (chapter.yaml `veil`)
+
+In the past the fog makes the player look as if they belong, and the phone
+looks like a tin case to anyone else. Using it openly breaks that.
+
+```yaml
+veil:
+  item: phone                       # the giveaway object
+  verbs: [show, photograph, light]  # what counts as using it openly
+  warned: 1830.veil_warned          # set the first time; cleared by a rewind
+  exempt: [ogee]                    # people who don't mind
+  exempt_text: ...                  # shown when only exempt people saw
+  react: {dixon: ..., default: ...} # the first time, said by whoever saw
+  warning: ...                      # narrator line after the first time
+  cold: {dixon: ..., default: ...}  # while spooked, instead of talk or ask
+  again: [effects]                  # the second time (here: the fog takes you back)
+```
+
+`show phone to X` is discreet: only X sees. Lighting it or taking pictures,
+everyone in the room sees. Anyone who saw is spooked (`1830.spooked.<id>`, set
+by the engine) until the player leaves the room. Alone, or in the present, the
+phone's own `verbs` answer instead. `help` is a private glance and never
+counts.
+
+NPCs can be typed by their `ref` as well as their `unknown` description, since
+narration uses it.

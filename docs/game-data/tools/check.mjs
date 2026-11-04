@@ -246,7 +246,7 @@ for (const ch of chapterDirs) {
   if (!rooms[chapter.start]) err(chWhere, `start room "${chapter.start}" not found`);
   for (const i of asList(chapter.start_items)) if (!items[i]) err(chWhere, `start item "${i}" not defined`);
   walk({ vars: chapter.vars, items: chapter.items, fog_lock: chapter.fog_lock, actions: chapter.actions, hints: chapter.hints }, chWhere, null, (s, w) => checkMarkup(s, w, null));
-  lintNames({ items: chapter.items, actions: chapter.actions, fog_lock: chapter.fog_lock, deaths: chapter.deaths, npcs: chapterNpcs }, chWhere, []);
+  lintNames({ items: chapter.items, actions: chapter.actions, fog_lock: chapter.fog_lock, deaths: chapter.deaths, veil: chapter.veil, npcs: chapterNpcs }, chWhere, []);
   for (const [nid, npc] of Object.entries(chapterNpcs)) {
     counts.npcs++;
     counts.topics += asList(npc.topics).length;

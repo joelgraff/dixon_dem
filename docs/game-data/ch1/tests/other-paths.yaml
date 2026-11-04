@@ -126,7 +126,7 @@ tests:
     url: scene=wateredge
     steps:
       - setup: {flags: [present.planks, present.voice]}
-      - {cmd: answer, expect: ["the planks aren't there", hauls you over the side, "somebody who needed one"], room: landing, not: Ogee}
+      - {cmd: answer, expect: ["the planks aren't there", hauls you over the side, "somebody who needed one", homespun shirt, flat tin case], room: landing, not: Ogee}
       - {cmd: look at canoe, expect: fished you out of the river}
       - {cmd: talk to man in buckskin, expect: [Joseph Ogee, "So it's you", "Mine's halfway to St. Louis"]}
       - {cmd: ask ogee why, expect: "you owe me the use of them"}
@@ -134,3 +134,28 @@ tests:
       - {cmd: help, expect: [No signal, the assistant answers]}
       - {cmd: use phone, expect: the assistant answers}
       - {cmd: look at phone, expect: came through the river}
+
+  - name: the veil - showing the phone spooks people, twice sends you back
+    url: scene=camp
+    steps:
+      - setup: {flags: [1830.arrived, 1830.met_ogee, known.ogee]}
+      - {cmd: show phone to tall man, expect: "I'd put that away", not: fog doesn't wait}
+      - {cmd: talk to tall man, expect: Not now}
+      - {cmd: talk to woman in apron, expect: Rebecca Dixon, not: "won't meet"}
+      - {cmd: north}
+      - {cmd: south}
+      - {cmd: talk to tall man, expect: John Dixon}
+      - {cmd: take a picture, expect: [fog doesn't wait, own dry clothes], room: wateredge, score: 0}
+
+  - name: the veil - Ogee doesn't mind, and nobody sees you alone
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.arrived]}
+      - {cmd: show the ferryman my phone, expect: The last one had a thing like that}
+      - {cmd: talk to man in good coat, expect: Mr. Rolette}
+      - {cmd: turn on flashlight, expect: writes something on his papers}
+      - setup: {room: northlanding}
+      - {cmd: turn on flashlight, expect: Nobody saw}
+      - {cmd: take a picture of the post, expect: comes out about the way}
+      - {cmd: call on phone, expect: nobody to call}
+      - {cmd: look at tin, expect: tin case}

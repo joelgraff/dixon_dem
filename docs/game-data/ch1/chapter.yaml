@@ -58,10 +58,24 @@ start_money: 0
 items:
   phone:
     name: phone
-    aliases: [cell, cellphone, mobile]
+    aliases: [cell, cellphone, mobile, tin, tin case, case, flashlight, camera, light]
+    verbs:
+      show:
+        - when: [era:1830]
+          text: There's nobody here to show it to, which is probably for the best.
+        - text: Nobody here needs to see your phone.
+      light:
+        - when: [era:1830]
+          text: The light comes on, startlingly white against the grey, and you shut it off again fast. Nobody saw.
+        - text: The flashlight comes on. Nothing here needs lighting.
+      photograph: You take a picture. Later, maybe, you'll find out whether it came out.
+      call:
+        - when: [era:1830]
+          text: No bars. In 1830 there is nobody to call.
+        - text: You can't think of anyone you need to call right now.
     look:
       - when: [era:1830]
-        text: Your phone came through the river, which is more than you'd have bet on. No bars, and the clock is stuck at 4:17, but the battery still reads 61 percent and the assistant still opens. You could ask it for help.
+        text: A flat tin case, the kind a man keeps tobacco in. Open it, and it's your phone, which came through the river better than you did. No bars, and the clock is stuck at 4:17, but the battery reads 61 percent and the assistant still opens. You could ask it for help. To anyone watching, you suspect, it would look like a great deal more than a tin.
       - when: [in:wateredge, turns>=4, not 1830.lease_dixon]
         text: The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.
       - when: [1830.lease_dixon]
@@ -142,8 +156,8 @@ actions:
           You take {ogee's} arm and walk blind through the white, step by step.
           His hand lets go of your sleeve somewhere along the way. The planks
           give way to concrete, the knocking fades, and the city sounds come
-          back one by one. Your clothes are dry. You decide not to think about
-          that.
+          back one by one. Your own clothes are back, and dry. You decide not to
+          think about that either.
       - move: wateredge
     else:
       - say: There's nobody to follow just now.
@@ -184,6 +198,57 @@ actions:
       - when: [has:order]
         say: Nobody here has silver to spare for a government order.
       - say: You haven't anything to sell.
+
+# The veil. In 1830 the fog makes you look as if you belong: homespun, boots,
+# and a phone that looks like a tin case to anyone else. Using it openly
+# (these verbs, where someone can see) breaks that. Showing it to one person is
+# discreet, so only they see; lighting it or taking pictures, everyone here
+# sees. The first time, whoever saw goes cold (`cold`) until you leave the
+# room; the second time, `again` runs. Ogee has seen it before.
+veil:
+  item: phone
+  verbs: [show, photograph, light]
+  warned: 1830.veil_warned
+  exempt: [ogee]
+  exempt_text: >-
+    [ogee] glances at it, and then back at the river. "The last one had a
+    thing like that," he says. "Put it away before somebody else sees it."
+  react:
+    dixon: >-
+      [dixon] looks at the thing in your hand for a long moment. "I'd put that
+      away," he says quietly, and turns back toward the river.
+    rebecca: "[rebecca] stops stirring. She looks at your hand, then at your face, and calls the children to her."
+    james: "[james] goes pale and steps back behind the wagon."
+    madeline: >-
+      [madeline] makes a small sign with two fingers and steps between you and
+      the boys. "Not here," she says.
+    agent: "[agent] stares at it, then writes something on his papers, slowly, without taking his eyes off you."
+    eli: >-
+      [eli] scrambles back off the wagon tongue with his rifle half raised.
+      "What is that?" Nobody answers him.
+    asa: >-
+      [asa] stops swearing, which is somehow worse. "Whatever that is," he
+      says, "keep it off my wagon."
+    default: Whoever saw it goes very still, and then very busy somewhere else.
+  warning: >-
+    Out over the river the air thickens for a moment, as though something has
+    noticed. You put the phone away. Better not do that again.
+  cold:
+    dixon: "[dixon] keeps his eyes on the river. \"Not now.\""
+    madeline: "[madeline] shakes her head and keeps the boys behind her."
+    agent: "[agent] goes on writing and doesn't answer."
+    eli: "[eli] edges away along the wagon tongue."
+    default: They won't meet your eye. Give it time, somewhere else.
+  again:
+    - say: >-
+        This time the fog doesn't wait. It comes up off the river all at once,
+        thick and white and cold, and the voices around you go thin and far
+        away. When it clears you're standing on concrete in your own dry
+        clothes, with your phone in your hand. Whatever you did in 1830 has
+        come undone.
+    - rewind: 1830
+    - clear: [present.planks, present.voice]
+    - move: wateredge
 
 # NPCs who move between rooms. `at` is a variant list of rooms.
 npcs:

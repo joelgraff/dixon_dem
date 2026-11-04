@@ -3,7 +3,7 @@
 
 # Release version (see CHANGELOG.md for the rules). Bump it, the ?v= in
 # play.html and the changelog together; the checker verifies they match.
-version: 0.5.0
+version: 0.6.0
 # Bump when a change would break saved games (renamed or removed flags,
 # items or rooms). Saves from another save_compat are refused, not loaded.
 save_compat: 1
@@ -30,6 +30,9 @@ verbs:
   call:   [call, shout, yell, answer, reply, call out]
   use:    [use]
   give:   [give, hand, offer]
+  show:   [show]
+  photograph: [photograph, take a picture of, take picture of, take a photo of, take photo of, take a picture, take a photo, take pictures of, snap a picture of, film, record]
+  light:  [turn on flashlight, turn on the flashlight, turn on the light, turn on light, use flashlight, use the flashlight, use phone light, use the light, shine flashlight, shine the light, shine light, light up, flashlight]
   talk:   [talk to, talk with, speak to, speak with, greet, chat with]
   ask:    [ask]
 
@@ -53,6 +56,9 @@ defaults:
   call:   ["Your voice goes flat in the damp air. Nothing answers."]
   use:    ["You'll need to be more specific about how."]
   give:   ["Nobody here seems to want that."]
+  show:   ["They look at it, and then at you, politely."]
+  photograph: ["You take a picture. It comes out about the way you'd expect."]
+  light:  ["Nothing here needs lighting."]
 
 # Replies to commands the parser can't read at all. Picked at random.
 unknown:
