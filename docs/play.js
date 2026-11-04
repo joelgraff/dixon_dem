@@ -145,7 +145,7 @@ function run(list) {
       case 'move': arrive(v); break;
       case 'death': die(v); break;
       case 'rewind': rewind(); break;
-      case 'if': if (ok(v.when)) run(v.do); break;
+      case 'if': run(ok(v.when) ? v.do : v.else); break;
       default: break;
     }
   }

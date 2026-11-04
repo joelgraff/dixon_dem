@@ -48,17 +48,20 @@ nouns:
 
   pole:
     name: setting pole
-    when: [not 1830.has_pole]
+    when: [not has:pole]
     aliases: [pole, setting pole, ash pole]
     reveals: [shoe]
-    look: A long ash setting pole with an iron [shoe] on the end, worn bright on the side that bears against the riverbed.
+    look:
+      - when: [1830.shoe_lost, not 1830.shoe_returned]
+        text: A long ash setting pole, its foot bare and pale where the iron shoe used to be.
+      - text: A long ash setting pole with an iron [shoe] on the end, worn bright on the side that bears against the riverbed.
     verbs:
       push: You lean on it. It's heavier than it looks.
 
   shoe:
     name: pole shoe
     hidden: true
-    when: [not 1830.has_pole]
+    when: [not has:pole, {any: [not 1830.shoe_lost, 1830.shoe_returned]}]
     aliases: [iron shoe, pole shoe, iron]
     look: A cone of forged iron, dented on one side. The kind of object a museum would put on a velvet pedestal, if anyone thought to save it.
     verbs:
@@ -340,6 +343,8 @@ actions:
       - say: "{ogee} works you across on the rope, hand over hand. The current leans on the line and the line holds."
       - move: northlanding
     else:
+      - when: [1830.canoe_tarred, has:paddle, has:rope, not 1830.canoe_across]
+        say: "{ogee's} arm bars the way. \"Not on the ferry, not in this water.\" He nods at the canoe. \"That's what you tarred her for.\""
       - say: "{ogee's} arm bars the way. \"Not in this water.\""
 
   - id: tar_canoe
@@ -352,7 +357,7 @@ actions:
       - say: The seam is already tarred.
 
   - id: launch_canoe
-    phrases: [launch canoe, paddle across, cross in canoe, get in canoe, row across, take canoe, use canoe, paddle canoe, canoe across, push off canoe]
+    phrases: [launch canoe, paddle across, cross in canoe, get in canoe, row across, take canoe, use canoe, paddle canoe, canoe across, push off canoe, paddle across with rope, take rope across, carry rope across, take rope across river, carry rope over, take rope over, paddle to north bank, paddle to other side, paddle to far bank, cross in dugout, put canoe in water, put canoe in river, launch dugout, get in dugout, paddle dugout, push canoe in, push canoe into river, go in canoe, canoe, board canoe, ride canoe, paddle over, cross river in canoe]
     when: [1830.canoe_tarred, has:paddle, has:rope, not 1830.rope_strung, not 1830.canoe_across]
     do:
       - set: 1830.canoe_across
@@ -372,26 +377,58 @@ actions:
 
   - id: borrow_pole
     speaker: ogee
-    phrases: [ask ogee for pole, ask ogee for the pole, borrow pole, take pole, get pole, borrow setting pole, ask for pole]
-    when: [1830.rope_strung, not 1830.has_pole, here:ogee]
+    phrases: [ask ogee for pole, ask ogee for the pole, borrow pole, take pole, get pole, borrow setting pole, ask for pole, ask for setting pole, ask ogee for setting pole, borrow ogee's pole, ask him for pole, ask ferryman for pole, ask man for pole, can i borrow pole, may i borrow pole, borrow the pole, take setting pole, ask to borrow pole, ask for lever, borrow lever]
+    when: [1830.rope_strung, not has:pole, here:ogee]
     do:
       - give: pole
       - set: 1830.has_pole
       - say: "\"Take her. I've no use for her with the rope. Bring her back whole.\""
     else:
-      - when: [1830.has_pole]
+      - when: [has:pole]
         say: You already have it.
       - say: "{ogee} keeps his hands on it. \"I need her, such as she is, till there's a rope across.\""
 
   - id: give_shoe
-    phrases: [give shoe to ogee, give ogee shoe, return shoe, give shoe, give pole shoe to ogee, give iron to ogee]
+    phrases: [give shoe to ogee, give ogee shoe, return shoe, give shoe, give pole shoe to ogee, give iron to ogee, give shoe back, give shoe back to ogee, return shoe to ogee, give iron shoe to ogee, give pole shoe, give ogee the iron, put shoe on pole, fix pole, give shoe to ferryman, give shoe to him, give him shoe, give him the shoe, return pole shoe]
     when: [has:shoe, here:ogee]
     do:
       - take: shoe
       - set: 1830.shoe_returned
-      - say: "{ogee} turns it over in his hands. \"Smith made that. I thought it was gone.\" He fits it back on the pole."
+      - if:
+          when: [has:pole]
+          do:
+            - take: pole
+            - set: 1830.pole_returned
+            - say: "{ogee} turns it over in his hands. \"Smith made that. I thought it was gone.\" He takes the pole from you and fits the shoe back on her."
+          else:
+            - say: "{ogee} turns it over in his hands. \"Smith made that. I thought it was gone.\" He fits it back on the pole."
     else:
       - say: You have nothing of his to give back.
+
+  - id: return_pole
+    speaker: ogee
+    phrases: [return pole, give pole to ogee, give ogee pole, give pole back, give pole back to ogee, give back pole, return pole to ogee, return setting pole, give setting pole to ogee, give pole to ferryman, give him pole, give him the pole, put pole back]
+    when: [has:pole, here:ogee]
+    do:
+      - take: pole
+      - set: 1830.pole_returned
+      - if:
+          when: [has:shoe]
+          do:
+            - take: shoe
+            - set: 1830.shoe_returned
+            - say: "{ogee} takes her, and the iron shoe after her, and turns it over in his hands. \"Smith made that. I thought it was gone.\" He fits it back on."
+          else:
+            - if:
+                when: [1830.shoe_lost, not 1830.shoe_returned]
+                do:
+                  - say: "{ogee} takes her and runs a thumb over the bare foot. \"Lost her shoe in that slough, did you.\" It isn't a question. \"Smith made that shoe.\""
+                else:
+                  - say: "\"Obliged.\" {ogee} leans her back against the post."
+    else:
+      - when: [not has:pole]
+        say: You haven't got it.
+      - say: There's nobody here to give it to.
 
   - id: pay_agent
     speaker: agent
@@ -420,7 +457,10 @@ exits:
     to: northlanding
     when: [1830.rope_strung]
     farewell: false
-    blocked: Not in this water. {ogee} would stop you, and if he didn't, the river would.
+    blocked:
+      - when: [1830.canoe_tarred, has:paddle, has:rope, not 1830.canoe_across]
+        text: Not on the ferry, not in this water. The canoe is ready, though, and so is the rope.
+      - text: Not in this water. {ogee} would stop you, and if he didn't, the river would.
     text: "{ogee} works you across on the rope, hand over hand."
   - names: [east, west, upstream, downstream]
     blocked: The bank runs on both ways, thick with willow and brush. There's no path that way, and no reason to push into it.

@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.6.4 (2026-11-03)
+- Puzzle review: asking Madeline for the axe now earns it (taking it first gets a hint to ask); Ogee points you at the canoe when it's ready and you try the ferry; you can give the pole back, and Ogee notices a missing shoe; Dixon is seen turning his government order over in his hands; and every puzzle action takes many more phrasings.
+
 ## 0.6.3 (2026-11-03)
 - The tools for tarring are now in the scene: a swab standing in the tar pot and a hank of oakum beside it, both in the room description. Ogee says to pack the split with oakum and swab tar over it, and 'use swab on canoe', 'pack the split' and the like all work.
 

@@ -52,7 +52,7 @@ nouns:
 
 actions:
   - id: tie_rope
-    phrases: [tie rope to post, tie rope, tie line to post, tie line, fasten rope, fasten line, make rope fast, make line fast, tie it, tie it off, tie off rope, knot rope]
+    phrases: [tie rope to post, tie rope, tie line to post, tie line, fasten rope, fasten line, make rope fast, make line fast, tie it, tie it off, tie off rope, knot rope, tie rope around post, tie rope to stake, wrap rope around post, use rope on post, put rope on post, tie rope on post, secure rope, secure rope to post, tie up rope, loop rope around post, fasten rope to post, tie rope to the post, tie off rope on post, make rope fast to post, make fast]
     when: [has:rope, not 1830.rope_strung]
     do:
       - take: rope

@@ -147,7 +147,7 @@ deaths:
 # Actions that work in several rooms.
 actions:
   - id: follow_ogee
-    phrases: [take ogee's arm, take his arm, take arm, follow ogee, follow him, stay close, go with ogee]
+    phrases: [take ogee's arm, take his arm, take arm, follow ogee, follow him, stay close, go with ogee, take ferryman's arm, take the ferryman's arm, hold his arm, grab his arm, take his hand, hold on, hold on to him, go with him, follow ferryman, follow man, lead way, walk with ogee, walk with him, take ogee's hand, hold ogee's arm, take man's arm]
     when: [1830.fog]
     do:
       - clear: [1830.fog, present.planks, present.voice]

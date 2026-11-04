@@ -175,3 +175,34 @@ tests:
       - {cmd: down, room: wateredge}
       - {cmd: go north, expect: you'd have to be a fool, room: wateredge}
       - {cmd: walk out on the planks, expect: Nothing answers, room: wateredge}
+
+  - name: the axe is for asking, and the oak makes a paddle
+    url: scene=cabin
+    steps:
+      - setup: {flags: [1830.arrived]}
+      - {cmd: take axe, expect: [That's ours, you could ask], not: work the axe free}
+      - {cmd: ask woman for axe, expect: Take it if you need it}
+      - {cmd: take axe, expect: work the axe free}
+      - {cmd: use axe on oak, expect: something like a paddle}
+      - {cmd: return axe, expect: You hand the axe back}
+
+  - name: the landing points at the canoe once it's ready
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.arrived, known.ogee, 1830.met_ogee, 1830.canoe_tarred], items: [phone, paddle, rope]}
+      - {cmd: go north, expect: The canoe is ready}
+      - {cmd: cross, expect: "That's what you tarred her for"}
+      - {cmd: take rope across, room: northlanding}
+      - {cmd: wrap rope around post, expect: "Dixon's rope"}
+
+  - name: Ogee notices the missing shoe, and takes both back
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.arrived, known.ogee, 1830.rope_strung, 1830.has_pole, 1830.wagon_free, 1830.shoe_lost], items: [phone, pole]}
+      - {cmd: look at pole, not: ferry's lines}
+      - {cmd: give pole back, expect: Lost her shoe in that slough}
+      - {cmd: look at setting pole, expect: foot bare}
+      - {cmd: ask ogee for pole, expect: Take her}
+      - setup: {items: [phone, pole, shoe]}
+      - {cmd: give shoe to ogee, expect: [Smith made that, takes the pole from you]}
+      - {cmd: inventory, not: pole}
