@@ -660,6 +660,7 @@ function inventory() {
 }
 function help() {
   const h = pick(CH.hints);
+  if (G.help_lead) say(textOf(G.help_lead), { cls: 'meta' });
   say(h ? h.text : 'Look around, examine things, and talk to people.', { cls: 'meta' });
 }
 

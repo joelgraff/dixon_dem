@@ -23,7 +23,7 @@ nouns:
   dock:
     name: dock
     aliases: [landing, wharf, pilings, flood lines, lines, planks]
-    look: Rough planks and posts, half under water at the edges. Under the planks, four green bands mark the pilings, one above another. {ogee} has been flooded out more than once and rebuilt in the same place each time.
+    look: Rough planks and posts, half under water at the edges. Under the planks, four green bands mark the pilings, one above another, and one has a fresh pale gouge at the waterline. {ogee} has been flooded out more than once and rebuilt in the same place each time.
     verbs:
       sit: You sit on the edge of the dock. The river is very close, and in a hurry.
 
@@ -81,11 +81,11 @@ nouns:
     room_line:
       - when: [1830.canoe_tarred]
         text: The [canoe] sits by the water, its seam black with fresh tar.
-      - text: A cracked [canoe] lies on its side in the gravel.
+      - text: A cracked [canoe] lies on its side in the gravel, still draining.
     look:
       - when: [1830.canoe_tarred]
         text: "{ogee's} dugout, its split seam packed and black with fresh tar. It might even float."
-      - text: An old dugout canoe, split along one seam. No paddle. It would carry one person and a coil of rope, if it floated.
+      - text: The dugout that fished you out of the river, split along one seam where it met the piling and still draining. Its paddle has gone on to St. Louis. It would carry one person and a coil of rope, if it floated.
     verbs:
       push: It slides a little in the gravel.
 
@@ -158,21 +158,25 @@ npcs:
     room_line:
       - when: [1830.rope_strung]
         text: "[ogee] works the ferry along the rope, hand over hand."
-      - text: "[ogee] stands watching the river, a setting [pole] in his hands."
+      - text: "[ogee] stands at the ferry's lines, holding her against the current, a setting [pole] leaning on the post beside him."
     look: A broad man in a buckskin shirt, forearms scarred, sleeves rolled. He looks at the river the way a man looks at a horse that has thrown him before.
     talk:
       - when: [not known.ogee]
         text: >-
-          "Joseph Ogee." He doesn't take his eyes off the water. "River's up
-          past the pole. Put her out in this and she goes to St. Louis without
-          me. The fellow camped up the Peoria trail, Dixon, has rope enough to
-          run a line bank to bank. Somebody has to carry it over, and my
-          canoe's split. Tar's hot in the pot. Tar that seam and she'll float.
-          You'll want a paddle. The oak by the cabin splits clean, if you've an
-          axe."
+          "Joseph Ogee." He's back at the ferry's lines before he says it,
+          hauling them in against the current. "River's up past the pole. Put
+          her out in this and she goes to St. Louis without me. The fellow
+          camped up the Peoria trail, Dixon, has rope enough to run a line bank
+          to bank. I was calling for somebody to paddle it over." He looks at
+          the canoe, and then at you. "Now nobody's paddling anything. I can't
+          leave these lines, and I'll not step off this dock while that one's
+          sitting on it." A nod at the man in the good coat. "So it's you.
+          Tar's hot in the pot; I was doing the ferry's seams. Tar that split
+          and she'll float. And you'll want a paddle. Mine's halfway to St.
+          Louis. The oak by the cabin splits clean, if you've an axe."
         do: [{set: [known.ogee, 1830.met_ogee, heard.dixon]}]
       - when: [not 1830.met_ogee]
-        text: "\"Back again. River's still up past the pole. Dixon has the rope, I have a split canoe, and the tar's hot.\""
+        text: "\"Back again. River's still up past the pole. Dixon has the rope, you owe me a canoe, and the tar's hot.\""
         do: [{set: 1830.met_ogee}]
       - when: [not 1830.rope_strung]
         text: "\"Rope's the thing. Dixon's got it, I've got the canoe, and the river's got opinions.\""
@@ -188,7 +192,11 @@ npcs:
             text: "\"Dixon's notion. I'll admit it works. I'll not admit it to him.\""
           - text: "\"Dixon's notion. A line bank to bank, and you pull her over hand over hand. Can't get the line over without a boat, and I can't get a boat over in this.\""
       - keys: [canoe, dugout, seam, tar, paddle]
-        say: "\"Split on a snag last fall. Tar's in the pot. And you'll want a paddle; the oak by the cabin splits clean.\""
+        say: "\"Split on my own piling, fishing you out. Tar's in the pot. And you'll want a paddle; mine went downriver, and the oak by the cabin splits clean.\""
+      - keys: [help, yourself, why me, why, you, cross, carry, fix, repair, lines]
+        say: "\"I let go of these lines in this water and she's gone. I step off this dock and that one says I've left her, and she's Rolette's. The boy up there won't go near the river, and Dixon doesn't know it.\" He takes a fresh turn of line around the post. \"You've two hands, and you owe me the use of them.\""
+      - keys: [rescue, saving, saved, fall, fell, drowning, swim]
+        say: "\"Folks come out of that fog and walk straight off the end of the dock. You're the third this year. You're the first I've lost a canoe over.\""
       - keys: [axe, oak, wood, cabin]
         say: "\"Axe is in the block by the cabin. Ask Madeline. She'll let you have it, and she'll want it back.\""
       - keys: [agent, man, coat, creditor, rolette, debt, debts, notes, owe, money]
@@ -218,7 +226,7 @@ npcs:
       thanks: "{ogee} grunts. \"Don't thank me yet. River's not done with any of us.\""
       bye: "\"Watch the water.\""
       how: "\"Alive. Dock's still standing. That's a good week.\""
-      sorry: "\"No harm done.\""
+      sorry: "\"You'll be sorrier when you're working that tar.\""
     parting: You nod to [ogee]. He lifts his chin without looking away from the water.
 
   agent:

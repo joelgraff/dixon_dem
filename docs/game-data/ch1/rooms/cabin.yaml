@@ -87,7 +87,7 @@ npcs:
     look: A woman in a dark dress and a shawl, her sleeves pushed up from work. She is watching you the way you'd watch a dog you didn't know.
     talk:
       - when: [not known.madeline]
-        text: "\"I'm his wife, Madeline. You'll be the one he shouted for.\" She glances at the axe. \"Take it if you need it. Bring it back.\""
+        text: "\"I'm his wife, Madeline. You'll be the one he fished out of the river. You're dripping on my floor.\" She glances at the axe. \"Take it if you need it. Bring it back.\""
         do: [{set: known.madeline}]
       - text: "{madeline} gives you a short nod and goes on with her work."
     topics:

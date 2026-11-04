@@ -61,7 +61,7 @@ items:
     aliases: [cell, cellphone, mobile]
     look:
       - when: [era:1830]
-        text: The screen is black. When you hold the button it lights for a moment, with no bars and no clock, then goes dark again.
+        text: Your phone came through the river, which is more than you'd have bet on. No bars, and the clock is stuck at 4:17, but the battery still reads 61 percent and the assistant still opens. You could ask it for help.
       - when: [in:wateredge, turns>=4, not 1830.lease_dixon]
         text: The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.
       - when: [1830.lease_dixon]
@@ -142,7 +142,8 @@ actions:
           You take {ogee's} arm and walk blind through the white, step by step.
           His hand lets go of your sleeve somewhere along the way. The planks
           give way to concrete, the knocking fades, and the city sounds come
-          back one by one.
+          back one by one. Your clothes are dry. You decide not to think about
+          that.
       - move: wateredge
     else:
       - say: There's nobody to follow just now.

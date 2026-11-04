@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.5.0 (2026-11-03)
+- A new arrival: you walk off the end of the dock in the fog, and Ogee fishes you out with his canoe, splitting it on a piling and losing his paddle. That is why the canoe needs tar and a paddle, and why the job falls to you: Ogee can't leave the ferry's lines or the dock while the agent watches, and you owe him. Ask him why if you wonder. Help now comes from the assistant on your phone (help, use phone, ask phone), offline in 1830.
+
 ## 0.4.2 (2026-11-03)
 - Narration no longer names people before you meet them: Ogee is "the ferryman" (his flatboat, his cabin) until he introduces himself, and likewise for Dixon, Madeline, Asa, Eli, James, Rebecca and Margaret. The camp is "A wagon camp" until someone mentions Dixon. The checker now flags any name in narration that the player may not know yet.
 
