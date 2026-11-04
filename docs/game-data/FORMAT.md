@@ -20,6 +20,10 @@ node test.mjs              # all tests; node test.mjs wrong   runs matching ones
 Test scripts live in `ch1/tests/`; see the top of `tools/test.mjs` for their
 format.
 
+Every push bumps the game version (`npm run bump -- patch "what changed"`);
+the rules are at the top of `CHANGELOG.md`. To have git refuse a push that
+forgets, run `git config core.hooksPath .githooks` once in your clone.
+
 ## Files
 
 ```

@@ -12,6 +12,8 @@ main { max-width: 68rem; margin: 0 auto; padding: 1rem 1rem 2rem; }
 #bar-top h1 { font-weight: normal; letter-spacing: 0.15em; font-size: 1rem; color: #8a867a; text-transform: uppercase; margin: 0; }
 #place { flex: 1; color: #b8b4a8; font-variant: small-caps; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #score { color: #8a867a; font-family: monospace; white-space: nowrap; }
+#version { color: #6c685e; font-family: monospace; font-size: 0.8rem; }
+#settings .about { color: #6c685e; font-size: 0.85rem; margin-top: 0.8rem; }
 #gear { padding: 0.3rem 0.7rem; font-size: 0.9rem; }
 #settings { display: none; background: #202325; border: 1px solid #444; padding: 0.8rem 1rem; margin: 0.8rem 0; font-size: 0.95rem; }
 #settings.open { display: block; }
@@ -68,6 +70,7 @@ select { background: #202325; color: #d8d4c8; border: 1px solid #444; font-famil
   button { min-height: 2.75rem; }
   #settings { max-height: 40dvh; overflow-y: auto; }
   #bar-top h1 { display: none; }
+  #version { display: none; }
 }
 </style>
 </head>
@@ -75,6 +78,7 @@ select { background: #202325; color: #d8d4c8; border: 1px solid #444; font-famil
 <main>
 <div id="bar-top">
   <h1>Dixon</h1>
+  <span id="version" title="Game version"></span>
   <span id="place"></span>
   <span id="score"></span>
   <button id="gear" aria-expanded="false">Settings</button>
@@ -91,6 +95,7 @@ select { background: #202325; color: #d8d4c8; border: 1px solid #444; font-famil
   </label>
   <label><input type="checkbox" id="opt-clicks"> Clickable highlighted words<small>Click a word to look at it. Off by default; typing is the point.</small></label>
   <label><input type="checkbox" id="opt-histories"> Histories panel<small>Shows the historical sources behind the current place, and marks what is invented.</small></label>
+  <div class="about" id="about"></div>
 </div>
 <div id="layout">
   <div id="play">
@@ -123,6 +128,6 @@ select { background: #202325; color: #d8d4c8; border: 1px solid #444; font-famil
 </div>
 </main>
 <script src="vendor/js-yaml-4.1.0.min.js"></script>
-<script type="module" src="play.js"></script>
+<script type="module" src="play.js?v=0.3.0"></script>
 </body>
 </html>

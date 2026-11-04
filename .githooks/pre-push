@@ -1,0 +1,22 @@
+#!/bin/sh
+# Refuses a push that changes the game without bumping its version.
+# Enable once per clone:  git config core.hooksPath .githooks
+remote="$1"
+while read local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    base=$(git merge-base "$local_sha" "$remote/demo-work" 2>/dev/null) || continue
+  else
+    base="$remote_sha"
+  fi
+  changed=$(git diff --name-only "$base" "$local_sha" -- docs/play.html docs/play.js docs/game-data | grep -v '^docs/game-data/CHANGELOG.md$')
+  [ -z "$changed" ] && continue
+  old=$(git show "$base:docs/game-data/game.yaml" 2>/dev/null | sed -n 's/^version: *//p')
+  new=$(git show "$local_sha:docs/game-data/game.yaml" | sed -n 's/^version: *//p')
+  if [ "$old" = "$new" ]; then
+    echo "pre-push: the game changed but its version is still $new."
+    echo "Run: cd docs/game-data/tools && npm run bump -- patch \"what changed\""
+    exit 1
+  fi
+done
+exit 0

@@ -59,12 +59,16 @@ function freshState() {
 }
 const SET_FIELDS = ['flags', 'scored', 'found', 'parted'];
 function serialize(s) {
-  const o = { ...s };
+  const o = { ...s, _version: G.version, _compat: G.save_compat };
   for (const f of SET_FIELDS) o[f] = [...s[f]];
   return o;
 }
+// A save from an incompatible version is refused rather than half-loaded.
+function compatible(saved) { return saved && saved._compat === G.save_compat; }
 function deserialize(o) {
   const s = { ...o };
+  delete s._version;
+  delete s._compat;
   for (const f of SET_FIELDS) s[f] = new Set(o[f] || []);
   return s;
 }
@@ -432,6 +436,7 @@ function answerPending(input) {
   if (/^(restore|load)$/.test(t)) {
     const saved = store.get(SAVE_KEY);
     if (!saved) return meta('There is no saved game. Retry or Restart?');
+    if (!compatible(saved)) return meta(`That save is from ${saved._version ? `version ${saved._version}` : 'an earlier build'}, which this version can't load. Retry or Restart?`);
     pending = null;
     return restore(saved);
   }
@@ -645,7 +650,13 @@ function handle(t) {
   if (isMeta(t, 'wait')) return say('You wait. Time passes, slowly.');
   if (isMeta(t, 'listen')) return say(textOf(room().listen) || 'You listen. Nothing stands out.');
   if (isMeta(t, 'save')) { store.set(SAVE_KEY, serialize(S)); return meta('Game saved.'); }
-  if (isMeta(t, 'restore')) { const s = store.get(SAVE_KEY); return s ? restore(s) : meta('There is no saved game.'); }
+  if (isMeta(t, 'restore')) {
+    const s = store.get(SAVE_KEY);
+    if (!s) return meta('There is no saved game.');
+    if (!compatible(s)) return meta(`That save is from ${s._version ? `version ${s._version}` : 'an earlier build'}, which this version can't load.`);
+    return restore(s);
+  }
+  if (isMeta(t, 'version')) return meta(`Dixon ${G.version}, ${CH.title}.`);
   if (isMeta(t, 'restart')) { pending = { kind: 'restart' }; return meta('Restart from the beginning? (yes or no)'); }
   // 3. movement
   if ((m = t.match(/^(?:go|walk|head|run|step|move|climb|travel)\s+(.+)$/))) {
@@ -776,7 +787,12 @@ async function boot() {
   Object.assign(settings, G.settings || {}, store.get(SETTINGS_KEY) || {});
   if (params.has('fresh')) { store.del(AUTO_KEY); store.del(SAVE_KEY); }
   wireUI();
-  const auto = !params.has('scene') && store.get(AUTO_KEY);
+  let auto = !params.has('scene') && store.get(AUTO_KEY);
+  if (auto && !compatible(auto)) {
+    meta(`Dixon has been updated to version ${G.version}. Your game in progress came from ${auto._version ? `version ${auto._version}` : 'an earlier build'} and can't be carried over, so this is a fresh start.`);
+    store.del(AUTO_KEY);
+    auto = null;
+  }
   if (auto) {
     S = deserialize(auto);
     meta('Welcome back. You are where you left off; type restart to begin again.');
@@ -784,6 +800,9 @@ async function boot() {
     S = freshState();
     if (params.has('scene') && ROOMS[params.get('scene')]) { S.room = params.get('scene'); S.visited = [S.room]; }
   }
+  $('version').textContent = `v${G.version}`;
+  $('about').textContent = `Dixon ${G.version} · ${CH.title} · saves: format ${G.save_compat}`;
+  document.title = `Dixon ${G.version}`;
   applySettings();
   say(textOf(room().name), { cls: 'heading' });
   describe();
