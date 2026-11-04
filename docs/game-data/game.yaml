@@ -3,7 +3,7 @@
 
 # Release version (see CHANGELOG.md for the rules). Bump it, the ?v= in
 # play.html and the changelog together; the checker verifies they match.
-version: 0.3.2
+version: 0.4.0
 # Bump when a change would break saved games (renamed or removed flags,
 # items or rooms). Saves from another save_compat are refused, not loaded.
 save_compat: 1
@@ -78,6 +78,7 @@ meta:
   listen: [listen]
   look_around: [look, l, look around]
   version: [version, about]
+  tour: [tour, tutorial, guide, show me around]
 
 score_line: "Your score is {score} of {max_score}."
 
@@ -85,6 +86,47 @@ death_screen:
   title: "You have died."
   prompt: "Restore, Restart or Retry?"
   retry_note: "You find yourself a moment earlier, considerably wiser."
+
+# The guided tour of the screen (`tour`, or Settings > Take the tour). Each
+# step outlines `target` (a CSS selector in play.html); `label: true` outlines
+# the whole setting; `settings: true` opens the Settings panel for the step.
+# Steps whose target is hidden (the quick buttons on a desktop) are skipped.
+tour_offer: "New here? Type tour for a quick look around the screen."
+tour:
+  - text: "A quick look around the screen. Use Next and Back, or press Esc to stop."
+  - target: "#bar-top"
+    text: "The top bar shows the game's version, where you are, and your score."
+  - target: "#output"
+    text: "The story. Every reply is added to this log and nothing is cleared, so you can scroll back to reread."
+  - target: "#bar"
+    text: "Type commands here, up to 40 characters, and press Enter. Try look, look at the panel, talk to someone, ask someone about something, or go north."
+  - target: "#quick"
+    text: "On a touch screen, these buttons type common commands for you."
+  - target: "#notes"
+    text: "The looked-at sidebar lists what you've examined, by place. Click an entry to reread it."
+  - target: "#gear"
+    text: "Settings live behind this button. Your browser remembers them."
+  - target: "#opt-sidebar"
+    label: true
+    settings: true
+    text: "Looked-at sidebar: on by default. Turn it off if you'd rather keep notes in your head."
+  - target: "#opt-hl"
+    label: true
+    settings: true
+    text: "Highlighted words: off by default. Key items only colors what moves the story in blue. All adds look-only scenery in tan."
+  - target: "#opt-clicks"
+    label: true
+    settings: true
+    text: "Clickable words: off by default. When on, clicking a word looks at it, and clicking an exit walks that way."
+  - target: "#opt-histories"
+    label: true
+    settings: true
+    text: "Histories panel: off by default. It shows the sources behind each place, and marks which details are record, disputed, a guess or invented."
+  - target: "#about"
+    settings: true
+    text: "The version and save format, so you can always tell which build you're playing."
+  - target: "#cmd"
+    text: "When you're stuck, type help. Type tour any time to see this again. Good luck."
 
 settings:
   sidebar: true              # looked-at sidebar

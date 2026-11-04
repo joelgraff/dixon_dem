@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.4.0 (2026-11-03)
+- In-game guided tour: type tour (or tutorial), or Settings > Take the tour. It outlines each part of the real screen with a caption, with Next, Back and Close (Esc closes); it never touches the game state. New players are offered it once. The steps live in game.yaml. Tests can now click page elements and check what is shown.
+
 ## 0.3.2 (2026-11-03)
 - Movement accepts more natural phrasings: "go down stairs", "go down the stairs", "take the stairs", "climb down the steps", "downstairs", "walk down to the water". A new test tries every exit by every name in several shapes.
 

@@ -13,7 +13,17 @@ main { max-width: 68rem; margin: 0 auto; padding: 1rem 1rem 2rem; }
 #place { flex: 1; color: #b8b4a8; font-variant: small-caps; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #score { color: #8a867a; font-family: monospace; white-space: nowrap; }
 #version { color: #6c685e; font-family: monospace; font-size: 0.8rem; }
-#settings .about { color: #6c685e; font-size: 0.85rem; margin-top: 0.8rem; }
+#settings .about { color: #6c685e; font-size: 0.85rem; margin-top: 0.8rem; display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
+#tour-btn { padding: 0.4rem 0.8rem; }
+#tour-box { position: fixed; border: 3px solid #f0c060; border-radius: 10px; z-index: 98; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,.35); }
+#tour-box.off { display: none; }
+#tour-card { position: fixed; left: 50%; transform: translateX(-50%); width: min(40rem, calc(100vw - 2rem)); box-sizing: border-box; background: #101214; color: #f3efe4; border: 1px solid #f0c060; border-radius: 10px; padding: 0.9rem 1.1rem 0.8rem; z-index: 99; box-shadow: 0 6px 24px rgba(0,0,0,.5); font-size: 1.05rem; line-height: 1.45; }
+#tour-card.bottom { bottom: 1rem; } #tour-card.top { top: 1rem; }
+#tour-card p { margin: 0 0 0.7rem; }
+#tour-card .row { display: flex; gap: 0.5rem; align-items: center; }
+#tour-card .count { flex: 1; color: #8a867a; font-family: monospace; font-size: 0.85rem; }
+#tour-card button { padding: 0.4rem 0.9rem; }
+#tour-card button:disabled { opacity: 0.4; cursor: default; }
 #gear { padding: 0.3rem 0.7rem; font-size: 0.9rem; }
 #settings { display: none; background: #202325; border: 1px solid #444; padding: 0.8rem 1rem; margin: 0.8rem 0; font-size: 0.95rem; }
 #settings.open { display: block; }
@@ -95,7 +105,7 @@ select { background: #202325; color: #d8d4c8; border: 1px solid #444; font-famil
   </label>
   <label><input type="checkbox" id="opt-clicks"> Clickable highlighted words<small>Click a word to look at it. Off by default; typing is the point.</small></label>
   <label><input type="checkbox" id="opt-histories"> Histories panel<small>Shows the historical sources behind the current place, and marks what is invented.</small></label>
-  <div class="about" id="about"></div>
+  <div class="about"><button id="tour-btn">Take the tour</button> <span id="about"></span></div>
 </div>
 <div id="layout">
   <div id="play">
@@ -128,6 +138,6 @@ select { background: #202325; color: #d8d4c8; border: 1px solid #444; font-famil
 </div>
 </main>
 <script src="vendor/js-yaml-4.1.0.min.js"></script>
-<script type="module" src="play.js?v=0.3.2"></script>
+<script type="module" src="play.js?v=0.4.0"></script>
 </body>
 </html>

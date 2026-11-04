@@ -677,6 +677,7 @@ function handle(t) {
     return restore(s);
   }
   if (isMeta(t, 'version')) return meta(`Dixon ${G.version}, ${CH.title}.`);
+  if (isMeta(t, 'tour')) return startTour();
   if (isMeta(t, 'restart')) { pending = { kind: 'restart' }; return meta('Restart from the beginning? (yes or no)'); }
   // 3. movement
   const exit = moveExit(t);
@@ -759,7 +760,86 @@ function applySettings() {
   store.set(SETTINGS_KEY, settings);
   if (S) renderHistories();
 }
+// ------------------------------------------------------------ guided tour
+// Walks over the real page, outlining each part with a caption. It never
+// touches the game state; it only opens Settings for the steps that need it.
+let tour = null;
+function tourTarget(step) {
+  if (!step.target) return null;
+  let el = document.querySelector(step.target);
+  if (!el || !el.getClientRects().length) return null;
+  if (step.label) el = el.closest('label') || el;
+  return el;
+}
+function startTour() {
+  const steps = L(G.tour);
+  if (!steps.length) return meta('There is no tour in this version.');
+  if (!$('tour-card')) {
+    const box = document.createElement('div');
+    box.id = 'tour-box';
+    const card = document.createElement('div');
+    card.id = 'tour-card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-live', 'polite');
+    card.innerHTML = '<p id="tour-text"></p><div class="row"><span class="count" id="tour-count"></span><button id="tour-back">Back</button><button id="tour-next">Next</button><button id="tour-close" aria-label="Close the tour">Close</button></div>';
+    document.body.append(box, card);
+    $('tour-back').addEventListener('click', () => tourStep(-1));
+    $('tour-next').addEventListener('click', () => tourStep(1));
+    $('tour-close').addEventListener('click', endTour);
+  }
+  tour = { i: 0, settingsWereOpen: $('settings').classList.contains('open') };
+  tourStep(0);
+}
+function tourStep(dir) {
+  const steps = L(G.tour);
+  tour.i += dir;
+  // skip steps whose target isn't on screen (the quick buttons on a desktop)
+  for (;;) {
+    if (tour.i < 0) { tour.i = 0; dir = 1; }
+    if (tour.i >= steps.length) return endTour();
+    const st = steps[tour.i];
+    $('settings').classList.toggle('open', !!st.settings);
+    if (!st.target || tourTarget(st)) break;
+    tour.i += dir || 1;
+  }
+  const st = steps[tour.i];
+  $('tour-text').textContent = st.text;
+  $('tour-count').textContent = `${tour.i + 1} of ${steps.length}`;
+  $('tour-back').disabled = tour.i === 0;
+  $('tour-next').textContent = tour.i === steps.length - 1 ? 'Done' : 'Next';
+  placeTour();
+  $('tour-next').focus();
+}
+function placeTour() {
+  if (!tour) return;
+  const st = L(G.tour)[tour.i];
+  const el = tourTarget(st);
+  const box = $('tour-box');
+  const card = $('tour-card');
+  if (!el) { box.className = 'off'; card.className = 'bottom'; return; }
+  el.scrollIntoView({ block: 'nearest' });
+  const r = el.getBoundingClientRect();
+  box.className = '';
+  Object.assign(box.style, { left: `${r.left - 6}px`, top: `${r.top - 6}px`, width: `${r.width + 12}px`, height: `${r.height + 12}px` });
+  card.className = r.top + r.height / 2 > innerHeight / 2 ? 'top' : 'bottom';
+}
+function endTour() {
+  if (!tour) return;
+  $('settings').classList.toggle('open', tour.settingsWereOpen);
+  $('tour-box').remove();
+  $('tour-card').remove();
+  tour = null;
+  $('cmd').focus();
+}
+
 function wireUI() {
+  document.addEventListener('keydown', e => {
+    if (!tour) return;
+    if (e.key === 'Escape') { e.preventDefault(); endTour(); }
+    else if (e.key === 'ArrowRight' && e.target.id !== 'cmd') tourStep(1);
+    else if (e.key === 'ArrowLeft' && e.target.id !== 'cmd') tourStep(-1);
+  });
+  addEventListener('resize', placeTour);
   const cmd = $('cmd');
   cmd.maxLength = G.input_limit || 40;
   const submit = () => { const v = cmd.value; cmd.value = ''; command(v); cmd.focus(); };
@@ -773,6 +853,7 @@ function wireUI() {
   $('opt-clicks').addEventListener('change', e => { settings.clickable = e.target.checked; applySettings(); });
   $('opt-hl').addEventListener('change', e => { settings.highlight = e.target.value; applySettings(); });
   $('opt-histories').addEventListener('change', e => { settings.histories = e.target.checked; applySettings(); });
+  $('tour-btn').addEventListener('click', startTour);
   $('output').addEventListener('click', e => {
     const noun = e.target.dataset && e.target.dataset.noun;
     if (!settings.clickable || !noun) return;
@@ -814,6 +895,7 @@ async function boot() {
     meta('Welcome back. You are where you left off; type restart to begin again.');
   } else {
     S = freshState();
+    if (!store.get('dixon.seen') && G.tour_offer) { meta(G.tour_offer); store.set('dixon.seen', true); }
     if (params.has('scene') && ROOMS[params.get('scene')]) { S.room = params.get('scene'); S.visited = [S.room]; }
   }
   $('version').textContent = `v${G.version}`;
@@ -830,6 +912,8 @@ async function boot() {
     score,
     get state() { return S; },
     match: t => { const m = matchAction(norm(t)); return m ? m.a.id : null; },
+    tourStep: n => tourStep(n),
+    get touring() { return tour ? tour.i : null; },
     exitFor: t => { const e = moveExit(norm(t)); return e ? (e.to || '(blocked)') : null; },
     setup({ room: r, flags = [], items = [], money } = {}) {
       if (r) { S.room = r; S.turns = 0; if (!S.visited.includes(r)) S.visited.push(r); }

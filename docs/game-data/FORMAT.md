@@ -20,6 +20,9 @@ node test.mjs              # all tests; node test.mjs wrong   runs matching ones
 Test scripts live in `ch1/tests/`; see the top of `tools/test.mjs` for their
 format.
 
+The guided tour players see in the game (`tour`, or Settings > Take the tour)
+is data: the `tour` list in game.yaml, one step per part of the screen.
+
 `npm run tour` films a captioned video tour of the page, covering every part of
 the screen and every setting, into `tools/out/` (needs ffmpeg). `npm run tour -- preview`
 saves one still per scene instead. Re-film it after changing the interface.
