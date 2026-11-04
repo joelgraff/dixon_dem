@@ -199,6 +199,19 @@ actions:
         say: Nobody here has silver to spare for a government order.
       - say: You haven't anything to sell.
 
+  - id: sell_order_agent
+    phrases: [sell order to agent, give order to agent, sell paper to agent, give paper to agent, offer agent the order, sell agent the order, give agent the order, pay agent with order, pay with order, pay debt with order, sell order to rolette's man, trade order with agent, show order to agent, show agent the order]
+    when: [has:order, here:agent]
+    do:
+      - say: >-
+          {agent} unfolds it, reads it, and hands it back. "Paper on the
+          governor, payable in Vandalia. Mr. Rolette wants silver, friend. Find
+          a man bound for Galena if you want that turned into money."
+    else:
+      - when: [has:order]
+        say: There's nobody here to sell it to.
+      - say: You haven't anything to sell.
+
 # The veil. In 1830 the fog makes you look as if you belong: homespun, boots,
 # and a phone that looks like a tin case to anyone else. Using it openly
 # (these verbs, where someone can see) breaks that. Showing it to one person is
@@ -322,8 +335,14 @@ hints:
     text: Tar the canoe at the landing.
   - when: [era:1830, not 1830.rope_strung]
     text: Launch the canoe at the landing, then tie the rope to the post on the far bank.
+  - when: [era:1830, not 1830.wagon_free, not has:pole]
+    text: Eli's uncle Asa is stuck in the slough, south past Dixon's camp. He needs brush under the wheels and something long to lever with. Ask Ogee for his setting pole.
+  - when: [era:1830, not 1830.wagon_free, not 1830.brush_placed, not has:brush]
+    text: At the slough, cut willow brush with the axe.
+  - when: [era:1830, not 1830.wagon_free, not 1830.brush_placed]
+    text: Put the brush under the wagon's wheels.
   - when: [era:1830, not 1830.wagon_free]
-    text: Eli's uncle Asa is stuck in the slough, south past Dixon's camp. Cut brush with the axe and put it under the wheels, then lever the wagon with Ogee's pole. Ask Ogee for the pole.
+    text: Lever the wagon out with Ogee's pole.
   - when: [era:1830, not 1830.order_cashed, not has:order]
     text: Dixon's government order is worthless here, but a man bound for Galena might buy it. Offer to sell the order for Dixon.
   - when: [era:1830, not 1830.order_cashed]
@@ -338,4 +357,8 @@ hints:
     text: Chapter 1 is finished. Margaret's next puzzle is still to come.
   - when: [present.returned, 1830.lease_dixon]
     text: Go to the museum and talk to Margaret.
+  - when: [in:riverwalk]
+    text: Read the marker, then go down the steps to the water.
+  - when: [in:street]
+    text: Walk north up Hennepin to the river.
   - text: Margaret keeps mentioning the river and the marker. Talk to her, look around, then walk north up Hennepin to the river.

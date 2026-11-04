@@ -212,3 +212,33 @@ tests:
   - name: leaving before meeting Margaret says "the volunteer", not "a volunteer"
     steps:
       - {cmd: go outside, expect: [You thank the volunteer, West Fifth Street], not: [a volunteer], room: street}
+
+  - name: help on the riverfront points at the marker and the steps, not up Hennepin
+    url: scene=riverwalk
+    steps:
+      - {cmd: help, expect: [Read the marker, down the steps], not: walk north up Hennepin}
+
+  - name: help in 1830 is checked discreetly, out of sight
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.arrived, known.ogee, 1830.met_ogee]}
+      - {cmd: help, expect: [turn your back, tin case, No signal]}
+
+  - name: the slough hint moves on with each step
+    url: scene=slough
+    steps:
+      - setup: {flags: [1830.arrived, known.ogee, 1830.met_ogee, 1830.rope_strung], items: [axe]}
+      - {cmd: help, expect: Ask Ogee for his setting pole}
+      - setup: {items: [axe, pole]}
+      - {cmd: help, expect: cut willow brush, not: Ask Ogee}
+      - {cmd: cut brush, expect: willow}
+      - {cmd: help, expect: Put the brush under}
+      - {cmd: put brush under wheels, expect: Now the lever}
+      - {cmd: help, expect: Lever the wagon out}
+
+  - name: Rolette's agent turns down Dixon's paper
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.arrived, 1830.has_order], items: [order]}
+      - {cmd: sell order to agent, expect: [Mr. Rolette wants silver, bound for Galena], not: "can't think how"}
+

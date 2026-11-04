@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.6.7 (2026-11-04)
+- Playtest fixes: help on the street and riverfront now points at the next step instead of back up Hennepin; in 1830 help is checked discreetly (you turn your back and open the tin case), in keeping with the veil; the slough hint moves on step by step (pole, brush, wheels, lever); offering Dixon's order to Rolette's agent gets an in-character refusal instead of a parser shrug.
+
 ## 0.6.6 (2026-11-04)
 - The arrival in 1830 comes in three beats instead of one wall of text: answering the voice gives the fall and the rescue, your next move gives the clothes and the tin case, and the one after brings the rest of the landing (tar pot, wagons, the man in the good coat, the young man with the rifle) into focus. Until then the room description leaves them out.
 
