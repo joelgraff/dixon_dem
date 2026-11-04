@@ -5,7 +5,8 @@
   "scripts": {
     "check": "node check.mjs",
     "bump": "node bump.mjs",
-    "test": "node test.mjs"
+    "test": "node test.mjs",
+    "tour": "node tour.mjs"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

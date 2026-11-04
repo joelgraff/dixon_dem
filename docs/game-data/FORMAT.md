@@ -20,6 +20,10 @@ node test.mjs              # all tests; node test.mjs wrong   runs matching ones
 Test scripts live in `ch1/tests/`; see the top of `tools/test.mjs` for their
 format.
 
+`npm run tour` films a captioned video tour of the page, covering every part of
+the screen and every setting, into `tools/out/` (needs ffmpeg). `npm run tour -- preview`
+saves one still per scene instead. Re-film it after changing the interface.
+
 Every push bumps the game version (`npm run bump -- patch "what changed"`);
 the rules are at the top of `CHANGELOG.md`. To have git refuse a push that
 forgets, run `git config core.hooksPath .githooks` once in your clone.

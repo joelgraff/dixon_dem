@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.3.1 (2026-11-03)
+- npm run tour films a captioned video tour of play.html (every part of the screen and every setting) into tools/out/.
+
 ## 0.3.0 (2026-11-03)
 - Version number in the top bar, in Settings, and from the `version` command.
 - Saves record their version; a save from an incompatible version is refused
