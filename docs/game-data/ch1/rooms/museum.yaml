@@ -397,8 +397,8 @@ npcs:
       sorry: "\"Don't mention it.\""
     parting:
       - when: [present.returned]
-        text: "You nod to [volunteer] on your way out. \"Take care out there,\" she says, still watching the panel."
-      - text: "You thank [volunteer] and say you'll be back. \"Do come again,\" she says, pencil already moving. \"And mind the fog, it comes up quick.\""
+        text: "You nod to {volunteer} on your way out. \"Take care out there,\" she says, still watching the panel."
+      - text: "You thank {volunteer} and say you'll be back. \"Do come again,\" she says, pencil already moving. \"And mind the fog, it comes up quick.\""
 
 exits:
   - names: [outside, out, door, street, leave, exit]

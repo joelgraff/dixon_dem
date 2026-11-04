@@ -206,3 +206,7 @@ tests:
       - setup: {items: [phone, pole, shoe]}
       - {cmd: give shoe to ogee, expect: [Smith made that, takes the pole from you]}
       - {cmd: inventory, not: pole}
+
+  - name: leaving before meeting Margaret says "the volunteer", not "a volunteer"
+    steps:
+      - {cmd: go outside, expect: [You thank the volunteer, West Fifth Street], not: [a volunteer], room: street}
