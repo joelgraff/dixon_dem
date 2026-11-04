@@ -473,21 +473,22 @@ exits:
     blocked: The bank runs on both ways, thick with willow and brush. There's no path that way, and no reason to push into it.
 
 # The arrival comes in three beats: the rescue (wateredge answer_voice), then
-# the clothes and the tin case, then the rest of the landing. 1830.dazed keeps
-# the busier parts of the room out of the description until the last beat.
-on_turn:
-  - when: [1830.dazed, not 1830.dressed]
+# a held turn: whatever you try first, you're still in shock, Ogee tells you to
+# sit, and your senses come back (the clothes, the tin case, then the whole
+# landing). 1830.dazed keeps the busier parts of the room out of the
+# description until then, so nothing can be used before it's been seen.
+hold:
+  - when: [1830.dazed]
     say: >-
-      You sit up. Somewhere in the river you lost your own clothes, and came
-      out in wet wool trousers, a homespun shirt and a pair of cracked boots.
-      The only thing in your pocket is a flat tin case. You decide not to
-      think about that.
-    do: [{set: 1830.dressed}]
-  - when: [1830.dazed, 1830.dressed, turns>=2]
-    say: >-
-      As your head clears, the rest of the landing comes into focus. A
-      [tarpot|tar pot] smokes on a small fire, a [swab] standing up out of it
-      beside a hank of [oakum]. Loaded [wagons] wait at the head of the
-      landing, [teamsters] idle beside them. [agent] sits on a [crate] with
-      [papers] in his lap, and [eli] sits on a wagon tongue among them.
-    do: [{clear: 1830.dazed}]
+      You try to get up, and your legs have other ideas. Your hands won't stop
+      shaking. {ogee} puts a hand on your shoulder and pushes you back down onto
+      the gravel. "Sit a moment," he says. "Get the river out of you first."
+    do:
+      - say: >-
+          You sit, and breathe, and slowly stop shaking. Somewhere in the river
+          you lost your own clothes, and came out in wet wool trousers, a
+          homespun shirt and a pair of cracked boots. The only thing in your
+          pocket is a flat tin case. You decide not to think about that.
+      - say: Gradually the world comes back, and the landing with it.
+      - clear: 1830.dazed
+      - describe: true

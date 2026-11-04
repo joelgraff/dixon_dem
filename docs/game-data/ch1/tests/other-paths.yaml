@@ -15,9 +15,7 @@ tests:
       - {cmd: wait}
       - {cmd: wait, expect: [planks, handle a canoe]}
       - {cmd: answer, expect: [unmade, The ferry landing], room: landing, money: 0}
-      - {cmd: look, expect: [rocking hard in the high water, homespun shirt], not: "Rolette's agent sits"}
-      - {cmd: wait, expect: [comes into focus, "Rolette's agent sits"]}
-      - {cmd: look, expect: ["Rolette's agent sits", rocking hard in the high water]}
+      - {cmd: look, expect: [Sit a moment, homespun shirt, world comes back, "Rolette's agent sits", rocking hard in the high water]}
 
   - name: the fog closes after the repair
     url: scene=wateredge
@@ -126,8 +124,9 @@ tests:
     steps:
       - setup: {flags: [present.planks, present.voice]}
       - {cmd: answer, expect: ["the planks aren't there", hauls you over the side, "somebody who needed one", cracked canoe], room: landing, not: [Ogee, homespun shirt, Loaded wagons, good coat]}
-      - {cmd: look at canoe, expect: [fished you out of the river, homespun shirt, flat tin case], not: comes into focus}
-      - {cmd: talk to man in buckskin, expect: [Joseph Ogee, "So it's you", "Mine's halfway to St. Louis", comes into focus, good coat]}
+      - {cmd: tar the split, expect: [legs have other ideas, Sit a moment, homespun shirt, flat tin case, world comes back, tar pot, swab, good coat], not: [pack the split, Joseph Ogee]}
+      - {cmd: look at canoe, expect: fished you out of the river, not: Sit a moment}
+      - {cmd: talk to man in buckskin, expect: [Joseph Ogee, "So it's you", "Mine's halfway to St. Louis"]}
       - {cmd: ask ogee why, expect: "you owe me the use of them"}
       - {cmd: ask ogee about canoe, expect: fishing you out}
       - {cmd: look, expect: [swab, oakum]}
@@ -241,4 +240,14 @@ tests:
     steps:
       - setup: {flags: [1830.arrived, 1830.has_order], items: [order]}
       - {cmd: sell order to agent, expect: [Mr. Rolette wants silver, bound for Galena], not: "can't think how"}
+
+  - name: while you're still dazed, help and save work but don't use up the moment
+    url: scene=wateredge
+    steps:
+      - setup: {flags: [present.planks, present.voice]}
+      - {cmd: answer, room: landing}
+      - {cmd: help, expect: Talk to the man in the buckskin shirt, not: Sit a moment}
+      - {cmd: score, not: Sit a moment}
+      - {cmd: wait, expect: [Sit a moment, world comes back]}
+      - {cmd: wait, expect: Time passes, not: Sit a moment}
 

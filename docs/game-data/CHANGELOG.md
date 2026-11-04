@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.7.0 (2026-11-04)
+- After you're pulled from the river, your first action is held: you're still in shock, Ogee pushes you back down ("Sit a moment. Get the river out of you first."), you find the clothes and the tin case, and the landing comes back into view with its full description. Nothing on the landing can be used before it has been described. New engine feature: a room's hold answers the next command while a flag holds (help, save and the other meta commands still work), and a describe effect reprints the room.
+
 ## 0.6.7 (2026-11-04)
 - Playtest fixes: help on the street and riverfront now points at the next step instead of back up Hennepin; in 1830 help is checked discreetly (you turn your back and open the tin case), in keeping with the veil; the slough hint moves on step by step (pole, brush, wheels, lever); offering Dixon's order to Rolette's agent gets an in-character refusal instead of a parser shrug.
 

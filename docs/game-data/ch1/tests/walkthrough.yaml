@@ -22,6 +22,7 @@ tests:
       - {cmd: look at ridges, expect: [grooves, street fades]}
       - {cmd: look at water, expect: [planks, city is simply gone, handle a canoe], score: 13}
       - {cmd: answer, expect: [The ferry landing, 1830], score: 18, room: landing}
+      - {cmd: look, expect: [Sit a moment, world comes back, tar pot]}
       # Part 2: the high water and the rope
       - {cmd: talk to man in buckskin, expect: [Joseph Ogee, River's up past the pole, Dixon], score: 21}
       - {cmd: look at man in coat, expect: horse he means to take}

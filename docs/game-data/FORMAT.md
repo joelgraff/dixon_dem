@@ -109,6 +109,7 @@ A list of one-key maps, run in order.
 | `death: id` | show that death and the Restore / Restart / Retry prompt |
 | `rewind: 1830` | clear every `1830.` flag and 1830 item, set money to 0, take back their points |
 | `if: {when: [...], do: [...], else: [...]}` | conditional effects (`else` optional) |
+| `describe: true` | print the room description again, as `look` would |
 
 **Score** is never awarded by an effect. chapter.yaml lists the flags that
 score; the points are given the first time the flag is set, and taken back if
@@ -142,12 +143,19 @@ npcs:    {id: npc, ...}
 exits:   [exit, ...]
 actions: [action, ...]     # puzzle actions that belong to this room
 on_turn: [{when: [...], say: ..., do: [...]}]   # checked after each turn spent here
+hold: [{when: [...], say: ..., do: [...]}]      # while one holds, it answers the next command instead
 ```
 
 The room description the player sees is `look`, then the `room_line` of each
 visible noun and NPC that has one, in file order. Objects that change between
 states (the pedestal, the clock) put their changing sentence in `room_line`,
 so the description always matches the state.
+
+A room's `hold` stops the player acting for a moment: while an entry's `when`
+holds, any command except help, save, restore, restart, version, tour and
+score is answered by that entry's `say` and `do` instead, and still counts as a
+turn. Clear the flag in its `do` to let the player go (the landing uses this
+for the moment after you're pulled from the river).
 
 ### Nouns
 

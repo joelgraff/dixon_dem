@@ -6,7 +6,7 @@ const DATA = 'game-data/';
 const params = new URLSearchParams(location.search);
 const $ = id => document.getElementById(id);
 const L = v => (v === undefined || v === null ? [] : Array.isArray(v) ? v : [v]);
-const EFFECTS = ['set', 'clear', 'give', 'take', 'money', 'reveal', 'say', 'move', 'death', 'rewind', 'if'];
+const EFFECTS = ['set', 'clear', 'give', 'take', 'money', 'reveal', 'say', 'move', 'death', 'rewind', 'describe', 'if'];
 const SAVE_KEY = 'dixon.ch1.save';
 const AUTO_KEY = 'dixon.ch1.auto';
 const SETTINGS_KEY = 'dixon.settings';
@@ -145,6 +145,7 @@ function run(list) {
       case 'move': arrive(v); break;
       case 'death': die(v); break;
       case 'rewind': rewind(); break;
+      case 'describe': describe(); break;
       case 'if': run(ok(v.when) ? v.do : v.else); break;
       default: break;
     }
@@ -732,8 +733,13 @@ function finish(tick) {
   status();
   renderNotes();
 }
+// Commands a room's `hold` lets through: they don't act in the world.
+const HOLD_FREE = ['help', 'save', 'restore', 'restart', 'version', 'tour', 'score'];
 function handle(t) {
   let m;
+  // 0. a room may hold the player still for a turn (dazed, pinned, listening)
+  const hold = L(room().hold).find(e => ok(e.when));
+  if (hold && !HOLD_FREE.some(k => isMeta(t, k))) { if (hold.say) show(hold.say); run(hold.do); return; }
   // 1. puzzle actions (room first, then chapter-wide)
   const act = matchAction(t);
   if (act) return doAction(act);
