@@ -1,0 +1,276 @@
+id: ch1
+title: "Chapter 1: Ogee's Ferry"
+start: museum
+max_score: 100
+
+# Every room file, in the order the browser loads them (it can't list folders).
+rooms: [museum, street, riverwalk, wateredge, landing, cabin, camp, northlanding, slough]
+
+# Flags that score. Points are given the first time the flag is set and taken
+# back if a rewind clears it. Other flags need no declaration, but listing the
+# important ones here documents them.
+flags:
+  present.panel_read:      {score: 2, desc: Read the founding panel}
+  present.crossword_read:  {score: 2, desc: Read Margaret's crossword}
+  present.signed:          {score: 2, desc: Signed the guestbook}
+  present.sticker_peeled:  {score: 2, desc: Peeled back the bumper sticker}
+  present.marker_read:     {score: 2, desc: Read the marker's sanded line}
+  present.planks:          {score: 3, desc: Watched the water until the planks appeared}
+  present.voice:           {desc: The 1830 bank and the voice are showing}
+  present.returned:        {desc: Has come back from 1830 at least once}
+  1830.arrived:            {score: 5, desc: Answered the voice}
+  1830.met_ogee:           {score: 3, desc: Heard from Ogee why he can't cross}
+  1830.has_rope:           {score: 3, desc: Got the rope from Dixon}
+  1830.has_axe:            {score: 1, desc: Took the axe}
+  1830.has_paddle:         {score: 4, desc: Cut a paddle}
+  1830.canoe_tarred:       {score: 5, desc: Tarred the canoe}
+  1830.canoe_across:       {desc: The canoe is at the north landing}
+  1830.rope_strung:        {score: 7, desc: Tied the rope on the north bank}
+  1830.met_eli:            {score: 2, desc: Talked to Eli about his uncle}
+  1830.has_pole:           {score: 3, desc: Borrowed Ogee's setting pole}
+  1830.has_brush:          {score: 4, desc: Cut brush}
+  1830.brush_placed:       {desc: Brush is under the wheels}
+  1830.wagon_free:         {score: 10, desc: Freed Asa's wagon}
+  1830.shoe_lost:          {desc: The pole shoe is in the mud}
+  1830.has_order:          {score: 3, desc: Got Dixon's order}
+  1830.order_cashed:       {score: 10, desc: Sold the order to Asa}
+  1830.lease_dixon:        {score: 15, desc: Gave Dixon the $100; the lease is in his name}
+  1830.lease_player:       {desc: Wrong fix - paid the agent yourself}
+  1830.shoe_returned:      {score: 8, desc: Returned the pole shoe to Ogee}
+  1830.fog:                {desc: The chapter-end fog has come in}
+  chapter1.done:           {score: 4, desc: Talked to Margaret after the repair}
+
+# Score check: 13 present + 83 in 1830 + 4 at the end = 100.
+
+vars:
+  town:
+    - {when: [1830.lease_dixon], text: Dixon}
+    - {when: [1830.lease_player], text: Landing}
+    - {text: Rolette}
+  town_in:                 # "It was in {town_in} that I really found myself"
+    - {when: [1830.lease_dixon], text: Dixon}
+    - {when: [1830.lease_player], text: the Landing}
+    - {text: Rolette}
+
+start_items: [phone]
+start_money: 0
+
+items:
+  phone:
+    name: phone
+    aliases: [cell, cellphone, mobile]
+    look:
+      - when: [era:1830]
+        text: The screen is black. When you hold the button it lights for a moment, with no bars and no clock, then goes dark again.
+      - when: [in:wateredge, turns>=4, not 1830.lease_dixon]
+        text: The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.
+      - when: [1830.lease_dixon]
+        text: Battery at 58 percent, full signal. The clock reads 4:21 and, while you watch, turns to 4:22.
+      - text: Battery at 61 percent, full signal. Nothing new.
+  rope:
+    era: 1830
+    name: coil of rope
+    aliases: [rope, coil, hemp, line]
+    look: A heavy coil of new hemp, every foot Dixon could buy in Peoria.
+  axe:
+    era: 1830
+    name: axe
+    aliases: [hatchet]
+    look: Ogee's axe, its edge sharp enough to catch a thumbnail.
+  paddle:
+    era: 1830
+    name: paddle
+    aliases: [oar]
+    look: A length of split oak shaved into something like a paddle. It will do.
+  pole:
+    era: 1830
+    name: setting pole
+    aliases: [pole, setting pole, ash pole]
+    look:
+      - when: [1830.shoe_lost, not 1830.shoe_returned]
+        text: Ogee's ash setting pole, lighter at the foot now that its iron shoe is gone.
+      - text: Ogee's ash setting pole, shod with a cone of forged iron.
+  brush:
+    era: 1830
+    name: bundle of brush
+    aliases: [brush, willow, willows, bundle]
+    look: An armful of willow, cut and bundled.
+  shoe:
+    era: 1830
+    name: pole shoe
+    aliases: [shoe, iron shoe, pole shoe, iron]
+    look: A cone of forged iron, dented on one side and caked with mud.
+  order:
+    era: 1830
+    name: Dixon's order
+    aliases: [order, paper, warrant, governor's order]
+    look: A folded order on Governor Edwards at Vandalia, for seventy-two dollars and change, in a careful clerk's hand.
+
+# The chapter-end fog: while it holds, every exit in an 1830 room is blocked
+# and the room_line is added to every 1830 room description.
+fog_lock:
+  when: [1830.fog]
+  room_line: The fog has closed in around you, thick and white, and a rough hand has found your sleeve.
+  blocked: The fog is too thick to go anywhere. You take a step and lose all sense of direction, and Ogee's hand tightens on your sleeve. "Not that way. Take my arm."
+
+deaths:
+  pole_high_water: >-
+    You push the ferry off. The current takes it, and you with it, and the
+    landing is a long way behind before you think of letting go. Ogee did
+    mention the river was up. Several times.
+  canoe_sinks: >-
+    Halfway across, the split seam opens like a mouth. The Rock River accepts
+    the canoe, and then you, with equal enthusiasm.
+  no_paddle: >-
+    The current takes the canoe gently and completely. Somewhere past what
+    will one day be Sterling, you reflect that a paddle would have helped.
+  swim: >-
+    The river in April is colder than it looks, and it looks very cold.
+  railing: >-
+    You swing a leg over the railing for a better look. The riprap is exactly
+    as hard as it looked from up there.
+
+# Actions that work in several rooms.
+actions:
+  - id: follow_ogee
+    phrases: [take ogee's arm, take his arm, take arm, follow ogee, follow him, stay close, go with ogee]
+    when: [1830.fog]
+    do:
+      - clear: [1830.fog, present.planks, present.voice]
+      - set: present.returned
+      - say: >-
+          You take Ogee's arm and walk blind through the white, step by step.
+          His hand lets go of your sleeve somewhere along the way. The planks
+          give way to concrete, the knocking fades, and the city sounds come
+          back one by one.
+      - move: wateredge
+    else:
+      - say: There's nobody to follow just now.
+
+  - id: go_to_museum
+    phrases: [go to museum, go back to museum, return to museum, museum, go to historic center, walk to museum, go to margaret]
+    when: [present.returned, {any: [in:wateredge, in:riverwalk]}, not present.planks]
+    do:
+      - say: You make your way back to the Historic Center, the river walk and Hennepin passing in a blur of ordinary evening.
+      - move: museum
+    else:
+      - when: [era:1830]
+        say: The museum is a hundred and ninety-odd years off, give or take a fog.
+      - say: The Historic Center is back along Hennepin; you'll have to walk it.
+
+  - id: swim
+    phrases: [swim, swim across, wade, wade in, cross river, swim river, wade across, jump in river, dive in]
+    when: [{any: [in:landing, in:northlanding]}]
+    do:
+      - death: swim
+    else:
+      - when: [in:wateredge]
+        say: You get as far as the bottom step. The water is colder than a warm evening has any right to make it, and you think better of it.
+      - say: There's no water here to drown in, which is something.
+
+  - id: sell_order
+    phrases: [sell order to asa, give order to asa, sell the order, trade paper, trade order, cash the order, sell paper to asa, give paper to asa, offer asa the order, sell asa the order]
+    when: [has:order, here:asa]
+    do:
+      - take: order
+      - set: 1830.order_cashed
+      - money: 60
+      - say: >-
+          Asa holds it to the light. "Seventy-two and change, on the governor.
+          I can pass that in Galena." He counts out silver. "Sixty, and I'm
+          doing you a kindness." You now have ${money}.
+    else:
+      - when: [has:order]
+        say: Nobody here has silver to spare for a government order.
+      - say: You haven't anything to sell.
+
+# NPCs who move between rooms. `at` is a variant list of rooms.
+npcs:
+  asa:
+    name: Asa
+    unknown: a big man in a sweat-dark shirt
+    aliases: [asa, big man, man, uncle, wagon master, eli's uncle]
+    at:
+      - when: [1830.wagon_free]
+        room: landing
+      - room: slough
+    room_line:
+      - when: [1830.wagon_free]
+        text: "[asa] stands by his wagons, in a better temper than before."
+      - text: "[asa] stands at the wheel, swearing at all of it."
+    look: A big man in a sweat-dark shirt, mud to the thighs, with the look of someone who has been losing an argument with a wagon since sunup.
+    talk:
+      - when: [not known.asa]
+        text: >-
+          "Asa. That boy's uncle." He wipes his hands, which makes them
+          muddier. "My bar broke an hour back. The wheels want brush under
+          them, something to bite on, and I want a long lever under that hind
+          axle. Get me both and it's forty dollars, silver."
+        do: [{set: known.asa}]
+      - when: [1830.wagon_free]
+        text: "\"I owe you, and I don't like owing. Anything I can do, say so.\""
+      - text: "\"Brush and a lever. I'm not getting any younger, and neither is that wagon.\""
+    topics:
+      - keys: [wagon, wheels, slough, mud, stuck, bar, lever, brush]
+        say: "\"Willow brush under the hind wheels, and something long under the axle. Ogee's got a setting pole would do, if he'd part with it.\""
+      - keys: [galena, diggings, mines, lead, flour, tools]
+        say: "\"Bound for the diggings with flour and tools. Merchants in Galena pay silver, and they'll take good paper too, at a price.\""
+      - keys: [paper, order, governor, silver, money, cash]
+        say:
+          - when: [has:order]
+            text: "\"A government order? Let's see it.\" He holds out a hand."
+          - text: "\"I've silver for the road, and a little over. A man who carries paper to Galena can turn it into silver, if he's patient.\""
+      - keys: [eli, nephew, boy]
+        say: "\"My sister's boy. His pa went with the militia in '27 and didn't come back. I said I'd see him to the diggings and home again.\""
+      - keys: [ferry, river, crossing, ogee]
+        say:
+          - when: [1830.rope_strung]
+            text: "\"Ogee's got her running on a rope. Never seen the like. We'll be over by dark.\""
+          - text: "\"Can't cross anyway till the river drops. Might as well be stuck here as there.\""
+    fallback: "Asa spits. \"No idea.\""
+    social:
+      hello: Asa grunts a greeting.
+      thanks: "\"Thank me when she's out.\""
+      bye: "\"Mind your boots.\""
+      how: "\"Muddy.\""
+      sorry: "\"Nothing to be sorry about.\""
+    parting: You nod to [asa], who nods back without letting go of the wheel.
+
+# What `help` says: the first entry whose `when` holds. Help is the one place
+# the game may name commands outright.
+hints:
+  - when: [1830.fog]
+    text: The fog has you. Take Ogee's arm.
+  - when: [in:wateredge, present.voice]
+    text: Someone is calling from the water. Answer him.
+  - when: [in:wateredge, present.planks]
+    text: The air has changed. Look around.
+  - when: [in:wateredge, not 1830.lease_dixon]
+    text: The water is hard to stop watching. Wait a little, then look at the water.
+  - when: [era:1830, not 1830.met_ogee]
+    text: Talk to the man in the buckskin shirt.
+  - when: [era:1830, not 1830.rope_strung, not has:rope]
+    text: Ogee needs Dixon's rope carried across the river. Dixon is camped up the trail, south past the cabin. Ask him for the rope.
+  - when: [era:1830, not 1830.rope_strung, not has:paddle]
+    text: You'll need a paddle. The oak by the cabin splits clean, if you take the axe. Then cut a paddle.
+  - when: [era:1830, not 1830.rope_strung, not 1830.canoe_tarred]
+    text: Tar the canoe at the landing.
+  - when: [era:1830, not 1830.rope_strung]
+    text: Launch the canoe at the landing, then tie the rope to the post on the far bank.
+  - when: [era:1830, not 1830.wagon_free]
+    text: Eli's uncle Asa is stuck in the slough, south past Dixon's camp. Cut brush with the axe and put it under the wheels, then lever the wagon with Ogee's pole. Ask Ogee for the pole.
+  - when: [era:1830, not 1830.order_cashed, not has:order]
+    text: Dixon's government order is worthless here, but a man bound for Galena might buy it. Offer to sell the order for Dixon.
+  - when: [era:1830, not 1830.order_cashed]
+    text: Sell the order to Asa.
+  - when: [era:1830, money>=100]
+    text: You have the hundred. Give it to Dixon, not the agent. (give dixon 100)
+  - when: [era:1830]
+    text: Raise a hundred dollars in silver for Dixon.
+  - when: [1830.lease_player]
+    text: Something went wrong in 1830. Go back to the water's edge, wait for the fog, and cross again.
+  - when: [chapter1.done]
+    text: Chapter 1 is finished. Margaret's next puzzle is still to come.
+  - when: [present.returned, 1830.lease_dixon]
+    text: Go to the museum and talk to Margaret.
+  - text: Margaret keeps mentioning the river and the marker. Talk to her, look around, then walk north up Hennepin to the river.

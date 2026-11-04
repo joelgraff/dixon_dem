@@ -1,0 +1,102 @@
+tests:
+  - name: wrong fix, then the retry rewinds 1830
+    url: scene=landing
+    steps:
+      - setup: {flags: [present.returned, known.ogee, known.agent, known.volunteer, 1830.arrived], money: 100}
+      - {cmd: pay agent, expect: [Whose name goes on the paper, Take my arm], money: 0}
+      - {cmd: take arm, room: wateredge}
+      - {cmd: go to museum, room: museum}
+      - {cmd: read panel, expect: newcomer whose name was not recorded}
+      - {cmd: talk to margaret, expect: [Something's gone wrong, look at the water again]}
+      - {cmd: out, room: street}
+      - {cmd: north, room: riverwalk}
+      - {cmd: down, room: wateredge}
+      - {cmd: wait}
+      - {cmd: wait}
+      - {cmd: wait}
+      - {cmd: wait}
+      - {cmd: look at water, expect: planks}
+      - {cmd: look, expect: handle a canoe}
+      - {cmd: answer, expect: [unmade, The ferry landing], room: landing, money: 0}
+      - {cmd: look, expect: ["Rolette's agent sits", rocking hard in the high water]}
+
+  - name: the fog closes after the repair
+    url: scene=wateredge
+    steps:
+      - setup: {flags: [1830.lease_dixon, present.returned]}
+      - {cmd: wait}
+      - {cmd: wait}
+      - {cmd: wait}
+      - {cmd: wait}
+      - {cmd: look at water, expect: just the river, not: planks}
+
+  - name: death - poling the ferry in high water, then retry
+    url: scene=landing
+    steps:
+      - {cmd: pole ferry, expect: [Several times, You have died, Restore, Restart or Retry]}
+      - {cmd: look, expect: Restore, Restart or Retry}
+      - {cmd: retry, expect: [a moment earlier, The ferry landing], room: landing}
+
+  - name: death - launching the cracked canoe
+    url: scene=landing
+    steps:
+      - {cmd: launch canoe, expect: [equal enthusiasm, You have died]}
+
+  - name: death - no paddle
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.canoe_tarred], items: [rope]}
+      - {cmd: launch canoe, expect: [paddle would have helped, You have died]}
+
+  - name: death - swimming
+    url: scene=landing
+    steps:
+      - {cmd: swim, expect: [colder than it looks, You have died]}
+
+  - name: death - the riverwalk railing, then restart
+    url: scene=riverwalk
+    steps:
+      - {cmd: jump over railing, expect: [riprap, You have died]}
+      - {cmd: restart, expect: Rolette Historic Center, room: museum, score: 0}
+
+  - name: save and restore
+    steps:
+      - {cmd: sign guestbook, score: 2}
+      - {cmd: save, expect: Game saved}
+      - {cmd: out, room: street}
+      - {cmd: restore, expect: Game restored, room: museum, score: 2}
+
+  - name: no rope, no crossing
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.canoe_tarred], items: [paddle]}
+      - {cmd: launch canoe, expect: "Fetch Dixon's rope", room: landing}
+      - {cmd: north, expect: Not in this water, room: landing}
+
+  - name: Asa needs brush before the lever
+    url: scene=slough
+    steps:
+      - setup: {items: [pole]}
+      - {cmd: lever wagon with pole, expect: Brush under the wheels first, money: 0}
+
+  - name: Dixon wants the full hundred
+    url: scene=camp
+    steps:
+      - setup: {money: 40}
+      - {cmd: give dixon 40, expect: "The man wants a hundred", money: 40}
+
+  - name: clarifications use display names
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.wagon_free]}
+      - {cmd: talk to man, expect: [Which do you mean, man in a buckskin shirt, big man], not: asa}
+
+  - name: unknown things are answered in the narrator's voice
+    steps:
+      - {cmd: flibber the gizmo, not: undefined}
+      - {cmd: look at unicorn, expect: "You don't see that here"}
+
+  - name: help points at the next step
+    url: scene=landing
+    steps:
+      - {cmd: help, expect: Talk to the man in the buckskin shirt}
