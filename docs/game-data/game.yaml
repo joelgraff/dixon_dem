@@ -3,7 +3,7 @@
 
 # Release version (see CHANGELOG.md for the rules). Bump it, the ?v= in
 # play.html and the changelog together; the checker verifies they match.
-version: 0.4.0
+version: 0.4.1
 # Bump when a change would break saved games (renamed or removed flags,
 # items or rooms). Saves from another save_compat are refused, not loaded.
 save_compat: 1
@@ -91,7 +91,7 @@ death_screen:
 # step outlines `target` (a CSS selector in play.html); `label: true` outlines
 # the whole setting; `settings: true` opens the Settings panel for the step.
 # Steps whose target is hidden (the quick buttons on a desktop) are skipped.
-tour_offer: "New here? Type tour for a quick look around the screen."
+tour_offer: "Take a quick look around the screen, or type tour at any time."
 tour:
   - text: "A quick look around the screen. Use Next and Back, or press Esc to stop."
   - target: "#bar-top"
