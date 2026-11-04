@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.6.1 (2026-11-03)
+- The crossing to 1830 is quicker and forgiving: the fog builds for two moves and takes you on the third whatever you do (sooner if you look at the water), the planks and the voice arrive together, and walking toward the voice (north, forward, into the fog, out along the planks, follow the voice) answers it.
+
 ## 0.6.0 (2026-11-03)
 - The veil: in 1830 the fog dresses you in homespun, and your phone looks like a tin case to everyone else. Show it to someone, light it or take pictures where people can see, and whoever saw goes cold until you leave; do it again and the fog takes you back to the present and 1830 starts over. Ogee has seen it before and doesn't mind. People can now be called by what the narration calls them ("the tall man").
 

@@ -76,7 +76,7 @@ items:
     look:
       - when: [era:1830]
         text: A flat tin case, the kind a man keeps tobacco in. Open it, and it's your phone, which came through the river better than you did. No bars, and the clock is stuck at 4:17, but the battery reads 61 percent and the assistant still opens. You could ask it for help. To anyone watching, you suspect, it would look like a great deal more than a tin.
-      - when: [in:wateredge, turns>=4, not 1830.lease_dixon]
+      - when: [in:wateredge, turns>=2, not 1830.lease_dixon]
         text: The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.
       - when: [1830.lease_dixon]
         text: Battery at 58 percent, full signal. The clock reads 4:21 and, while you watch, turns to 4:22.
@@ -309,11 +309,9 @@ hints:
   - when: [1830.fog]
     text: The fog has you. Take Ogee's arm.
   - when: [in:wateredge, present.voice]
-    text: Someone is calling from the water. Answer him.
-  - when: [in:wateredge, present.planks]
-    text: The air has changed. Look around.
+    text: Someone is calling from the water. Answer him, or walk out toward him.
   - when: [in:wateredge, not 1830.lease_dixon]
-    text: The water is hard to stop watching. Wait a little, then look at the water.
+    text: The water is hard to stop watching. Look at the water, or just wait a moment.
   - when: [era:1830, not 1830.met_ogee]
     text: Talk to the man in the buckskin shirt.
   - when: [era:1830, not 1830.rope_strung, not has:rope]

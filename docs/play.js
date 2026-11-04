@@ -457,6 +457,7 @@ function fogLocked() {
 }
 function go(exit) {
   if (fogLocked()) return say(CH.fog_lock.blocked);
+  if (exit.action && ok(exit.when)) return doAction({ a: [...L(room().actions), ...L(CH.actions)].find(a => a.id === exit.action), n: null });
   if (!exit.to || !ok(exit.when)) return say(textOf(exit.blocked) || G.cant_go);
   if (exit.farewell !== false) farewell();
   arrive(exit.to, textOf(exit.text));

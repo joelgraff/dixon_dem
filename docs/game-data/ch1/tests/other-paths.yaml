@@ -13,10 +13,7 @@ tests:
       - {cmd: down, room: wateredge}
       - {cmd: wait}
       - {cmd: wait}
-      - {cmd: wait}
-      - {cmd: wait}
-      - {cmd: look at water, expect: planks}
-      - {cmd: look, expect: handle a canoe}
+      - {cmd: wait, expect: [planks, handle a canoe]}
       - {cmd: answer, expect: [unmade, The ferry landing], room: landing, money: 0}
       - {cmd: look, expect: ["Rolette's agent sits", rocking hard in the high water]}
 
@@ -159,3 +156,19 @@ tests:
       - {cmd: take a picture of the post, expect: comes out about the way}
       - {cmd: call on phone, expect: nobody to call}
       - {cmd: look at tin, expect: tin case}
+
+  - name: the crossing comes on its own, and walking toward the voice answers it
+    url: scene=riverwalk
+    steps:
+      - {cmd: down, room: wateredge}
+      - {cmd: look}
+      - {cmd: look around}
+      - {cmd: look, expect: [planks, handle a canoe]}
+      - {cmd: go north, expect: "the planks aren't there", room: landing}
+
+  - name: before the fog, heading for the water still says no
+    url: scene=riverwalk
+    steps:
+      - {cmd: down, room: wateredge}
+      - {cmd: go north, expect: you'd have to be a fool, room: wateredge}
+      - {cmd: walk out on the planks, expect: Nothing answers, room: wateredge}
