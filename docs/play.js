@@ -350,18 +350,38 @@ function arrive(id, text) {
   say(textOf(room().name), { cls: 'heading' });
   describe();
 }
+// Finds the exit a phrase names: "north", "the stairs", "down the steps to
+// the water", "downstairs". Leading direction and filler words are peeled off
+// one at a time, and "X to Y" tries both halves.
 function findExit(word) {
-  let w = norm(word);
-  const dirs = { n: 'north', s: 'south', e: 'east', w: 'west', u: 'up', d: 'down' };
-  for (let i = 0; i < 4 && w; i++) {
-    const t = dirs[w] || w;
-    const hit = L(room().exits).find(e => L(e.names).map(norm).includes(t));
-    if (hit) return hit;
-    const next = w.replace(/^(the|to|toward|towards|into|through|along|onto|on|over|across|back to|back|up to|down to)\s+/, '');
-    if (next === w) break;
-    w = next;
-  }
+  const dirs = { n: 'north', s: 'south', e: 'east', w: 'west', u: 'up', d: 'down', downstairs: 'down', upstairs: 'up', downhill: 'down', uphill: 'up' };
+  const names = e => L(e.names).map(norm);
+  const tryPhrase = phrase => {
+    let w = norm(phrase).replace(/[.!?]+$/, '');
+    for (let i = 0; i < 6 && w; i++) {
+      const t = dirs[w] || w;
+      const hit = L(room().exits).find(e => names(e).includes(t));
+      if (hit) return hit;
+      const next = w.replace(/^(the|a|to|toward|towards|into|through|along|onto|on|over|across|back to|back|up to|down to|up|down|out of|out|in|inside|around)\s+/, '');
+      if (next === w) break;
+      w = next;
+    }
+    return null;
+  };
+  const whole = tryPhrase(word);
+  if (whole) return whole;
+  const parts = norm(word).split(/\s+(?:to|toward|towards|into)\s+/);
+  for (const p of parts.length > 1 ? parts.reverse() : []) { const hit = tryPhrase(p); if (hit) return hit; }
   return null;
+}
+// Movement-shaped commands: "go down the stairs", "take the path", "climb up".
+const MOVE_RE = /^(?:go|walk|head|run|step|travel|climb|descend|ascend|take|use|follow)\s+(.+)$/;
+const MOVE_STRICT = /^(?:go|walk|head|run|step|travel)\s/;
+function moveExit(t) {
+  const m = t.match(MOVE_RE);
+  if (m) { const e = findExit(m[1]); if (e) return e; }
+  if (/^(descend|ascend)$/.test(t)) return findExit(t === 'descend' ? 'down' : 'up');
+  return findExit(t);
 }
 function fogLocked() {
   return String(room().era) === '1830' && CH.fog_lock && ok(CH.fog_lock.when);
@@ -659,13 +679,9 @@ function handle(t) {
   if (isMeta(t, 'version')) return meta(`Dixon ${G.version}, ${CH.title}.`);
   if (isMeta(t, 'restart')) { pending = { kind: 'restart' }; return meta('Restart from the beginning? (yes or no)'); }
   // 3. movement
-  if ((m = t.match(/^(?:go|walk|head|run|step|move|climb|travel)\s+(.+)$/))) {
-    const e = findExit(m[1]);
-    if (e) return go(e);
-    if (!/^(?:climb)/.test(t)) return say(G.cant_go);
-  }
-  const bare = findExit(t);
-  if (bare) return go(bare);
+  const exit = moveExit(t);
+  if (exit) return go(exit);
+  if (MOVE_STRICT.test(t)) return say(G.cant_go);
   if (/^(north|south|east|west|up|down|n|s|e|w|u|d)$/.test(t)) return say(G.cant_go);
   // 4. conversation
   if ((m = t.match(/^(?:talk to|talk with|speak to|speak with|chat with|tell)\s+(.+?)\s+about\s+(.+)$/))) return askAbout(m[1], m[2]);
@@ -814,6 +830,7 @@ async function boot() {
     score,
     get state() { return S; },
     match: t => { const m = matchAction(norm(t)); return m ? m.a.id : null; },
+    exitFor: t => { const e = moveExit(norm(t)); return e ? (e.to || '(blocked)') : null; },
     setup({ room: r, flags = [], items = [], money } = {}) {
       if (r) { S.room = r; S.turns = 0; if (!S.visited.includes(r)) S.visited.push(r); }
       flags.forEach(setFlag);
