@@ -272,3 +272,10 @@ tests:
       - setup: {flags: [1830.arrived]}
       - {cmd: talk to woman, expect: [Madeline Ogee, My husband keeps the ferry], not: "his wife"}
 
+  - name: chopping wood with the axe makes the paddle
+    url: scene=cabin
+    steps:
+      - setup: {flags: [1830.arrived, 1830.axe_ok, 1830.has_axe], items: [axe]}
+      - {cmd: chop wood, expect: something like a paddle}
+      - {cmd: chop wood, expect: one is plenty}
+

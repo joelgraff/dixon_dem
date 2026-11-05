@@ -126,7 +126,7 @@ npcs:
 
 actions:
   - id: cut_paddle
-    phrases: [cut paddle, make paddle, carve paddle, split oak for paddle, chop paddle, make a paddle, cut a paddle, shape paddle, carve oak, use axe on oak, split oak, chop oak, cut oak, make paddle from oak, carve paddle from oak, cut paddle from oak, split oak with axe, whittle paddle, carve a paddle, shape oak, shape oak into paddle, make oar, cut oar, carve oar]
+    phrases: [cut paddle, make paddle, carve paddle, split oak for paddle, chop paddle, make a paddle, cut a paddle, shape paddle, carve oak, use axe on oak, split oak, chop oak, cut oak, make paddle from oak, carve paddle from oak, cut paddle from oak, split oak with axe, whittle paddle, carve a paddle, shape oak, shape oak into paddle, make oar, cut oar, carve oar, chop wood, cut wood, split wood, chop the wood, cut the wood, split the wood, chop log, chop logs, split log, split logs, chop the oak, split the oak, cut the oak, chop, use axe, use the axe, use axe on wood, use axe on block, use axe on log, chop firewood, chop a log, swing axe]
     when: [has:axe, not 1830.has_paddle]
     do:
       - give: paddle
