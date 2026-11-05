@@ -88,23 +88,26 @@ npcs:
     talk:
       - when: [not known.dixon]
         text: >-
-          "John Dixon," he says, and his handshake is firm. "I came up to lease
-          Ogee's ferry and found Rolette's man sitting on it. I have the
-          governor's own paper and not a coin to spend, but put a hundred
-          dollars in silver in my hand and the lease is signed by dark." He
-          glances at the wagon. "And if you mean to help Ogee across that
-          river, there's rope on the tailboard. I meant to run her on a line."
+          "John Dixon," he says, and his handshake is firm, though his eyes
+          take in your wet clothes before they come back to your face. "I came
+          up from Peoria to lease Ogee's ferry, and found Rolette's man sitting
+          on it, so for now I'm waiting to see how that comes out." He glances
+          at the wagon. "If you mean to help Ogee across that river, though,
+          there's rope on the tailboard. I meant to run her on a line."
         do: [{set: known.dixon}]
       - when: [1830.has_order, not 1830.order_cashed]
         text: "\"Have you had any luck with that paper?\""
       - when: [money>=100]
         text: "{dixon's} eyes go to your pocket and then politely away again."
-      - text: "\"Bring me a hundred in silver, and the lease is signed by dark.\""
+      - when: [1830.dixon_short]
+        text: "\"Bring me a hundred in silver, and the lease is signed by dark.\""
+      - text: "{dixon} nods to you. \"I'm still waiting on Rolette's man, and he's in no hurry.\""
     topics:
-      - keys: [lease, ferry, ogee, buy]
-        say: "\"Ogee and I have come to terms. I take the ferry and the debt with it, and he keeps a roof over his family. All it wants is a hundred in silver to get Rolette's man off the dock.\""
+      - keys: [lease, ferry, ogee, buy, money, silver, hundred, waiting, short, trouble, terms]
+        say: "\"Ogee and I have come to terms. I take the ferry and the debt with it, and he keeps a roof over his family. All it wants is a hundred in silver to get Rolette's man off the dock, and that's the trouble.\" He turns the folded paper over in his hands. \"I have the governor's own paper and not a coin to spend.\""
+        do: [{set: 1830.dixon_short}]
       - keys: [agent, rolette, creditor, coat, man]
-        say: "\"That's Rolette's man. The worst of it is that he isn't wrong; the money's owed.\""
+        say: "\"That's Rolette's man. The worst of it is that he isn't wrong; the money's owed, and he'll take the boat for it unless somebody puts a hundred in silver in his hand.\" He looks at the paper in his own hand and doesn't say whose silver he means."
       - keys: [rope, line, rope ferry, hemp]
         say:
           - when: [1830.rope_strung]

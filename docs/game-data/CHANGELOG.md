@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.7.4 (2026-11-05)
+- Dixon is more guarded at first: he introduces himself, says he came to lease Ogee's ferry and found Rolette's man sitting on it, and points you to the rope. He only admits he's a hundred dollars in silver short when you ask about the lease, the terms or the money; asking about Rolette's man hints at it. Until then he's waiting to see how it comes out.
+
 ## 0.7.3 (2026-11-05)
 - At the cabin, "chop wood", "split wood", "chop log", "use axe" and similar now work: with the axe in hand they split the oak into a paddle.
 

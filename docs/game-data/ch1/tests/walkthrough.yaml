@@ -33,7 +33,8 @@ tests:
       - {cmd: take axe, expect: work the axe free, score: 24}
       - {cmd: cut paddle, expect: paddle, score: 28}
       - {cmd: south, expect: "Dixon's camp", room: camp}
-      - {cmd: talk to tall man, expect: [John Dixon, hundred dollars in silver, rope]}
+      - {cmd: talk to tall man, expect: [John Dixon, "Rolette's man", rope], not: hundred}
+      - {cmd: ask dixon about the lease, expect: [hundred in silver, "governor's own paper"]}
       - {cmd: ask dixon for rope, expect: Dixon says, score: 31}
       - {cmd: north, room: cabin}
       - {cmd: north, room: landing}
