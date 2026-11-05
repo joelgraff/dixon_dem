@@ -200,7 +200,7 @@ actions:
           do:
             - rewind: 1830
             - say: Something is different as you go, because whatever you did last time has been unmade, and yet you remember it anyway.
-      - set: [1830.arrived, 1830.dazed]
+      - set: [1830.arrived, 1830.dazed, seen.ogee]
       - say: >-
           You call back and walk out along the planks toward the voice, and the
           knocking is very close now when you take one more step and find that

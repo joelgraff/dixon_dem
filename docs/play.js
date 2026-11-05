@@ -222,10 +222,14 @@ function npcIdsIn(rid) {
 }
 const npcHere = id => npcIdsIn(S.room).includes(id);
 const known = id => S.flags.has(`known.${id}`);
+// An unnamed person is "a man in a buckskin shirt" the first time the player
+// sees them and "the man in the buckskin shirt" after that (`seen.<id>`).
+const definite = s => String(s).replace(/\b(a|an)\b/gi, 'the');
+const markSeen = id => { if (!known(id)) S.flags.add(`seen.${id}`); };
 function npcName(id, full = false) {
   const n = npcDef(id);
   if (!n) return id;
-  if (!known(id)) return n.unknown || n.name;
+  if (!known(id)) return S.flags.has(`seen.${id}`) ? definite(n.unknown || n.name) : (n.unknown || n.name);
   return full ? n.name : (n.short || n.name);
 }
 // How narration refers to someone: their short name once known, else `ref`.
@@ -244,7 +248,7 @@ function learnName(c, typed) {
 function pronoun(t) { return /^(him|her|them|he|she)$/.test(cleanNoun(t)); }
 function speak(id, text) {
   const t = text.trim();
-  if (/^["“]/.test(t)) say(`${cap(npcName(id))} says, ${t}`, { npcPrefix: true });
+  if (/^["“]/.test(t)) { const who = cap(npcName(id)); markSeen(id); say(`${who} says, ${t}`, { npcPrefix: true }); }
   else say(t);
 }
 
@@ -322,7 +326,7 @@ function resolve(name) {
   return null;
 }
 function clarify(res) {
-  const names = (res.many || res.maybe).map(c => c.name).join(' or ');
+  const names = (res.many || res.maybe).map(c => c.kind === 'npc' && !known(c.id) ? definite(c.name) : c.name).join(' or ');
   say((res.many ? G.ambiguous : G.did_you_mean).replace('{options}', names));
 }
 
@@ -360,6 +364,7 @@ function render(text, opts = {}) {
     const key = norm(m[1]);
     const ref = labels.get(key);
     let shown = m[2] !== undefined ? m[2] : ref && ref.kind === 'npc' ? npcName(ref.id) : m[1];
+    if (m[2] === undefined && ref && ref.kind === 'npc') markSeen(ref.id);
     const prior = t.slice(0, m.index);
     if (!prior.trim() || /[.!?]["”]?\s*$/.test(prior)) shown = cap(shown);
     const cls = isKey(ref, rid) ? 'key' : 'minor';

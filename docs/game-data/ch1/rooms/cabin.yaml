@@ -88,7 +88,7 @@ npcs:
     look: She wears a dark dress and a shawl, with her sleeves pushed up from work, and she is watching you the way you'd watch a dog you didn't know.
     talk:
       - when: [not known.madeline]
-        text: "\"I'm his wife, Madeline, and you'll be the one he fished out of the river. You're dripping on my doorstep.\" She glances at the axe in the block. \"Take it if you need it, but bring it back.\""
+        text: "\"I'm Madeline Ogee. My husband keeps the ferry down below, and you'll be the one he fished out of the river, because you're dripping on my doorstep.\" She glances at the axe in the block. \"Take it if you need it, but bring it back.\""
         do: [{set: [known.madeline, 1830.axe_ok]}]
       - text: "{madeline} gives you a short nod and goes back to her work."
     topics:

@@ -86,7 +86,7 @@ tests:
     url: scene=landing
     steps:
       - setup: {flags: [1830.wagon_free]}
-      - {cmd: talk to man, expect: [Which do you mean, man in a buckskin shirt, big man], not: asa}
+      - {cmd: talk to man, expect: [Which do you mean, the man in the buckskin shirt, the big man], not: asa}
 
   - name: unknown things are answered in the narrator's voice
     steps:
@@ -250,4 +250,25 @@ tests:
       - {cmd: score, not: Sit a moment}
       - {cmd: wait, expect: [Sit a moment, world comes back]}
       - {cmd: wait, expect: Time passes, not: Sit a moment}
+
+  - name: an unnamed person is "a man" the first time and "the man" after
+    url: scene=wateredge
+    steps:
+      - setup: {flags: [present.planks, present.voice]}
+      - {cmd: answer, room: landing}
+      - {cmd: wait, expect: "A man in a good coat sits", not: "The man in the good coat"}
+      - {cmd: look, expect: "The man in the good coat sits", not: "A man in a good coat"}
+      - {cmd: talk to man in good coat, expect: "The man in the good coat says"}
+
+  - name: after the rescue, the room already calls Ogee "the man"
+    url: scene=wateredge
+    steps:
+      - setup: {flags: [present.planks, present.voice]}
+      - {cmd: answer, expect: "The man in the buckskin shirt stands", not: "A man in a buckskin shirt", room: landing}
+
+  - name: Madeline says whose wife she is
+    url: scene=cabin
+    steps:
+      - setup: {flags: [1830.arrived]}
+      - {cmd: talk to woman, expect: [Madeline Ogee, My husband keeps the ferry], not: "his wife"}
 

@@ -277,7 +277,7 @@ for (const ch of chapterDirs) {
 
   // flags read but never set (known.* names are set by talk; they still need a set)
   for (const [f, w] of flagsRead) if (!flagsSet.has(f)) err(w, `flag ${f} is read but never set anywhere`);
-  for (const [f, w] of flagsSet) if (!flagsRead.has(f) && !(chapter.flags || {})[f]) warn(w, `flag ${f} is set but never read and not declared in chapter.yaml`);
+  for (const [f, w] of flagsSet) if (!flagsRead.has(f) && !f.startsWith('seen.') && !(chapter.flags || {})[f]) warn(w, `flag ${f} is set but never read and not declared in chapter.yaml`);
 
   // sources and claims
   for (const [cid, c] of Object.entries(src.claims || {})) {

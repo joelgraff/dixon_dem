@@ -66,7 +66,7 @@ Markup inside text:
 | --- | --- |
 | `[cases]` | A lookable noun, by id or alias, in this room. The checker requires every bracket to resolve. |
 | `[emptycase\|empty case]` | Same, showing different words. |
-| `[ogee]` | An NPC id shows that NPC's current name: `unknown` until `known.<id>` is set, then `name`. |
+| `[ogee]` | An NPC id shows that NPC's current name: `unknown` until `known.<id>` is set, then `name`. The first time an unknown person is shown they are "a man in a buckskin shirt"; after that the runtime sets `seen.<id>` and says "the man in the buckskin shirt". |
 | `{ogee}`, `{ogee's}` | A character in plain narration: their short name once `known.<id>` is set, until then their `ref` ("the ferryman", "the ferryman's"). Capitalized at a sentence start. |
 | `{town}` | A chapter variable (see `vars` in chapter.yaml). |
 | `{money}`, `{score}`, `{max_score}` | Live values. |
@@ -118,7 +118,10 @@ a rewind clears it.
 Flag prefixes: `present.` (the present day), `1830.` (cleared by a rewind),
 `known.` (names the player has learned; never cleared), `heard.` (a name the
 player has been told but whose owner they haven't met, e.g. `heard.dixon` once
-Ogee mentions him; never cleared), `chapter1.`.
+Ogee mentions him; never cleared), `seen.` (an unnamed person the player has
+already been shown, so later mentions use "the"; set by the runtime, or by an
+effect when narration has already introduced them; never cleared),
+`chapter1.`.
 
 **Names before introductions.** Narration never names a character the player
 hasn't been introduced to. Write `{dixon}` / `{dixon's}` instead of "Dixon",
