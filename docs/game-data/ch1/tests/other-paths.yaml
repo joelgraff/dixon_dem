@@ -202,7 +202,7 @@ tests:
       - setup: {flags: [1830.arrived, known.ogee, 1830.rope_strung, 1830.has_pole, 1830.wagon_free, 1830.shoe_lost], items: [phone, pole]}
       - {cmd: look at pole, not: ferry's lines}
       - {cmd: give pole back, expect: Lost her shoe in that slough}
-      - {cmd: look at setting pole, expect: foot bare}
+      - {cmd: look at setting pole, expect: foot is bare}
       - {cmd: ask ogee for pole, expect: Take her}
       - setup: {items: [phone, pole, shoe]}
       - {cmd: give shoe to ogee, expect: [Smith made that, takes the pole from you]}

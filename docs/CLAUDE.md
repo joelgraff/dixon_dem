@@ -7,3 +7,5 @@
   features). No releases or tags. Rules: docs/game-data/CHANGELOG.md.
 - Before pushing: `npm run check` and `node test.mjs` in docs/game-data/tools.
 - Every new historical claim gets an entry in docs/game-data/sources.yaml.
+- Prose: complete, flowing sentences, never strings of fragments. Characters keep their
+  voices but speak naturally. Rules: "Prose" in docs/skill/references/interaction-design.md.

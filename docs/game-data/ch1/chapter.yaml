@@ -66,83 +66,84 @@ items:
         - text: Nobody here needs to see your phone.
       light:
         - when: [era:1830]
-          text: The light comes on, startlingly white against the grey, and you shut it off again fast. Nobody saw.
-        - text: The flashlight comes on. Nothing here needs lighting.
-      photograph: You take a picture. Later, maybe, you'll find out whether it came out.
+          text: The light comes on, startlingly white against the grey, and you shut it off again fast. Nobody saw, as far as you can tell.
+        - text: The flashlight comes on, but nothing here needs lighting, so you turn it off again.
+      photograph: You take a picture, and maybe later you'll find out whether it came out.
       call:
         - when: [era:1830]
-          text: No bars. In 1830 there is nobody to call.
+          text: There are no bars, and in 1830 there is nobody to call anyway.
         - text: You can't think of anyone you need to call right now.
     look:
       - when: [era:1830]
-        text: A flat tin case, the kind a man keeps tobacco in. Open it, and it's your phone, which came through the river better than you did. No bars, and the clock is stuck at 4:17, but the battery reads 61 percent and the assistant still opens. You could ask it for help. To anyone watching, you suspect, it would look like a great deal more than a tin.
+        text: It looks like a flat tin case, the kind a man keeps tobacco in, but when you open it, it's your phone, which came through the river better than you did. There are no bars and the clock is stuck at 4:17, but the battery reads 61 percent and the assistant still opens, so you could ask it for help. To anyone watching, you suspect, it would look like a great deal more than a tin.
       - when: [in:wateredge, turns>=2, not 1830.lease_dixon]
-        text: The screen is dim and the bars are gone. The clock reads 4:17 and does not change while you watch it.
+        text: The screen has gone dim and the bars are gone, and the clock reads 4:17 and does not change while you watch it.
       - when: [1830.lease_dixon]
-        text: Battery at 58 percent, full signal. The clock reads 4:21 and, while you watch, turns to 4:22.
-      - text: Battery at 61 percent, full signal. Nothing new.
+        text: The battery is at 58 percent with a full signal, and the clock reads 4:21 and, while you watch, turns over to 4:22.
+      - text: The battery is at 61 percent with a full signal, and there's nothing new.
   rope:
     era: 1830
     name: coil of rope
     aliases: [rope, coil, hemp, line]
-    look: A heavy coil of new hemp, every foot {dixon} could buy in Peoria.
+    look: It's a heavy coil of new hemp, every foot that {dixon} could buy in Peoria.
   axe:
     era: 1830
     name: axe
     aliases: [hatchet]
-    look: "{ogee's} axe, its edge sharp enough to catch a thumbnail."
+    look: "This is {ogee's} axe, and its edge is sharp enough to catch a thumbnail."
   paddle:
     era: 1830
     name: paddle
     aliases: [oar]
-    look: A length of split oak shaved into something like a paddle. It will do.
+    look: It's a length of split oak shaved down into something like a paddle, and it will do.
   pole:
     era: 1830
     name: setting pole
     aliases: [pole, setting pole, ash pole]
     look:
       - when: [1830.shoe_lost, not 1830.shoe_returned]
-        text: "{ogee's} ash setting pole, lighter at the foot now that its iron shoe is gone."
-      - text: "{ogee's} ash setting pole, shod with a cone of forged iron."
+        text: "{ogee's} ash setting pole feels lighter at the foot now that its iron shoe is gone."
+      - text: "{ogee's} ash setting pole is long and heavy, shod at the foot with a cone of forged iron."
   brush:
     era: 1830
     name: bundle of brush
     aliases: [brush, willow, willows, bundle]
-    look: An armful of willow, cut and bundled.
+    look: It's an armful of willow, cut and bundled together.
   shoe:
     era: 1830
     name: pole shoe
     aliases: [shoe, iron shoe, pole shoe, iron]
-    look: A cone of forged iron, dented on one side and caked with mud.
+    look: It's a cone of forged iron, dented on one side and caked with mud.
   order:
     era: 1830
     name: Dixon's order
     aliases: [order, paper, warrant, governor's order]
-    look: A folded order on Governor Edwards at Vandalia, for seventy-two dollars and change, in a careful clerk's hand.
+    look: It's a folded order on Governor Edwards at Vandalia for seventy-two dollars and change, written out in a careful clerk's hand.
 
 # The chapter-end fog: while it holds, every exit in an 1830 room is blocked
 # and the room_line is added to every 1830 room description.
 fog_lock:
   when: [1830.fog]
   room_line: The fog has closed in around you, thick and white, and a rough hand has found your sleeve.
-  blocked: The fog is too thick to go anywhere. You take a step and lose all sense of direction, and {ogee's} hand tightens on your sleeve. "Not that way. Take my arm."
+  blocked: The fog is too thick to go anywhere. You take one step and lose all sense of direction, and {ogee's} hand tightens on your sleeve. "Not that way. Take my arm."
 
 deaths:
   pole_high_water: >-
-    You push the ferry off. The current takes it, and you with it, and the
+    You push the ferry off, and the current takes it and you with it, and the
     landing is a long way behind before you think of letting go. {ogee} did
-    mention the river was up. Several times.
+    mention that the river was up, several times.
   canoe_sinks: >-
-    Halfway across, the split seam opens like a mouth. The Rock River accepts
-    the canoe, and then you, with equal enthusiasm.
+    Halfway across, the split seam opens like a mouth, and the Rock River
+    accepts the canoe and then you with equal enthusiasm.
   no_paddle: >-
-    The current takes the canoe gently and completely. Somewhere past what
-    will one day be Sterling, you reflect that a paddle would have helped.
+    The current takes the canoe gently and completely, and somewhere past
+    what will one day be Sterling, you reflect that a paddle would have
+    helped.
   swim: >-
     The river in April is colder than it looks, and it looks very cold.
   railing: >-
-    You swing a leg over the railing for a better look. The riprap is exactly
-    as hard as it looked from up there.
+    You swing a leg over the railing for a better look, and the riprap turns
+    out to be exactly as hard as it looked from up there.
 
 # Actions that work in several rooms.
 actions:
@@ -153,11 +154,11 @@ actions:
       - clear: [1830.fog, present.planks, present.voice]
       - set: present.returned
       - say: >-
-          You take {ogee's} arm and walk blind through the white, step by step.
-          His hand lets go of your sleeve somewhere along the way. The planks
-          give way to concrete, the knocking fades, and the city sounds come
-          back one by one. Your own clothes are back, and dry. You decide not to
-          think about that either.
+          You take {ogee's} arm and walk blind through the white, step by step,
+          and somewhere along the way his hand lets go of your sleeve. The
+          planks give way to concrete, the knocking fades, and the city sounds
+          come back one by one. Your own clothes are back, and dry, and you
+          decide not to think about that either.
       - move: wateredge
     else:
       - say: There's nobody to follow just now.
@@ -166,7 +167,7 @@ actions:
     phrases: [go to museum, go back to museum, return to museum, museum, go to historic center, walk to museum, go to margaret]
     when: [present.returned, {any: [in:wateredge, in:riverwalk]}, not present.planks]
     do:
-      - say: You make your way back to the Historic Center, the river walk and Hennepin passing in a blur of ordinary evening.
+      - say: You make your way back to the Historic Center, with the river walk and Hennepin passing in a blur of ordinary evening.
       - move: museum
     else:
       - when: [era:1830]
@@ -180,8 +181,8 @@ actions:
       - death: swim
     else:
       - when: [in:wateredge]
-        say: You get as far as the bottom step. The water is colder than a warm evening has any right to make it, and you think better of it.
-      - say: There's no water here to drown in, which is something.
+        say: You get as far as the bottom step, where the water turns out to be colder than a warm evening has any right to make it, and you think better of it.
+      - say: There's no water here to drown in, which is something, at least.
 
   - id: sell_order
     phrases: [sell order to asa, give order to asa, sell the order, trade paper, trade order, cash the order, sell paper to asa, give paper to asa, offer asa the order, sell asa the order]
@@ -230,7 +231,7 @@ veil:
     dixon: >-
       [dixon] looks at the thing in your hand for a long moment. "I'd put that
       away," he says quietly, and turns back toward the river.
-    rebecca: "[rebecca] stops stirring. She looks at your hand, then at your face, and calls the children to her."
+    rebecca: "[rebecca] stops stirring and looks at your hand, then at your face, and calls the children to her."
     james: "[james] goes pale and steps back behind the wagon."
     madeline: >-
       [madeline] makes a small sign with two fingers and steps between you and
@@ -238,26 +239,26 @@ veil:
     agent: "[agent] stares at it, then writes something on his papers, slowly, without taking his eyes off you."
     eli: >-
       [eli] scrambles back off the wagon tongue with his rifle half raised.
-      "What is that?" Nobody answers him.
+      "What is that?" he says, and nobody answers him.
     asa: >-
       [asa] stops swearing, which is somehow worse. "Whatever that is," he
       says, "keep it off my wagon."
     default: Whoever saw it goes very still, and then very busy somewhere else.
   warning: >-
     Out over the river the air thickens for a moment, as though something has
-    noticed. You put the phone away. Better not do that again.
+    noticed, and you put the phone away. You'd better not do that again.
   cold:
     dixon: "[dixon] keeps his eyes on the river. \"Not now.\""
     madeline: "[madeline] shakes her head and keeps the boys behind her."
     agent: "[agent] goes on writing and doesn't answer."
     eli: "[eli] edges away along the wagon tongue."
-    default: They won't meet your eye. Give it time, somewhere else.
+    default: They won't meet your eye, and you'd do better to give it some time, somewhere else.
   again:
     - say: >-
         This time the fog doesn't wait. It comes up off the river all at once,
         thick and white and cold, and the voices around you go thin and far
         away. When it clears you're standing on concrete in your own dry
-        clothes, with your phone in your hand. Whatever you did in 1830 has
+        clothes with your phone in your hand, and whatever you did in 1830 has
         come undone.
     - rewind: 1830
     - clear: [present.planks, present.voice]
@@ -278,42 +279,42 @@ npcs:
       - when: [1830.wagon_free]
         text: "[asa] stands by his wagons, in a better temper than before."
       - text: "[asa] stands at the wheel, swearing at all of it."
-    look: A big man in a sweat-dark shirt, mud to the thighs, with the look of someone who has been losing an argument with a wagon since sunup.
+    look: He's a big man in a sweat-dark shirt, mud to the thighs, with the look of someone who has been losing an argument with a wagon since sunup.
     talk:
       - when: [not known.asa]
         text: >-
-          "Asa. That boy's uncle." He wipes his hands, which makes them
-          muddier. "My bar broke an hour back. The wheels want brush under
-          them, something to bite on, and I want a long lever under that hind
-          axle. Get me both and it's forty dollars, silver."
+          "Asa. I'm that boy's uncle." He wipes his hands on his shirt, which
+          only makes them muddier. "My bar broke an hour back. The wheels want
+          brush under them, something to bite on, and I want a long lever under
+          that hind axle. Get me both and it's forty dollars, silver."
         do: [{set: known.asa}]
       - when: [1830.wagon_free]
-        text: "\"I owe you, and I don't like owing. Anything I can do, say so.\""
-      - text: "\"Brush and a lever. I'm not getting any younger, and neither is that wagon.\""
+        text: "\"I owe you, and I don't like owing. If there's anything I can do, say so.\""
+      - text: "\"Brush and a lever, that's all I need. I'm not getting any younger, and neither is that wagon.\""
     topics:
       - keys: [wagon, wheels, slough, mud, stuck, bar, lever, brush]
-        say: "\"Willow brush under the hind wheels, and something long under the axle. Ogee's got a setting pole would do, if he'd part with it.\""
+        say: "\"I want willow brush under the hind wheels and something long under the axle. Ogee's got a setting pole that would do, if he'd part with it.\""
       - keys: [galena, diggings, mines, lead, flour, tools]
-        say: "\"Bound for the diggings with flour and tools. Merchants in Galena pay silver, and they'll take good paper too, at a price.\""
+        say: "\"We're bound for the diggings with flour and tools. The merchants in Galena pay silver, and they'll take good paper too, at a price.\""
       - keys: [paper, order, governor, silver, money, cash]
         say:
           - when: [has:order]
-            text: "\"A government order? Let's see it.\" He holds out a hand."
-          - text: "\"I've silver for the road, and a little over. A man who carries paper to Galena can turn it into silver, if he's patient.\""
+            text: "\"A government order, is it? Let's see it,\" he says, and holds out a muddy hand."
+          - text: "\"I've silver for the road and a little over. A man who carries paper to Galena can turn it into silver, if he's patient about it.\""
       - keys: [eli, nephew, boy]
-        say: "\"My sister's boy. His pa went with the militia in '27 and didn't come back. I said I'd see him to the diggings and home again.\""
+        say: "\"He's my sister's boy. His pa went with the militia in '27 and didn't come back, so I said I'd see him to the diggings and home again.\""
       - keys: [ferry, river, crossing, ogee]
         say:
           - when: [1830.rope_strung]
-            text: "\"Ogee's got her running on a rope. Never seen the like. We'll be over by dark.\""
-          - text: "\"Can't cross anyway till the river drops. Might as well be stuck here as there.\""
-    fallback: "{asa} spits. \"No idea.\""
+            text: "\"Ogee's got her running on a rope, and I've never seen the like. We'll be over by dark.\""
+          - text: "\"Nobody can cross till the river drops anyway, so I might as well be stuck here as there.\""
+    fallback: "{asa} spits into the mud. \"I've no idea, and I've no time to find out.\""
     social:
-      hello: "{asa} grunts a greeting."
-      thanks: "\"Thank me when she's out.\""
-      bye: "\"Mind your boots.\""
-      how: "\"Muddy.\""
-      sorry: "\"Nothing to be sorry about.\""
+      hello: "{asa} grunts something that might be a greeting."
+      thanks: "\"Thank me when she's out of the mud.\""
+      bye: "\"Mind your boots on the way.\""
+      how: "\"Muddy. How does it look like I am?\""
+      sorry: "\"There's nothing to be sorry about.\""
     parting: You nod to [asa], who nods back without letting go of the wheel.
 
 # What `help` says: the first entry whose `when` holds. Help is the one place

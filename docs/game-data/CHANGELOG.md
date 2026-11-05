@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.7.1 (2026-11-05)
+- Prose pass over the whole chapter: room descriptions, objects, dialogue and narration rewritten in complete, flowing sentences instead of strings of fragments, with each character's voice kept. Added a Prose section to the design rules (skill/references/interaction-design.md) and docs/CLAUDE.md so new text stays that way.
+
 ## 0.7.0 (2026-11-04)
 - After you're pulled from the river, your first action is held: you're still in shock, Ogee pushes you back down ("Sit a moment. Get the river out of you first."), you find the clothes and the tin case, and the landing comes back into view with its full description. Nothing on the landing can be used before it has been described. New engine feature: a room's hold answers the next command while a flag holds (help, save and the other meta commands still work), and a describe effect reprints the room.
 

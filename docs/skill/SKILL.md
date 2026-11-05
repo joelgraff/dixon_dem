@@ -12,7 +12,7 @@ Interactive text-parser playthroughs and design sessions for the Dixon historica
 ## Modes
 
 ### Play Mode
-Start or continue a scene. Respond to commands in the established style: short, sensory, period-accurate, no anachronisms. Use the active scene card as the dictionary. Always clarify ambiguity rather than guess. Informational failures ("the rope is too short") not bare "you can't."
+Start or continue a scene. Respond to commands in the established style: sensory, period-accurate, no anachronisms, written in full sentences (see "Prose" in references/interaction-design.md). Brevity means saying less, not chopping sentences into fragments. Use the active scene card as the dictionary. Always clarify ambiguity rather than guess. Informational failures ("the rope is too short") not bare "you can't."
 
 **Core commands to support:**
 - look around / look [direction] / look at|out|through|in [object]

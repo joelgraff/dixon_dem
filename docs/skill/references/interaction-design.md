@@ -10,6 +10,13 @@ How the demo should feel. These rules come from playtest feedback and are meant 
 - Transitions are gradual. The museum to 1830 shift takes four scenes (museum, street, river walk, water's edge) and the fog builds over turns spent at the water's edge. No scene jumps, no dropdown. `?scene=<id>` in the URL starts in any scene for testing.
 - The water's edge transition is player-driven. Examining things thickens the fog. Once it has built, looking at the water lets the player lose themselves in the current; when they look down, the concrete is planks. Nothing else changes until the next look around, which shows the 1830 bank and ends with Ogee's voice (Ogee does not exist before that). Answering the voice (call, answer, talk to voice) completes the crossing. Climbing back up is blocked once the planks appear. The player is then stuck in 1830 until the scene is played out (land and ferry both bought); only then does fog roll in wherever the player is. While it lasts every move is pointless ("too thick to go anywhere"), and Ogee appears to guide the player: `follow ogee` (or `take arm`, `stay close`) walks them back to the present-day water's edge. The stairs from the riverfront run north down to the water, and south back up.
 
+## Prose
+- Write in complete sentences. Each sentence carries a whole thought, image or feeling; never a list of noun-phrase fragments ("A clearing above the landing. One long log cabin. A woodpecker.").
+- Join what belongs together. A place, what stands in it and how it feels can share a sentence or two; vary sentence length so the text reads like a person describing something, not a teletype.
+- Characters keep their voices. A laconic man still speaks in natural sentences, with the rhythm of real speech; terseness comes from what he chooses not to say, not from clipped telegraph phrasing.
+- Short replies are fine when the moment is small, but they are still sentences.
+- The 1980s brevity we borrow is about how much a room tells you at once, not about the shape of the sentences.
+
 ## Progressive Discovery
 - The top-level room description lists only what a visitor would notice first. Further detail is found by examining things.
 - Objects carry `reveals`: examining one makes new nouns visible. Revealed nouns are added to the room description (`extras`) and become valid targets. Until then they are "not here" to the parser.

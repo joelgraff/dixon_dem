@@ -3,7 +3,7 @@
 
 # Release version (see CHANGELOG.md for the rules). Bump it, the ?v= in
 # play.html and the changelog together; the checker verifies they match.
-version: 0.7.0
+version: 0.7.1
 # Bump when a change would break saved games (renamed or removed flags,
 # items or rooms). Saves from another save_compat are refused, not loaded.
 save_compat: 1
@@ -40,9 +40,9 @@ verbs:
 # One is picked at random. Keep the voice dry, never cruel.
 defaults:
   look:   ["You see nothing more than you saw a moment ago."]
-  take:   ["That isn't yours to take, and you suspect someone would notice.", "You consider it. It stays where it is."]
-  touch:  ["You touch it. It continues to be what it was.", "It feels about how it looks."]
-  push:   ["It doesn't budge, and you feel slightly foolish.", "You push. The world declines to rearrange itself."]
+  take:   ["That isn't yours to take, and you suspect someone would notice.", "You consider it for a moment, and it stays where it is."]
+  touch:  ["You touch it, and it goes on being exactly what it was.", "It feels about how it looks."]
+  push:   ["It doesn't budge, and you feel slightly foolish.", "You push, and the world declines to rearrange itself."]
   open:   ["It doesn't open, or if it does, it isn't telling you how."]
   close:  ["It isn't open."]
   sit:    ["You'd rather not sit on that.", "Not even a tired tourist would sit there."]
@@ -57,13 +57,13 @@ defaults:
   use:    ["You'll need to be more specific about how."]
   give:   ["Nobody here seems to want that."]
   show:   ["They look at it, and then at you, politely."]
-  photograph: ["You take a picture. It comes out about the way you'd expect."]
+  photograph: ["You take a picture, and it comes out about the way you'd expect."]
   light:  ["Nothing here needs lighting."]
 
 # Replies to commands the parser can't read at all. Picked at random.
 unknown:
   - "You'd like to do that, but you can't think how."
-  - "That's a sentence. It isn't a plan."
+  - "That's a sentence, but it isn't a plan."
   - "The parser squints at that and gives up."
 
 not_here: "You don't see that here."
@@ -104,7 +104,7 @@ tour:
   - target: "#bar-top"
     text: "The top bar shows the game's version, where you are, and your score."
   - target: "#output"
-    text: "The story. Every reply is added to this log and nothing is cleared, so you can scroll back to reread."
+    text: "This is the story so far. Every reply is added to this log and nothing is ever cleared, so you can scroll back to reread anything."
   - target: "#bar"
     text: "Type commands here, up to 40 characters, and press Enter. Try look, look at the panel, talk to someone, ask someone about something, or go north."
   - target: "#quick"
@@ -112,7 +112,7 @@ tour:
   - target: "#notes"
     text: "The looked-at sidebar lists what you've examined, by place. Click an entry to reread it."
   - target: "#gear"
-    text: "Settings live behind this button. Your browser remembers them."
+    text: "Settings live behind this button, and your browser remembers whatever you choose."
   - target: "#opt-sidebar"
     label: true
     settings: true
