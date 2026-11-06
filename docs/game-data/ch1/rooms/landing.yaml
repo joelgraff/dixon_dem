@@ -178,8 +178,10 @@ npcs:
     ref: the ferryman
     aliases: [ogee, joseph, joseph ogee, ferryman, man in buckskin, man in buckskin shirt, man]
     room_line:
-      - when: [1830.rope_strung]
+      - when: [1830.rope_strung, has:pole]
         text: "[ogee] works the ferry along the rope, hand over hand."
+      - when: [1830.rope_strung]
+        text: "[ogee] works the ferry along the rope, hand over hand, and his setting [pole] leans idle against the post, since there's no call for it now."
       - text: "[ogee] stands at the ferry's lines, holding her against the current, a setting [pole] leaning on the post beside him."
     look: He is a broad man in a buckskin shirt with his sleeves rolled over scarred forearms, and he looks at the river the way a man looks at a horse that has thrown him before.
     talk:

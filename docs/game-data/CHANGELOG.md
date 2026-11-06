@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.7.6 (2026-11-06)
+- The setting pole stays in the landing description after the rope is strung (it leans idle against the post), so you can see it's there to borrow.
+
 ## 0.7.5 (2026-11-05)
 - The paddle is no longer carved from firewood. Madeline keeps her father's old canoe paddle on pegs under the cabin eaves; Ogee tells you to ask her for it. Chopping wood is just chopping wood, and trying to carve a paddle says the lengths are too short and someone probably has a spare.
 

@@ -285,3 +285,13 @@ tests:
       - {cmd: look, not: under the eaves}
       - {cmd: ask for paddle, expect: already have the paddle}
 
+
+  - name: the pole stays in sight after the rope is strung
+    url: scene=landing
+    steps:
+      - setup: {flags: [1830.arrived, known.ogee, 1830.met_ogee, 1830.rope_strung]}
+      - {cmd: look, expect: setting pole leans idle against the post}
+      - {cmd: ask ogee for pole, expect: Take her}
+      - {cmd: look, not: leans idle}
+      - {cmd: give pole back}
+      - {cmd: look, expect: leans idle against the post}
