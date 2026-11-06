@@ -276,6 +276,8 @@ npcs:
     topics:
       - keys: [debt, notes, owe, overdue, installment, mortgage, terms, hundred, silver]
         say: "\"Mr. Ogee owes a hundred dollars that fell due in February, and a good deal more after it. A hundred in silver today buys him time. Paper buys him nothing.\""
+      - keys: [lease, rent, tolls, lessee]
+        say: "\"If Mr. Ogee leases her to a man who can pay, the rent comes to Mr. Rolette, and so much the better for everyone. But the first hundred comes in silver, and it comes today.\""
       - keys: [rolette, master, employer, prairie du chien, trader]
         say: "\"Mr. Rolette trades out of Prairie du Chien. He's a patient man up to a point, and this is the point.\""
       - keys: [boat, ferry, seize, take, court]
@@ -449,8 +451,10 @@ actions:
       - money: -100
       - set: [1830.lease_player, 1830.fog]
       - say: >-
-          The agent counts the silver twice. "Silver's silver. Whose name goes
-          on the paper?" He writes yours, and {ogee} looks away. Up the trail,
+          The agent counts the silver twice. "Silver's silver, and it goes
+          against the note. Whose name goes on the paper?" He writes yours,
+          though you couldn't run a ferry if your life depended on it, and
+          {ogee} looks away. Up the trail,
           a tall figure turns and walks back toward the camp. Then a chill comes
           off the river, and within a few breaths the fog is on you, and
           {ogee's} voice comes from close by, flatter than before: "Easy now.

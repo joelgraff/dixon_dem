@@ -64,7 +64,7 @@ tests:
       - {cmd: give shoe to ogee, expect: Smith made that, score: 81}
       - {cmd: south, room: cabin}
       - {cmd: south, room: camp}
-      - {cmd: give dixon 100, expect: [writes Dixon's name, Take my arm], score: 96, money: 0, room: landing}
+      - {cmd: give dixon 100, expect: [signs the ferry over to Dixon on a lease, Take my arm], score: 96, money: 0, room: landing}
       - {cmd: south, expect: fog is too thick, room: landing}
       - {cmd: "take ogee's arm", expect: city sounds come back, room: wateredge}
       # Part 5: home

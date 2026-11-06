@@ -193,8 +193,8 @@ actions:
       - money: 60
       - say: >-
           {asa} holds it to the light. "Seventy-two and change, on the governor.
-          I can pass that in Galena." He counts out silver. "Sixty, and I'm
-          doing you a kindness." You now have ${money}.
+          The merchants in Galena will take that, at a price." He counts out
+          silver. "Sixty, and I'm doing you a kindness." You now have ${money}.
     else:
       - when: [has:order]
         say: Nobody here has silver to spare for a government order.
@@ -345,7 +345,7 @@ hints:
   - when: [era:1830, not 1830.wagon_free]
     text: Lever the wagon out with Ogee's pole.
   - when: [era:1830, not 1830.order_cashed, not has:order]
-    text: Dixon's government order is worthless here, but a man bound for Galena might buy it. Offer to sell the order for Dixon.
+    text: Dixon has no silver, only a government order that nobody here will take, but a man bound for Galena might buy it. Offer to sell the order for Dixon.
   - when: [era:1830, not 1830.order_cashed]
     text: Sell the order to Asa.
   - when: [era:1830, money>=100]

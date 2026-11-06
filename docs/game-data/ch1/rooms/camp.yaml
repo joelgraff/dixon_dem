@@ -104,7 +104,7 @@ npcs:
       - text: "{dixon} nods to you. \"I'm still waiting on Rolette's man, and he's in no hurry.\""
     topics:
       - keys: [lease, ferry, ogee, buy, money, silver, hundred, waiting, short, trouble, terms]
-        say: "\"Ogee and I have come to terms. I take the ferry and the debt with it, and he keeps a roof over his family. All it wants is a hundred in silver to get Rolette's man off the dock, and that's the trouble.\" He turns the folded paper over in his hands. \"I have the governor's own paper and not a coin to spend.\""
+        say: "\"Ogee and I have come to terms. I lease the ferry from him, and the rent goes against Rolette's notes, so Rolette is paid in time and Ogee keeps a roof over his family. But the first of it has to be a hundred in silver, today, or Rolette's man takes the boat, and that's the trouble.\" He turns the folded paper over in his hands. \"I haven't a coin of silver to my name. What I have is the governor's own paper.\""
         do: [{set: 1830.dixon_short}]
       - keys: [agent, rolette, creditor, coat, man]
         say: "\"That's Rolette's man. The worst of it is that he isn't wrong; the money's owed, and he'll take the boat for it unless somebody puts a hundred in silver in his hand.\" He looks at the paper in his own hand and doesn't say whose silver he means."
@@ -114,7 +114,7 @@ npcs:
             text: "\"I saw her go over on the rope, and that's the way of it from now on.\" He looks almost pleased."
           - text: "\"That's every foot of hemp I could buy in Peoria. Strung from bank to bank, it lets you pull her over in any water short of a flood. Ogee calls it a fancy.\""
       - keys: [paper, order, governor, edwards, vandalia, pay, silver]
-        say: "\"It's an order on Governor Edwards for my mail pay, seventy-two dollars and change. It's good in Vandalia and worthless on this riverbank.\""
+        say: "\"It's an order on Governor Edwards for my mail pay. It says seventy-two dollars and change, and it'll be worth every cent of that in Vandalia, which is two hundred miles off. On this riverbank nobody will give a dollar of silver for it.\""
       - keys: [mail, contract, route, peoria, galena, post office]
         say: "\"I carry the mail from Peoria up to Galena, and this crossing sits square in the middle of the route, so a man who carries the mail needs the ferry.\""
       - keys: [family, wife, rebecca, children, sons, james, boys]
@@ -235,9 +235,12 @@ actions:
       - set: [1830.lease_dixon, 1830.fog, known.dixon]
       - say: >-
           {dixon} counts it twice. "I'll make this right, whatever the river
-          allows," he says, and you walk down to the landing together. The
-          agent counts the silver a third time and writes {dixon's} name into
-          the lease, and {ogee} signs it. Then a chill comes off the river, and
+          allows," he says, and you walk down to the landing together. {dixon}
+          puts the silver in the agent's hand, and the agent counts it a third
+          time and writes it against the February note. Then {ogee} signs the
+          ferry over to {dixon} on a lease, with the rent to go to Rolette, and
+          the agent witnesses it with the look of a man who came for a horse
+          and has been paid for it instead. Then a chill comes off the river, and
           within a few breaths the fog is on you, thick and white and wet, and
           {ogee's} voice comes from close by: "Easy now. Don't go wandering in
           this. Take my arm."
