@@ -60,14 +60,14 @@ nouns:
 
   willows:
     name: willows
-    aliases: [willow, brush, saplings]
-    look: Willow saplings grow thick along the wet edges, whippy and straight, and an armful of them would make good footing under a wheel.
+    aliases: [willow, brush, saplings, willow brush, willow saplings]
+    look: Willow saplings grow thick along the wet edges, whippy and straight, and an armful of them would make good footing under a wheel, if you had something to cut them with.
     verbs:
       take: Willow is tougher than it looks, and you'd need an axe to cut it.
 
 actions:
   - id: cut_brush
-    phrases: [cut brush, cut willows, cut willow, chop brush, chop willows, gather brush, cut saplings, chop willow, use axe on willows, use axe on brush, use axe on willow, cut willow brush, chop saplings, cut some brush, cut branches, chop branches, cut willow branches, use axe]
+    phrases: [cut brush, cut willows, cut willow, chop brush, chop willows, gather brush, cut saplings, chop willow, use axe on willows, use axe on brush, use axe on willow, cut willow brush, chop saplings, cut some brush, cut branches, chop branches, cut willow branches, use axe, take brush, get brush, take willows, take willow, get willows, gather willows, gather willow, take willow brush, get willow brush, gather willow brush, cut some willow, pick brush, collect brush, take saplings, cut the willows, cut the brush]
     when: [has:axe, not has:brush, not 1830.brush_placed, not 1830.wagon_free]
     do:
       - give: brush

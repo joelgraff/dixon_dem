@@ -17,6 +17,9 @@ push. The version shows in the top bar of play.html, in Settings, and with the
   It updates game.yaml, the `?v=` in play.html and this file together, and the
   checker fails if they ever disagree.
 
+## 0.7.7 (2026-11-06)
+- At the slough, 'take brush', 'get willows', 'gather willow brush' and the like now cut the brush when you have the axe (they used to say you need an axe even when you had one).
+
 ## 0.7.6 (2026-11-06)
 - The setting pole stays in the landing description after the rope is strung (it leans idle against the post), so you can see it's there to borrow.
 
