@@ -196,8 +196,8 @@ npcs:
           good coat. "So it's you. The tar's hot in the pot, since I was doing
           the ferry's seams. Pack that split with oakum, swab the tar over it,
           and she'll float. You'll want a paddle too, because mine's halfway to
-          St. Louis by now, but the oak by the cabin splits clean if you've an
-          axe."
+          St. Louis by now, but Madeline keeps her father's old one up at the
+          cabin. Ask her nicely."
         do: [{set: [known.ogee, 1830.met_ogee, heard.dixon]}]
       - when: [not 1830.met_ogee]
         text: "\"Back again, are you? The river's still up past the pole. Dixon has the rope, you owe me a canoe, and the tar's hot.\""
@@ -216,7 +216,7 @@ npcs:
             text: "\"It was Dixon's notion, and I'll admit it works. I'll not admit it to him, mind.\""
           - text: "\"It's Dixon's notion: a line from bank to bank, and you pull her over hand over hand. Only you can't get the line over without a boat, and I can't get a boat over in this.\""
       - keys: [canoe, dugout, seam, tar, paddle]
-        say: "\"She split on my own piling while I was fishing you out. The oakum's by the pot and the swab's standing in it, so pack the split first and then tar it over. You'll want a paddle as well, since mine went downriver, and the oak by the cabin splits clean.\""
+        say: "\"She split on my own piling while I was fishing you out. The oakum's by the pot and the swab's standing in it, so pack the split first and then tar it over. You'll want a paddle as well, since mine went downriver. Madeline keeps her father's old one up at the cabin, under the eaves. Ask her nicely.\""
       - keys: [help, yourself, why me, why, you, cross, carry, fix, repair, lines]
         say: "\"If I let go of these lines in this water, she's gone. If I step off this dock, that one says I've left her and she's Rolette's. The boy up there won't go near the river, and Dixon doesn't know it the way I do.\" He takes a fresh turn of line around the post. \"You've two hands, and you owe me the use of them.\""
       - keys: [rescue, saving, saved, fall, fell, drowning, swim]

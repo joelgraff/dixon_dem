@@ -63,3 +63,4 @@ claims:
   C23: {status: needs-source, rooms: [camp], sources: [], claim: "John Dixon was born in 1784, so in his mid-forties in 1830."}
   C24: {status: invented, rooms: [wateredge, landing], sources: [], claim: "The player walking off the dock in the fog, Ogee's rescue in the canoe, the split canoe and lost paddle, and Ogee tarring the ferry's seams."}
   C25: {status: needs-source, rooms: [landing], sources: [], claim: "Boat seams were caulked by packing oakum (old rope picked into fiber) and sealing it with hot pine tar or pitch, worked in with a swab."}
+  C26: {status: invented, rooms: [cabin], sources: [], claim: "A spare canoe paddle under the cabin eaves that belonged to Madeline's father."}

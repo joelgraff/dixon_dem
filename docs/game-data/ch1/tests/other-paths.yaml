@@ -177,14 +177,14 @@ tests:
       - {cmd: go north, expect: you'd have to be a fool, room: wateredge}
       - {cmd: walk out on the planks, expect: Nothing answers, room: wateredge}
 
-  - name: the axe is for asking, and the oak makes a paddle
+  - name: the axe is for asking, and the oak is only firewood
     url: scene=cabin
     steps:
       - setup: {flags: [1830.arrived]}
       - {cmd: take axe, expect: [That's ours, you could ask], not: work the axe free}
       - {cmd: ask woman for axe, expect: Take it if you need it}
       - {cmd: take axe, expect: work the axe free}
-      - {cmd: use axe on oak, expect: something like a paddle}
+      - {cmd: use axe on oak, expect: gets you nothing}
       - {cmd: return axe, expect: You hand the axe back}
 
   - name: the landing points at the canoe once it's ready
@@ -272,10 +272,16 @@ tests:
       - setup: {flags: [1830.arrived]}
       - {cmd: talk to woman, expect: [Madeline Ogee, My husband keeps the ferry], not: "his wife"}
 
-  - name: chopping wood with the axe makes the paddle
+  - name: the paddle is Madeline's father's, and you have to ask
     url: scene=cabin
     steps:
       - setup: {flags: [1830.arrived, 1830.axe_ok, 1830.has_axe], items: [axe]}
-      - {cmd: chop wood, expect: something like a paddle}
-      - {cmd: chop wood, expect: one is plenty}
+      - {cmd: look, expect: hangs on wooden pegs under the eaves}
+      - {cmd: chop wood, expect: gets you nothing, not: paddle}
+      - {cmd: carve a paddle, expect: [two feet long, has a spare]}
+      - {cmd: take paddle, expect: [That was my father's, you could ask], not: lifts it down}
+      - {cmd: ask woman about paddle, expect: [lifts it down from the pegs, bring it home]}
+      - {cmd: inventory, expect: paddle}
+      - {cmd: look, not: under the eaves}
+      - {cmd: ask for paddle, expect: already have the paddle}
 

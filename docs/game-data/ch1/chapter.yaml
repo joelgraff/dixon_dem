@@ -22,7 +22,7 @@ flags:
   1830.met_ogee:           {score: 3, desc: Heard from Ogee why he can't cross}
   1830.has_rope:           {score: 3, desc: Got the rope from Dixon}
   1830.has_axe:            {score: 1, desc: Took the axe}
-  1830.has_paddle:         {score: 4, desc: Cut a paddle}
+  1830.has_paddle:         {score: 4, desc: Borrowed Madeline's father's paddle}
   1830.canoe_tarred:       {score: 5, desc: Tarred the canoe}
   1830.canoe_across:       {desc: The canoe is at the north landing}
   1830.rope_strung:        {score: 7, desc: Tied the rope on the north bank}
@@ -95,7 +95,7 @@ items:
     era: 1830
     name: paddle
     aliases: [oar]
-    look: It's a length of split oak shaved down into something like a paddle, and it will do.
+    look: "It's {madeline's} father's paddle, one piece of ash, the grip worn dark and smooth by somebody's hands for a long time before yours."
   pole:
     era: 1830
     name: setting pole
@@ -331,7 +331,7 @@ hints:
   - when: [era:1830, not 1830.rope_strung, not has:rope]
     text: Ogee needs Dixon's rope carried across the river. Dixon is camped up the trail, south past the cabin. Ask him for the rope.
   - when: [era:1830, not 1830.rope_strung, not has:paddle]
-    text: You'll need a paddle. The oak by the cabin splits clean, if you take the axe. Then cut a paddle.
+    text: You'll need a paddle. Madeline keeps a spare up at the cabin, under the eaves. Ask her for it.
   - when: [era:1830, not 1830.rope_strung, not 1830.canoe_tarred]
     text: Tar the canoe at the landing.
   - when: [era:1830, not 1830.rope_strung]
